@@ -155,9 +155,9 @@ def _train_cem_policy(
     mean = np.zeros(param_dim)
     std = np.full(param_dim, 0.7)
     if use_scaled_policy:
-        scale_start = _logit((0.35 - 0.05) / 0.95)
+        scale_start = _logit((0.25 - 0.05) / 0.95)
         mean[-act_dim:] = scale_start
-        std[-act_dim:] = 0.35
+        std[-act_dim:] = 0.25
     best_params = mean.copy()
     best_score = -float("inf")
     start = time.monotonic()
