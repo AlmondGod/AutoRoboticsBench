@@ -1,0 +1,8 @@
+.venv/
+third_party/
+runs/*
+!runs/.gitkeep
+*.egg-info/
+__pycache__/
+*.pyc
+.DS_Store

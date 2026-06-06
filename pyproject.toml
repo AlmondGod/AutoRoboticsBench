@@ -1,0 +1,25 @@
+[project]
+name = "robot-autoresearch"
+version = "0.1.0"
+description = "A phase 1 robotics autoresearch harness with simulated sim-to-real gap."
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.8"]
+mujoco = ["mujoco>=3.2.0"]
+
+[tool.setuptools]
+py-modules = [
+  "research",
+  "run_experiment",
+  "judge",
+  "loop",
+  "plot_progress",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["robotbench*"]
