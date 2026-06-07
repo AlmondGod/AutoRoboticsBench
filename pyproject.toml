@@ -1,7 +1,7 @@
 [project]
 name = "robot-autoresearch"
 version = "0.1.0"
-description = "A phase 1 robotics autoresearch harness with simulated sim-to-real gap."
+description = "A LIBERO robotics autoresearch harness."
 requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.24",
@@ -9,8 +9,6 @@ dependencies = [
 
 [project.optional-dependencies]
 plot = ["matplotlib>=3.8"]
-mujoco = ["mujoco>=3.2.0"]
-ppo = ["torch>=2.2"]
 libero = [
   "torch>=2.2",
   "h5py>=3.10",
@@ -20,13 +18,12 @@ libero = [
 
 [tool.setuptools]
 py-modules = [
-  "research",
-  "run_experiment",
-  "judge",
-  "loop",
+  "prepare",
+  "train",
+  "loop_libero",
   "plot_progress",
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["robotbench*", "data*", "models*", "train*", "eval*"]
+include = ["data*", "models*", "train*", "eval*", "research*"]
