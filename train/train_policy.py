@@ -31,6 +31,14 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--n-embd", type=int, default=128)
+    parser.add_argument("--loss", choices=["mse", "huber"], default="mse")
+    parser.add_argument("--chunk-decay", type=float, default=1.0)
+    parser.add_argument("--image-noise", type=float, default=0.0)
+    parser.add_argument("--action-noise", type=float, default=0.0)
+    parser.add_argument("--history-dropout", type=float, default=0.0)
+    parser.add_argument("--wrist-dropout", type=float, default=0.0)
+    parser.add_argument("--weight-decay", type=float, default=0.01)
+    parser.add_argument("--grad-clip", type=float, default=0.0)
     parser.add_argument("--log-every", type=int, default=100)
     parser.add_argument("--max-train-seconds", type=float, default=0.0)
     parser.add_argument("--device", default="auto")
@@ -52,27 +60,36 @@ def main() -> None:
         action_horizon=action_horizon,
         max_history=max(history, 1),
     ).to(device)
-    opt = torch.optim.AdamW(model.parameters(), lr=args.lr)
+    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     started = time.time()
     last_loss = None
     for step, idx in enumerate(batches(len(train["frames"]), args.batch_size, args.steps), start=1):
-        images = torch.as_tensor(train["frames"][idx], dtype=torch.float32, device=device)
-        wrist_images = torch.as_tensor(train.get("wrist_frames", train["frames"])[idx], dtype=torch.float32, device=device)
+        images = _augment_images(torch.as_tensor(train["frames"][idx], dtype=torch.float32, device=device), args.image_noise)
+        wrist_images = _augment_images(
+            torch.as_tensor(train.get("wrist_frames", train["frames"])[idx], dtype=torch.float32, device=device),
+            args.image_noise,
+        )
+        images = _drop_history(images, args.history_dropout)
+        wrist_images = images if _drop_now(args.wrist_dropout) else _drop_history(wrist_images, args.history_dropout)
         proprio = _norm_tensor(train["proprio"][idx], proprio_mean, proprio_std, device)
         actions = _norm_tensor(train["actions"][idx], action_mean, action_std, device)
+        if args.action_noise > 0:
+            actions = actions + args.action_noise * torch.randn_like(actions)
         task_id = torch.as_tensor(train["task_id"][idx], dtype=torch.long, device=device)
         instruction_tokens = torch.as_tensor(train["instruction_tokens"][idx], dtype=torch.long, device=device)
-        _, loss = model(
+        pred, _ = model(
             images,
             proprio,
             task_id,
             wrist_images=wrist_images,
             instruction_tokens=instruction_tokens,
-            actions=actions,
         )
+        loss = _chunk_loss(pred, actions, mode=args.loss, decay=args.chunk_decay)
         opt.zero_grad()
         loss.backward()
+        if args.grad_clip > 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
         opt.step()
         last_loss = float(loss.detach().cpu())
         if args.log_every > 0 and (step == 1 or step % args.log_every == 0):
@@ -124,11 +141,53 @@ def main() -> None:
             "checkpoint": str(ckpt),
             "device": str(device),
             "method": args.method,
+            "n_embd": args.n_embd,
+            "loss": args.loss,
+            "chunk_decay": args.chunk_decay,
+            "image_noise": args.image_noise,
+            "action_noise": args.action_noise,
+            "history_dropout": args.history_dropout,
+            "wrist_dropout": args.wrist_dropout,
+            "weight_decay": args.weight_decay,
+            "grad_clip": args.grad_clip,
             "steps": args.steps,
             "train_seconds": time.time() - started,
         },
     )
     print(out_dir / "metrics.json")
+
+
+def _chunk_loss(pred: torch.Tensor, actions: torch.Tensor, mode: str, decay: float) -> torch.Tensor:
+    actions = actions.unsqueeze(1) if actions.ndim == 2 else actions
+    horizon = min(actions.shape[1], pred.shape[1])
+    if mode == "huber":
+        per = torch.nn.functional.smooth_l1_loss(pred[:, :horizon], actions[:, :horizon], reduction="none")
+    else:
+        per = torch.nn.functional.mse_loss(pred[:, :horizon], actions[:, :horizon], reduction="none")
+    if decay != 1.0:
+        weights = torch.as_tensor([decay**idx for idx in range(horizon)], dtype=per.dtype, device=per.device)
+        weights = weights / weights.mean().clamp_min(1e-6)
+        per = per * weights.reshape(1, horizon, 1)
+    return per.mean()
+
+
+def _augment_images(images: torch.Tensor, noise: float) -> torch.Tensor:
+    if noise <= 0:
+        return images
+    images = images + torch.randn_like(images) * (255.0 * noise)
+    return images.clamp(0.0, 255.0)
+
+
+def _drop_history(images: torch.Tensor, prob: float) -> torch.Tensor:
+    if prob <= 0 or images.ndim != 5 or images.shape[1] <= 1:
+        return images
+    mask = torch.rand((images.shape[0], images.shape[1], 1, 1, 1), device=images.device) < prob
+    mask[:, -1] = False
+    return torch.where(mask, images[:, -1:].expand_as(images), images)
+
+
+def _drop_now(prob: float) -> bool:
+    return prob > 0 and bool(torch.rand(()) < prob)
 
 
 if __name__ == "__main__":
