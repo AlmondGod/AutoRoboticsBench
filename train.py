@@ -12,7 +12,7 @@ import prepare
 
 # Autoresearch agents should edit this file, not prepare.py or eval/.
 METHOD = 'bc'
-CHANGE = 'BC mild image noise augmentation'
+CHANGE = 'BC wrist dropout'
 STRATEGY_KIND = 'bc'
 TRAIN_STEPS = 1_000_000
 BATCH_SIZE = 64
@@ -20,10 +20,10 @@ LR = 0.0003
 N_EMBD = 256
 LOSS = 'mse'
 CHUNK_DECAY = 1.0
-IMAGE_NOISE = 0.015
+IMAGE_NOISE = 0.0
 ACTION_NOISE = 0.0
 HISTORY_DROPOUT = 0.0
-WRIST_DROPOUT = 0.0
+WRIST_DROPOUT = 0.35
 WEIGHT_DECAY = 0.01
 GRAD_CLIP = 0.0
 VIDEO_AUX = False
