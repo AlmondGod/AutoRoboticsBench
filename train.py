@@ -12,15 +12,15 @@ import prepare
 
 # Autoresearch agents should edit this file, not prepare.py or eval/.
 METHOD = 'bc'
-CHANGE = 'BC 384 wider policy'
+CHANGE = 'BC mild image noise augmentation'
 STRATEGY_KIND = 'bc'
 TRAIN_STEPS = 1_000_000
 BATCH_SIZE = 64
 LR = 0.0003
-N_EMBD = 384
+N_EMBD = 256
 LOSS = 'mse'
 CHUNK_DECAY = 1.0
-IMAGE_NOISE = 0.0
+IMAGE_NOISE = 0.015
 ACTION_NOISE = 0.0
 HISTORY_DROPOUT = 0.0
 WRIST_DROPOUT = 0.0
