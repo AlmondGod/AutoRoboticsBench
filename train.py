@@ -11,14 +11,14 @@ import prepare
 
 
 # Autoresearch agents should edit this file, not prepare.py or eval/.
-METHOD = "bc"
-CHANGE = "BC baseline"
-STRATEGY_KIND = "bc"
+METHOD = 'bc'
+CHANGE = 'BC 256 baseline'
+STRATEGY_KIND = 'bc'
 TRAIN_STEPS = 1_000_000
 BATCH_SIZE = 64
-LR = 3e-4
+LR = 0.0003
 N_EMBD = 256
-LOSS = "mse"
+LOSS = 'mse'
 CHUNK_DECAY = 1.0
 IMAGE_NOISE = 0.0
 ACTION_NOISE = 0.0
