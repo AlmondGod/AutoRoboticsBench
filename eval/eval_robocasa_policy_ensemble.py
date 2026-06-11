@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from eval.render_robocasa_chunk_policy import _ckpt_tensor, _render64, _state_from_obs
+from eval.render_robocasa_chunk_policy import _ckpt_tensor, _episode_task_id, _render64, _state_from_obs
 from eval.train_temporal_chunk_bc_robocasa import RoboCasaTemporalChunkBC
 from train.common import device_from_arg
 
@@ -123,10 +123,11 @@ def _rollout(
                     action_std = _ckpt_tensor(checkpoint, "action_std", device)
                     proprio_mean = _ckpt_tensor(checkpoint, "proprio_mean", device)
                     proprio_std = _ckpt_tensor(checkpoint, "proprio_std", device)
+                    task_id = _episode_task_id(dataset_root, episode_idx, checkpoint)
                     agent_t = torch.as_tensor(agent[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
                     wrist_t = torch.as_tensor(wrist[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
                     proprio_t = (torch.as_tensor(proprio[None], dtype=torch.float32, device=device) - proprio_mean) / proprio_std
-                    task_t = torch.as_tensor([0], dtype=torch.long, device=device)
+                    task_t = torch.as_tensor([task_id], dtype=torch.long, device=device)
                     pred_norm = model(agent_t, wrist_t, proprio_t, task_t)[0]
                     preds.append((pred_norm * action_std + action_mean).detach().cpu().numpy())
             pred = np.sum(np.stack(preds) * weights.reshape(-1, 1, 1), axis=0)

@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 from PIL import Image
 
@@ -118,6 +119,7 @@ def _rollout_closed_loop(
     action_std = _ckpt_tensor(checkpoint, "action_std", device)
     proprio_mean = _ckpt_tensor(checkpoint, "proprio_mean", device)
     proprio_std = _ckpt_tensor(checkpoint, "proprio_std", device)
+    task_id = _episode_task_id(dataset_root, episode_idx, checkpoint)
 
     frames: list[np.ndarray] = []
     success = False
@@ -132,7 +134,7 @@ def _rollout_closed_loop(
                 agent_t = torch.as_tensor(agent[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
                 wrist_t = torch.as_tensor(wrist[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
                 proprio_t = (torch.as_tensor(proprio[None], dtype=torch.float32, device=device) - proprio_mean) / proprio_std
-                task_t = torch.as_tensor([0], dtype=torch.long, device=device)
+                task_t = torch.as_tensor([task_id], dtype=torch.long, device=device)
                 if str(checkpoint.get("policy_kind", "bc")) == "flow":
                     pred_norm = model.sample_flow(
                         agent_t,
@@ -194,6 +196,13 @@ def _ckpt_tensor(checkpoint: dict, key: str, device: torch.device) -> torch.Tens
     if not isinstance(value, torch.Tensor):
         value = torch.as_tensor(value)
     return value.to(device=device, dtype=torch.float32)
+
+
+def _episode_task_id(dataset_root: Path, episode_idx: int, checkpoint: dict) -> int:
+    if not bool(checkpoint.get("condition_on_robocasa_task_index", False)):
+        return 0
+    frame = pd.read_parquet(dataset_root / "data" / "chunk-000" / f"episode_{episode_idx:06d}.parquet", columns=["task_index"])
+    return int(frame["task_index"].iloc[0])
 
 
 if __name__ == "__main__":

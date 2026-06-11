@@ -165,6 +165,7 @@ def main() -> None:
     parser.add_argument("--train-demos-per-task", type=int, default=80)
     parser.add_argument("--val-episode-id", action="append", type=int, default=[])
     parser.add_argument("--robocasa-task-index", action="append", type=int, default=[])
+    parser.add_argument("--condition-on-robocasa-task-index", action="store_true")
     parser.add_argument("--steps", type=int, default=10000)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--width", type=int, default=512)
@@ -191,6 +192,7 @@ def main() -> None:
         train_demos_per_task=int(args.train_demos_per_task),
         val_episode_ids=set(args.val_episode_id),
         robocasa_task_indices=set(args.robocasa_task_index),
+        condition_on_robocasa_task_index=bool(args.condition_on_robocasa_task_index),
     )
     if len(train_data) == 0 or len(val_data) == 0:
         raise ValueError("need both train and val temporal samples")
@@ -207,7 +209,7 @@ def main() -> None:
         proprio_dim=int(train_data.proprio.shape[-1]),
         chunk_horizon=int(args.chunk_horizon),
         action_dim=int(train_data.actions.shape[-1]),
-        task_count=int(manifest["task_count"]),
+        task_count=int(max(train_data.task_id.max(initial=0), val_data.task_id.max(initial=0)) + 1),
         width=int(args.width),
         dropout=float(args.dropout),
     ).to(device)
@@ -273,13 +275,14 @@ def main() -> None:
             "chunk_horizon": int(args.chunk_horizon),
             "action_dim": int(train_data.actions.shape[-1]),
             "proprio_dim": int(train_data.proprio.shape[-1]),
-            "task_count": int(manifest["task_count"]),
+            "task_count": int(max(train_data.task_id.max(initial=0), val_data.task_id.max(initial=0)) + 1),
             "width": int(args.width),
             "dropout": float(args.dropout),
             "policy_kind": str(args.policy_kind),
             "flow_steps": int(args.flow_steps),
             "flow_sigma": float(args.flow_sigma),
             "chunk_decay": float(args.chunk_decay),
+            "condition_on_robocasa_task_index": bool(args.condition_on_robocasa_task_index),
             "views": ["robot0_agentview_left", "robot0_agentview_right"],
             "manifest": str(Path(args.manifest)),
             "proprio_mean": proprio_mean,
@@ -304,6 +307,7 @@ def main() -> None:
         "train_demos": int(args.train_demos_per_task),
         "val_episode_ids": [int(ep) for ep in args.val_episode_id],
         "robocasa_task_indices": [int(idx) for idx in args.robocasa_task_index],
+        "condition_on_robocasa_task_index": bool(args.condition_on_robocasa_task_index),
         "train_samples": len(train_data),
         "val_samples": len(val_data),
         "val_action_mse_normalized": val_loss,
@@ -347,6 +351,7 @@ def _load_data(
     train_demos_per_task: int,
     val_episode_ids: set[int],
     robocasa_task_indices: set[int],
+    condition_on_robocasa_task_index: bool,
 ) -> tuple[TemporalChunkData, TemporalChunkData]:
     train_parts: list[dict[str, np.ndarray]] = []
     val_parts: list[dict[str, np.ndarray]] = []
@@ -365,6 +370,7 @@ def _load_data(
                 int(task["task_id"]),
                 chunk_horizon,
                 frame_stride,
+                condition_on_robocasa_task_index,
             )
             is_val = episode_idx in val_episode_ids if val_episode_ids else ordinal >= train_count
             if not is_val:
@@ -390,8 +396,11 @@ def _episode_samples(
     task_id: int,
     chunk_horizon: int,
     frame_stride: int,
+    condition_on_robocasa_task_index: bool,
 ) -> dict[str, np.ndarray]:
     frame = pd.read_parquet(episode_path)
+    robocasa_task_index = int(frame["task_index"].iloc[0])
+    sample_task_id = robocasa_task_index if condition_on_robocasa_task_index else task_id
     agent = _read_video64(dataset_root, episode_idx, "robot0_agentview_left")
     wrist = _read_video64(dataset_root, episode_idx, "robot0_agentview_right")
     proprio = np.stack(frame["observation.state"].to_numpy()).astype(np.float32)
@@ -413,7 +422,7 @@ def _episode_samples(
         "proprio": proprio[starts],
         "actions": out_actions,
         "mask": mask,
-        "task_id": np.full((len(starts),), task_id, dtype=np.int64),
+        "task_id": np.full((len(starts),), sample_task_id, dtype=np.int64),
         "episode_idx": np.full((len(starts),), episode_idx, dtype=np.int32),
         "frame_idx": starts.astype(np.int32),
     }
