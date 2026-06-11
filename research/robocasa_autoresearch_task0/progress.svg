@@ -17,9 +17,15 @@
 <text x="62" y="104.0" text-anchor="end" font-family="Arial" font-size="11">0.80</text>
 <line x1="66" y1="35.0" x2="870" y2="35.0" stroke="#eee"/>
 <text x="62" y="39.0" text-anchor="end" font-family="Arial" font-size="11">1.00</text>
-<polyline fill="none" stroke="#238b45" stroke-width="2" points="70.0,360.0 870.0,313.6"/>
+<polyline fill="none" stroke="#238b45" stroke-width="2" points="70.0,360.0 270.0,313.6 470.0,360.0 670.0,313.6 870.0,220.7"/>
 <circle cx="70.0" cy="360.0" r="5" fill="#bbb" stroke="#333"/>
 <text x="77.0" y="353.0" font-family="Arial" font-size="10" fill="#333">flow chunk 16 commit 4 chunk_decay 0</text>
-<circle cx="870.0" cy="313.6" r="5" fill="#2ecc71" stroke="#333"/>
-<text x="877.0" y="306.6" font-family="Arial" font-size="10" fill="#333">direct BC chunk 16 commit 4 chunk_de</text>
+<circle cx="270.0" cy="313.6" r="5" fill="#2ecc71" stroke="#333"/>
+<text x="277.0" y="306.6" font-family="Arial" font-size="10" fill="#333">direct BC chunk 16 commit 4 chunk_de</text>
+<circle cx="470.0" cy="360.0" r="5" fill="#bbb" stroke="#333"/>
+<text x="477.0" y="353.0" font-family="Arial" font-size="10" fill="#333">direct BC chunk 8 commit 2 chunk_dec</text>
+<circle cx="670.0" cy="313.6" r="5" fill="#bbb" stroke="#333"/>
+<text x="677.0" y="306.6" font-family="Arial" font-size="10" fill="#333">eval accepted exp2 checkpoint with c</text>
+<circle cx="870.0" cy="220.7" r="5" fill="#2ecc71" stroke="#333"/>
+<text x="877.0" y="213.7" font-family="Arial" font-size="10" fill="#333">eval accepted exp2 checkpoint with c</text>
 </svg>
