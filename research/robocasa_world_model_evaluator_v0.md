@@ -222,3 +222,36 @@ Data-use status:
 - The accepted v0.5 run uses all OpenDrawer demos except the held-out validation episodes.
 - It still does not use the full RoboCasa-5 pool of 537 demos.
 - Next scaling step should train on all five tasks with task conditioning, then report both aggregate PSNR and OpenDrawer-specific held-out PSNR.
+
+v0.6 RoboCasa-5 all-task VAE:
+- Goal:
+  - train the same scaled VAE on all five local RoboCasa tasks instead of only OpenDrawer.
+- Run:
+  - `runs/robocasa/world_evaluator/vae_robocasa5_all_scaled_w512_z256`
+  - data: all five RoboCasa-5 datasets
+  - held out: episodes 87/92/93/94/98/100/101 per task
+  - train samples: 13,824
+  - val samples: 985
+  - model: latent_dim 256, width 512
+  - task conditioning: raw RoboCasa task_index embedding, 68 ids
+  - size: 6.33M params, 25.3 MB fp32
+  - train time: 40.4 sec
+- Aggregate validation:
+  - PSNR: 15.70 dB
+  - RGB MSE: 0.0269
+  - progress MAE: 0.1406
+  - success-label accuracy: 0.912
+- Per-task validation PSNR:
+  - OpenDrawer: 16.23 dB, 158 val samples
+  - CloseDrawer: 15.98 dB, 162 val samples
+  - PickPlaceCounterToStove: 15.24 dB, 204 val samples
+  - TurnOffStove: 16.35 dB, 270 val samples
+  - PickPlaceCounterToCabinet: 14.80 dB, 191 val samples
+- Visual comparison:
+  - `runs/robocasa/world_evaluator/vae_robocasa5_all_scaled_w512_z256/real_vs_vae_scaling_data_exp034_ep87.mp4`
+
+Interpretation:
+- Using all five tasks is the strongest visual result so far.
+- OpenDrawer held-out PSNR improves from 15.09 dB in the OpenDrawer-only scaled run to 16.23 dB in the all-task run.
+- Multi-task video data helps more than the earlier flow/refiner heads.
+- Visuals are still blurry, so the next meaningful improvement should target spatial detail: larger image resolution, patch/VQ-token prediction, skip-connected decoder, or multi-step video training.
