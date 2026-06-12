@@ -26,6 +26,8 @@ def main() -> None:
     parser.add_argument("--fps", type=int, default=20)
     parser.add_argument("--max-steps", type=int, default=260)
     parser.add_argument("--commit-steps", type=int, default=16)
+    parser.add_argument("--temporal-ensemble", action="store_true")
+    parser.add_argument("--ensemble-decay", type=float, default=0.7)
     parser.add_argument("--white-scene", action="store_true")
     parser.add_argument("--white-studio", action="store_true")
     parser.add_argument("--camera-back-offset", type=float, default=0.0)
@@ -55,6 +57,8 @@ def main() -> None:
         height=int(args.height),
         max_steps=int(args.max_steps),
         commit_steps=int(args.commit_steps),
+        temporal_ensemble=bool(args.temporal_ensemble),
+        ensemble_decay=float(args.ensemble_decay),
         white_scene=bool(args.white_scene),
         white_studio=bool(args.white_studio),
         camera_back_offset=float(args.camera_back_offset),
@@ -77,6 +81,8 @@ def _rollout_video(
     height: int,
     max_steps: int,
     commit_steps: int,
+    temporal_ensemble: bool,
+    ensemble_decay: float,
     white_scene: bool,
     white_studio: bool,
     camera_back_offset: float,
@@ -108,6 +114,7 @@ def _rollout_video(
     frames = []
     success = False
     step_idx = 0
+    queued: dict[int, list[np.ndarray]] = {}
     try:
         frames.append(_compose_visual_frame(env, camera, width, height, step_idx, success=False, white_scene=white_scene, white_studio=white_studio))
         while step_idx < max_steps and not success:
@@ -129,8 +136,22 @@ def _rollout_video(
                     pred_norm = model(agent_t, wrist_t, proprio_t, task_t)[0]
                     preds.append((pred_norm * action_std + action_mean).detach().cpu().numpy())
             pred = np.sum(np.stack(preds) * weights.reshape(-1, 1, 1), axis=0)
-            actions = np.clip(pred[: min(commit_steps, pred.shape[0], max_steps - step_idx)].astype(np.float32), -1.0, 1.0)
-            for action in actions:
+            horizon = min(pred.shape[0], max_steps - step_idx)
+            if temporal_ensemble:
+                for offset in range(horizon):
+                    queued.setdefault(step_idx + offset, []).append(pred[offset].astype(np.float32))
+            for offset in range(min(max(1, commit_steps), horizon)):
+                if temporal_ensemble:
+                    candidates = queued.pop(step_idx, [])
+                    if candidates:
+                        decay_weights = np.asarray([ensemble_decay**i for i in range(len(candidates) - 1, -1, -1)], dtype=np.float32)
+                        decay_weights = decay_weights / np.maximum(decay_weights.sum(), 1e-6)
+                        action = np.sum(np.stack(candidates) * decay_weights[:, None], axis=0).astype(np.float32)
+                    else:
+                        action = pred[offset].astype(np.float32)
+                else:
+                    action = pred[offset].astype(np.float32)
+                action = np.clip(action, -1.0, 1.0)
                 _, _, _, info = env.step(action)
                 step_idx += 1
                 success = bool(info.get("success", False)) if isinstance(info, dict) else False
