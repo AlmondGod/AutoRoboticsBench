@@ -125,3 +125,30 @@ Interpretation:
 - The same latent model can be trace-calibrated into a very strong candidate ranker on the current archive.
 - The correlation result is not a held-out claim yet: the trace archive used for calibration is also the archive used for the reported ranking measurement.
 - Next required step is a proper held-out candidate split: calibrate on one set of policy traces, then score unseen candidate traces before running RoboCasa sim validation.
+
+v0.3 flow-matching next-RGB trial:
+- Added a compact conditional rectified-flow decoder:
+  - `models/robocasa_flow_rgb.py`
+  - `train/train_robocasa_flow_next_rgb.py`
+  - `eval/render_robocasa_flow_rgb_rollout.py`
+- Goal:
+  - improve the blurry VAE visual rollout by training a flow decoder for next-frame prediction.
+  - keep the VAE encoder/dynamics/evaluator frozen so the existing correlation result is not disturbed.
+- Trial A: noise -> next RGB.
+  - run: `runs/robocasa/world_evaluator/flow_next_rgb_opendrawer_task0_smoke`
+  - best step: 200
+  - validation sampled PSNR: 11.31 dB
+  - result: rejected; much worse than the VAE decoder baseline.
+- Trial B: residual flow from VAE predicted RGB -> next RGB.
+  - run: `runs/robocasa/world_evaluator/flow_next_rgb_opendrawer_task0_residual`
+  - best step: 100
+  - best validation sampled PSNR: 14.33 dB
+  - final validation sampled PSNR: 14.16 dB
+  - result: rejected; close to but still below the VAE decoder baseline of 14.62 dB.
+- Visual comparison:
+  - `runs/robocasa/world_evaluator/flow_next_rgb_opendrawer_task0_residual/real_vs_vae_vs_flow_exp034_ep87.mp4`
+
+Interpretation:
+- Flow matching did not improve reconstruction quality in this small setup.
+- Residual flow is much better than noise flow, but it mostly preserves the VAE blur and sometimes adds noise/contrast rather than useful detail.
+- A likely next attempt is not a tiny pixel-space flow head, but a stronger spatial decoder: skip-connected latent U-Net, patch-token diffusion/flow over VQ tokens, or training the encoder/decoder and dynamics jointly on multi-step video prediction.
