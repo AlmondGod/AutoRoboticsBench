@@ -181,3 +181,44 @@ Interpretation:
 - A stronger spatial decoder can improve the metric, but the improvement is tiny with the current data/model setup.
 - The refiner overfits quickly: train loss keeps improving while validation PSNR degrades after step 100.
 - Better next steps are early stopping by default, stronger augmentation, more video data, or joint multi-step latent/video training rather than only refining one-step predicted frames.
+
+v0.5 scale and data-use trial:
+- Question:
+  - Does visual world-model quality improve from scaling model size and using more available video data?
+- Previous baseline:
+  - run: `runs/robocasa/world_evaluator/vae_opendrawer_task0_smoke`
+  - data: OpenDrawer RoboCasa task-index 0 only
+  - train samples: 957
+  - model: latent_dim 128, width 256
+  - size: 3.47M params, 13.9 MB fp32
+  - validation PSNR: 14.62 dB
+- Scale-only trial:
+  - run: `runs/robocasa/world_evaluator/vae_opendrawer_task0_scaled_w512_z256`
+  - data: same OpenDrawer task-index 0 subset
+  - model: latent_dim 256, width 512
+  - observed peak: 15.20 dB at step 200 in one 600-step run
+  - repeated 200-step run: 14.62 dB
+  - interpretation: scale alone was not robust on the small subset.
+- Scale + more OpenDrawer data:
+  - run: `runs/robocasa/world_evaluator/vae_opendrawer_allvariants_scaled_w512_z256`
+  - data: all OpenDrawer variants, not just task-index 0
+  - train samples: 2433
+  - val samples: 158
+  - model: latent_dim 256, width 512
+  - size: 6.33M params, 25.3 MB fp32
+  - validation PSNR: 15.09 dB
+  - prior task-index-0 baseline PSNR: 14.62 dB
+  - accepted as a real visual-quality improvement.
+- Visual comparison:
+  - `runs/robocasa/world_evaluator/vae_opendrawer_allvariants_scaled_w512_z256/real_vs_smallvae_vs_scaledvae_exp034_ep87.mp4`
+
+Data-use status:
+- Local RoboCasa-5 manifest contains 537 demos total:
+  - OpenDrawer: 102 demos
+  - CloseDrawer: 110 demos
+  - PickPlaceCounterToStove: 108 demos
+  - TurnOffStove: 109 demos
+  - PickPlaceCounterToCabinet: 108 demos
+- The accepted v0.5 run uses all OpenDrawer demos except the held-out validation episodes.
+- It still does not use the full RoboCasa-5 pool of 537 demos.
+- Next scaling step should train on all five tasks with task conditioning, then report both aggregate PSNR and OpenDrawer-specific held-out PSNR.
