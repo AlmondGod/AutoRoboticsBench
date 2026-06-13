@@ -125,6 +125,28 @@ HF_HOME=/workspace/hf_home CUDA_VISIBLE_DEVICES=0 accelerate launch --mixed_prec
   - `nvidia/Cosmos-Predict2-2B-Sample-Action-Conditioned`: README visible, weights/config gated.
 - `nvidia/Cosmos-Policy-RoboCasa-Predict2-2B` metadata and a 3.9GB `.pt` checkpoint appear downloadable, but that is the Cosmos Policy path, not the requested Cosmos 2.5 Video2World LoRA finetune path.
 
+Update after access was granted:
+- `nvidia/Cosmos-Predict2.5-2B` downloaded and loaded successfully on the A100 host.
+- The upstream Diffusers example required small compatibility patches for `diffusers==0.38.0`:
+  - wrap the transformer with PEFT `get_peft_model(...)` instead of `dit.add_adapter(...)`
+  - use the standard linear warmup scheduler signature
+  - stringify non-scalar TensorBoard hparams
+  - provide a local one-channel condition mask helper
+  - save the final adapter with PEFT `save_pretrained(...)`
+- Smoke finetune completed:
+  - data: 10 OpenDrawer task-index-0 clips
+  - model: Cosmos-Predict2.5-2B frozen base + rank-4 LoRA
+  - trainable params: about 0.01B
+  - resolution: 224x448, 49 frames
+  - training: 10 optimizer steps, about 19 seconds after model load
+  - losses: noisy because this is only 10 clips/steps, roughly 4.49 to 24.0 step loss
+  - adapter: `/workspace/robot-autoresearch-cosmos/runs/robocasa/cosmos25_lora/opendrawer_task0_rank4_smoke/adapter_model.safetensors`
+- Inference succeeded:
+  - conditioned on first 5 real demo frames
+  - generated 49 frames with 8 denoising steps
+  - local generated video: `runs/robocasa/cosmos25_lora/opendrawer_task0_rank4_smoke_eval/cosmos_lora_ep000000.mp4`
+  - local side-by-side: `runs/robocasa/cosmos25_lora/opendrawer_task0_rank4_smoke_eval/reference_vs_cosmos_lora_ep000000.mp4`
+
 Expected resource shape:
 - Cosmos 2B is roughly 2B parameters.
 - Inference/post-training needs a large CUDA GPU; NVIDIA docs list tens of GB of VRAM for 2B Video2World.
