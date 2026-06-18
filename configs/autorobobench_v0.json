@@ -8,7 +8,7 @@
       "phase": 1,
       "weight": 15,
       "primary_metric": "hidden_final_success",
-      "starter_metric": 0.25,
+      "starter_metric": 0.10,
       "reference_metric": 0.70,
       "higher_is_better": true,
       "score_weights": {
@@ -38,7 +38,7 @@
         "data/autorobobench/robocasa_bc5_splits.json",
         "configs/autorobobench_v0.json"
       ],
-      "notes": "Executable in v0 through train/train_autorobobench_robocasa_bc5.py and immutable eval/eval_autorobobench_robocasa_bc5.py. Improve a weak image/proprio BC policy on the five current RoboCasa seed tasks."
+      "notes": "Executable in v0 through train/train_autorobobench_robocasa_bc5.py and immutable eval/eval_autorobobench_robocasa_bc5.py. Starter is measured from the canonical BC-5 h16/w512/80-demo run at 5/50 public eval successes. Improve a weak image/proprio BC policy on the five current RoboCasa seed tasks."
     },
     {
       "id": "robocasa_long_horizon",

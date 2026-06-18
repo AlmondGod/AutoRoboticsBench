@@ -92,6 +92,7 @@ def _rollout_temporal_ensemble(
     commit_steps: int,
     clip_actions: bool,
     ensemble_decay: float,
+    task_id_override: int | None = None,
 ) -> tuple[list[np.ndarray], bool, int]:
     import robocasa  # noqa: F401
     import robosuite
@@ -120,7 +121,7 @@ def _rollout_temporal_ensemble(
     action_std = _ckpt_tensor(checkpoint, "action_std", device)
     proprio_mean = _ckpt_tensor(checkpoint, "proprio_mean", device)
     proprio_std = _ckpt_tensor(checkpoint, "proprio_std", device)
-    task_id = _episode_task_id(dataset_root, episode_idx, checkpoint)
+    task_id = int(task_id_override) if task_id_override is not None else _episode_task_id(dataset_root, episode_idx, checkpoint)
     queued: dict[int, list[np.ndarray]] = {}
 
     frames: list[np.ndarray] = []

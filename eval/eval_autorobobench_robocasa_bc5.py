@@ -73,6 +73,7 @@ def main() -> None:
                 "max_steps": int(args.max_steps),
                 "commit_steps": int(args.commit_steps),
                 "clip_actions": True,
+                "task_id_override": int(split_task["task_id"]),
             }
             if args.temporal_ensemble:
                 frames, success, steps = _rollout_temporal_ensemble(

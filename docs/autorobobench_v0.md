@@ -134,3 +134,41 @@ python -m autorobobench.plot_robocasa_bc5 \
   --ledger runs/autorobobench/robocasa_bc5_codex/experiments.jsonl \
   --out-dir runs/autorobobench/robocasa_bc5_codex/plots
 ```
+
+### Canonical Starter
+
+The current public BC-5 starter is the chunked BC policy trained with:
+
+```bash
+python train/train_autorobobench_robocasa_bc5.py \
+  --out-dir runs/autorobobench/robocasa_bc5_starter/bc5_h16_w512_80demo_seed0 \
+  --train-episodes-per-task 80 \
+  --val-episodes-per-task 10 \
+  --chunk-horizon 16 \
+  --frame-stride 1 \
+  --steps 3000 \
+  --batch-size 128 \
+  --width 512 \
+  --dropout 0.02 \
+  --lr 2e-4 \
+  --image-noise 0.005 \
+  --proprio-noise 0.005 \
+  --action-smooth 0.0005 \
+  --chunk-decay 0.8 \
+  --seed 0
+```
+
+Measured public eval result:
+
+```text
+overall: 5/50 = 10%
+OpenDrawer: 1/10
+CloseDrawer: 4/10
+PickPlaceCounterToStove: 0/10
+TurnOffStove: 0/10
+PickPlaceCounterToCabinet: 0/10
+```
+
+This is intentionally nonzero but weak. The benchmark should measure improving
+from `10%` toward stronger cross-task manipulation, not escaping a broken zero
+baseline.

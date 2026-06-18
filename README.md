@@ -54,6 +54,11 @@ The frozen public split is `data/autorobobench/robocasa_bc5_splits.json`:
 episodes `0-79` train, `80-89` validation, and `90-99` eval for each of the
 five RoboCasa tasks.
 
+The canonical public BC-5 starter is a chunked BC h16/w512 policy trained on
+80 demos per task for 3000 steps. It scores `5/50 = 10%` on the frozen public
+eval: `1/10` OpenDrawer, `4/10` CloseDrawer, and `0/10` on the three harder
+manipulation tasks.
+
 The active v0 question is:
 
 ```text
