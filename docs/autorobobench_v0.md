@@ -87,10 +87,15 @@ The current repo already has the ingredients for the Phase 1 launch profile:
 - RoboCasa seed tasks: `data/robocasa5/manifest.json`
 - frozen RoboCasa BC-5 split:
   `data/autorobobench/robocasa_bc5_splits.json`
-- RoboCasa BC-5 training entrypoint:
-  `train/train_autorobobench_robocasa_bc5.py`
-- immutable RoboCasa BC-5 success eval entrypoint:
-  `eval/eval_autorobobench_robocasa_bc5.py`
+- RoboCasa BC-5 task package:
+  `tasks/robocasa_bc5/`
+- editable RoboCasa BC-5 training entrypoint:
+  `tasks/robocasa_bc5/train.py`
+- editable RoboCasa BC-5 inference interface:
+  `tasks/robocasa_bc5/inference.py`
+- immutable RoboCasa BC-5 setup/eval/spec files:
+  `tasks/robocasa_bc5/setup.py`, `tasks/robocasa_bc5/eval.py`,
+  `tasks/robocasa_bc5/task.json`
 - BC and policy loops: `train.py`, `train/`, `models/`, `research/`
 - World model evaluator traces:
   `runs/robocasa/world_evaluator/trace_eval_frontier/archive_trace_frontier.jsonl`
@@ -109,7 +114,9 @@ the eval IDs in the split file.
 Train a small baseline:
 
 ```bash
-python train/train_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/setup.py --verify
+
+python tasks/robocasa_bc5/train.py \
   --out-dir runs/autorobobench/robocasa_bc5/baseline \
   --train-episodes-per-task 4 \
   --val-episodes-per-task 2 \
@@ -119,7 +126,7 @@ python train/train_autorobobench_robocasa_bc5.py \
 Evaluate and render one rollout per task:
 
 ```bash
-python eval/eval_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/eval.py \
   --policy runs/autorobobench/robocasa_bc5/baseline/policy_best.pt \
   --out runs/autorobobench/robocasa_bc5/baseline/eval_success.json \
   --eval-episodes-per-task 1 \
@@ -140,7 +147,7 @@ python -m autorobobench.plot_robocasa_bc5 \
 The current public BC-5 starter is the chunked BC policy trained with:
 
 ```bash
-python train/train_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/train.py \
   --out-dir runs/autorobobench/robocasa_bc5_starter/bc5_h16_w512_80demo_seed0 \
   --train-episodes-per-task 80 \
   --val-episodes-per-task 10 \

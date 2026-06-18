@@ -103,12 +103,18 @@ def _iter_matching_files(root: Path, patterns: Iterable[str]) -> Iterable[Path]:
     for path in root.rglob("*"):
         if not path.is_file():
             continue
+        if _is_generated_python_cache(path):
+            continue
         rel = path.relative_to(root).as_posix()
         if any(fnmatch.fnmatch(rel, pattern) for pattern in patterns):
             resolved = path.resolve()
             if resolved not in seen:
                 seen.add(resolved)
                 yield path
+
+
+def _is_generated_python_cache(path: Path) -> bool:
+    return "__pycache__" in path.parts or path.suffix in {".pyc", ".pyo"}
 
 
 def _sha256(path: Path) -> str:

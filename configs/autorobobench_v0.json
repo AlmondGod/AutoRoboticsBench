@@ -24,7 +24,8 @@
         "reproducibility_integrity"
       ],
       "allowed_edit_globs": [
-        "train.py",
+        "tasks/robocasa_bc5/train.py",
+        "tasks/robocasa_bc5/inference.py",
         "train/**",
         "models/**",
         "research/**",
@@ -33,12 +34,15 @@
       ],
       "immutable_globs": [
         "eval/**",
+        "tasks/robocasa_bc5/eval.py",
+        "tasks/robocasa_bc5/setup.py",
+        "tasks/robocasa_bc5/task.json",
         "data/make_robocasa5.py",
         "data/robocasa5/manifest.json",
         "data/autorobobench/robocasa_bc5_splits.json",
         "configs/autorobobench_v0.json"
       ],
-      "notes": "Executable in v0 through train/train_autorobobench_robocasa_bc5.py and immutable eval/eval_autorobobench_robocasa_bc5.py. Starter is measured from the canonical BC-5 h16/w512/80-demo run at 5/50 public eval successes. Improve a weak image/proprio BC policy on the five current RoboCasa seed tasks."
+      "notes": "Executable in v0 through the task package tasks/robocasa_bc5: setup.py verifies data once, train.py is the editable training entrypoint, inference.py exposes the policy interface, and eval.py is immutable and loads exactly one policy through inference.py. Starter is measured from the canonical BC-5 h16/w512/80-demo run at 5/50 public eval successes. Improve a weak image/proprio BC policy on the five current RoboCasa seed tasks."
     },
     {
       "id": "robocasa_long_horizon",

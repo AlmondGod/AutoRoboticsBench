@@ -34,4 +34,4 @@ py-modules = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["autorobobench*", "data*", "models*", "train*", "eval*", "research*"]
+include = ["autorobobench*", "data*", "models*", "train*", "eval*", "research*", "tasks*"]

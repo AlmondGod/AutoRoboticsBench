@@ -13,6 +13,7 @@ configs/autorobobench_v0.json
 docs/autorobobench_v0.md
 program_autorobobench.md
 autorobobench/
+tasks/robocasa_bc5/
 ```
 
 AutoroboBench scores robotics research loops, not just final robot skill. The
@@ -36,13 +37,15 @@ python -m autorobobench.cli hash-manifest \
 Run the executable RoboCasa BC-5 track:
 
 ```bash
-python train/train_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/setup.py --verify
+
+python tasks/robocasa_bc5/train.py \
   --out-dir runs/autorobobench/robocasa_bc5/baseline \
   --train-episodes-per-task 4 \
   --val-episodes-per-task 2 \
   --steps 200
 
-python eval/eval_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/eval.py \
   --policy runs/autorobobench/robocasa_bc5/baseline/policy_best.pt \
   --out runs/autorobobench/robocasa_bc5/baseline/eval_success.json \
   --eval-episodes-per-task 1 \
@@ -53,6 +56,14 @@ python eval/eval_autorobobench_robocasa_bc5.py \
 The frozen public split is `data/autorobobench/robocasa_bc5_splits.json`:
 episodes `0-79` train, `80-89` validation, and `90-99` eval for each of the
 five RoboCasa tasks.
+
+The task package follows the benchmark contract:
+
+- `tasks/robocasa_bc5/setup.py`: one-time data/environment verifier
+- `tasks/robocasa_bc5/train.py`: editable training entrypoint
+- `tasks/robocasa_bc5/inference.py`: policy interface loaded by eval
+- `tasks/robocasa_bc5/eval.py`: immutable evaluator that loads one model and
+  calls `inference.act(...)`
 
 The canonical public BC-5 starter is a chunked BC h16/w512 policy trained on
 80 demos per task for 3000 steps. It scores `5/50 = 10%` on the frozen public

@@ -1,0 +1,28 @@
+{
+  "id": "robocasa_bc5",
+  "name": "RoboCasa BC-5",
+  "version": "v0",
+  "setup": "tasks/robocasa_bc5/setup.py",
+  "train": "tasks/robocasa_bc5/train.py",
+  "inference": "tasks/robocasa_bc5/inference.py",
+  "eval": "tasks/robocasa_bc5/eval.py",
+  "manifest": "data/robocasa5/manifest.json",
+  "split": "data/autorobobench/robocasa_bc5_splits.json",
+  "starter_metric": 0.1,
+  "reference_metric": 0.7,
+  "train_contract": {
+    "single_model": true,
+    "train_tasks": 5,
+    "eval_tasks": 5,
+    "test_time_demo_access": false
+  },
+  "policy_interface": {
+    "load_policy": "load_policy(checkpoint: str, device: str) -> policy",
+    "act": "act(policy, obs: dict, task: dict) -> np.ndarray[action_horizon, action_dim]"
+  },
+  "default_eval": {
+    "eval_episodes_per_task": 10,
+    "max_steps": 260,
+    "commit_steps": 16
+  }
+}

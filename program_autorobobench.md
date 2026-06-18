@@ -31,13 +31,17 @@ Improve the BC/VLM policy on the five seed RoboCasa tasks.
 Executable v0 files:
 
 - frozen split: `data/autorobobench/robocasa_bc5_splits.json`
-- train entrypoint: `train/train_autorobobench_robocasa_bc5.py`
-- immutable eval entrypoint: `eval/eval_autorobobench_robocasa_bc5.py`
+- setup verifier: `tasks/robocasa_bc5/setup.py`
+- editable train entrypoint: `tasks/robocasa_bc5/train.py`
+- editable inference interface: `tasks/robocasa_bc5/inference.py`
+- immutable eval entrypoint: `tasks/robocasa_bc5/eval.py`
 
 Quick dev command:
 
 ```bash
-python train/train_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/setup.py --verify
+
+python tasks/robocasa_bc5/train.py \
   --out-dir runs/autorobobench/robocasa_bc5_dev/exp001 \
   --train-episodes-per-task 1 \
   --val-episodes-per-task 1 \
@@ -47,7 +51,7 @@ python train/train_autorobobench_robocasa_bc5.py \
   --chunk-horizon 4 \
   --device cpu
 
-python eval/eval_autorobobench_robocasa_bc5.py \
+python tasks/robocasa_bc5/eval.py \
   --policy runs/autorobobench/robocasa_bc5_dev/exp001/policy_best.pt \
   --out runs/autorobobench/robocasa_bc5_dev/exp001/eval_success.json \
   --eval-episodes-per-task 1 \
