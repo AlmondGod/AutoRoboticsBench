@@ -20,7 +20,7 @@ from train.common import device_from_arg
 
 ensure_robocasa_runtime()
 
-from models.robocasa_sequence_flow import RoboCasaSequenceFlowPolicy  # noqa: E402
+from models.robocasa_sequence_flow import RoboCasaHistoryACTPolicy, RoboCasaSequenceFlowPolicy  # noqa: E402
 from eval.train_temporal_chunk_bc_robocasa import RoboCasaTemporalChunkBC  # noqa: E402
 
 
@@ -39,6 +39,11 @@ class Policy:
     selected_task_id: int | None = None
     selected_episode_id: int | None = None
     last_proprio: np.ndarray | None = None
+    prev_agent: np.ndarray | None = None
+    prev_wrist: np.ndarray | None = None
+    prev_proprio: np.ndarray | None = None
+    history_task_id: int | None = None
+    history_episode_id: int | None = None
 
 
 def load_policy(checkpoint: str, device: str = "auto") -> Policy:
@@ -81,6 +86,30 @@ def load_policy(checkpoint: str, device: str = "auto") -> Policy:
             proprio_std=_tensor(payload, "proprio_std", torch_device),
             mode="sequence_flow",
         )
+    if payload.get("policy_type") == "autorobobench_robocasa_bc5_history_act":
+        model = RoboCasaHistoryACTPolicy(
+            proprio_dim=int(payload["proprio_dim"]),
+            chunk_horizon=int(payload["chunk_horizon"]),
+            action_dim=int(payload["action_dim"]),
+            task_count=int(payload["task_count"]),
+            width=int(payload.get("width", 256)),
+            depth=int(payload.get("transformer_depth", 3)),
+            action_depth=int(payload.get("action_depth", 3)),
+            heads=int(payload.get("heads", 4)),
+            dropout=float(payload.get("dropout", 0.0)),
+        ).to(torch_device)
+        model.load_state_dict(payload["state_dict"])
+        model.eval()
+        return Policy(
+            model=model,
+            checkpoint=payload,
+            device=torch_device,
+            action_mean=_tensor(payload, "action_mean", torch_device),
+            action_std=_tensor(payload, "action_std", torch_device),
+            proprio_mean=_tensor(payload, "proprio_mean", torch_device),
+            proprio_std=_tensor(payload, "proprio_std", torch_device),
+            mode="history_act",
+        )
     model = RoboCasaTemporalChunkBC(
         proprio_dim=int(payload["proprio_dim"]),
         chunk_horizon=int(payload["chunk_horizon"]),
@@ -114,6 +143,8 @@ def act(policy: Policy, obs: dict, task: dict) -> np.ndarray:
         raise ValueError(f"task_id={task_id} outside loaded policy task_count={policy.checkpoint['task_count']}")
     if policy.mode == "trajectory_bank":
         return _act_trajectory_bank(policy, obs, task_id)
+    if policy.mode == "history_act":
+        return _act_history(policy, obs, task_id)
 
     with torch.no_grad():
         agent_t = torch.as_tensor(np.asarray(obs["agent"])[None].copy(), dtype=torch.float32, device=device).permute(0, 3, 1, 2)
@@ -141,6 +172,55 @@ def act(policy: Policy, obs: dict, task: dict) -> np.ndarray:
         else:
             pred_norm = policy.model(agent_t, wrist_t, proprio_t, task_t)[0]
         pred = pred_norm * policy.action_std + policy.action_mean
+    return pred.detach().cpu().numpy().astype(np.float32)
+
+
+def _act_history(policy: Policy, obs: dict, task_id: int) -> np.ndarray:
+    episode_id = _current_eval_episode_id()
+    agent = np.asarray(obs["agent"], dtype=np.uint8).copy()
+    wrist = np.asarray(obs["wrist"], dtype=np.uint8).copy()
+    proprio = np.asarray(obs["proprio"], dtype=np.float32).copy()
+    reset = (
+        policy.prev_agent is None
+        or policy.prev_wrist is None
+        or policy.prev_proprio is None
+        or policy.history_task_id != task_id
+        or (episode_id is not None and policy.history_episode_id != int(episode_id))
+    )
+    if reset:
+        policy.prev_agent = agent
+        policy.prev_wrist = wrist
+        policy.prev_proprio = proprio
+        policy.history_task_id = task_id
+        policy.history_episode_id = int(episode_id) if episode_id is not None else None
+
+    device = policy.device
+    with torch.no_grad():
+        prev_agent_t = torch.as_tensor(policy.prev_agent[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
+        prev_wrist_t = torch.as_tensor(policy.prev_wrist[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
+        agent_t = torch.as_tensor(agent[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
+        wrist_t = torch.as_tensor(wrist[None], dtype=torch.float32, device=device).permute(0, 3, 1, 2)
+        prev_proprio_t = torch.as_tensor(policy.prev_proprio[None], dtype=torch.float32, device=device)
+        proprio_t = torch.as_tensor(proprio[None], dtype=torch.float32, device=device)
+        prev_proprio_t = (prev_proprio_t - policy.proprio_mean) / policy.proprio_std
+        proprio_t = (proprio_t - policy.proprio_mean) / policy.proprio_std
+        task_t = torch.as_tensor([task_id], dtype=torch.long, device=device)
+        pred_norm = policy.model(
+            prev_agent_t,
+            prev_wrist_t,
+            agent_t,
+            wrist_t,
+            prev_proprio_t,
+            proprio_t,
+            task_t,
+        )[0]
+        pred = pred_norm * policy.action_std + policy.action_mean
+
+    policy.prev_agent = agent
+    policy.prev_wrist = wrist
+    policy.prev_proprio = proprio
+    policy.history_task_id = task_id
+    policy.history_episode_id = int(episode_id) if episode_id is not None else None
     return pred.detach().cpu().numpy().astype(np.float32)
 
 

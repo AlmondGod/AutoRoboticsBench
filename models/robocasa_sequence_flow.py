@@ -182,3 +182,125 @@ class RoboCasaSequenceFlowPolicy(nn.Module):
         cond = self.action_cond(context).unsqueeze(1)
         tokens = self.action_blocks(torch.cat([cond, action_tokens], dim=1))
         return tokens[:, 1:]
+
+
+class RoboCasaHistoryACTPolicy(nn.Module):
+    """ACT-style action chunk policy conditioned on previous and current observations."""
+
+    def __init__(
+        self,
+        *,
+        proprio_dim: int,
+        chunk_horizon: int,
+        action_dim: int,
+        task_count: int,
+        width: int = 256,
+        depth: int = 3,
+        action_depth: int = 3,
+        heads: int = 4,
+        dropout: float = 0.05,
+    ) -> None:
+        super().__init__()
+        if width % heads != 0:
+            raise ValueError(f"width={width} must be divisible by heads={heads}")
+        self.chunk_horizon = int(chunk_horizon)
+        self.action_dim = int(action_dim)
+        self.width = int(width)
+
+        self.vision = nn.Sequential(
+            nn.Conv2d(12, 64, 5, stride=2, padding=2),
+            nn.GroupNorm(8, 64),
+            nn.SiLU(),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1),
+            nn.GroupNorm(8, 128),
+            nn.SiLU(),
+            nn.Conv2d(128, width, 3, stride=2, padding=1),
+            nn.GroupNorm(max(1, min(16, width // 16)), width),
+            nn.SiLU(),
+            nn.Conv2d(width, width, 3, stride=2, padding=1),
+            nn.GroupNorm(max(1, min(16, width // 16)), width),
+            nn.SiLU(),
+        )
+        self.image_pos = nn.Parameter(torch.zeros(1, 16, width))
+        self.cls = nn.Parameter(torch.zeros(1, 1, width))
+        self.proprio = nn.Sequential(
+            nn.Linear(3 * proprio_dim, width),
+            nn.SiLU(),
+            nn.Dropout(dropout),
+            nn.Linear(width, width),
+            nn.LayerNorm(width),
+        )
+        self.task = nn.Embedding(task_count, width)
+        self.context_norm = nn.LayerNorm(width)
+        self.context_blocks = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=width,
+                nhead=heads,
+                dim_feedforward=4 * width,
+                dropout=dropout,
+                activation="gelu",
+                batch_first=True,
+                norm_first=True,
+            ),
+            num_layers=depth,
+        )
+        self.action_queries = nn.Parameter(torch.zeros(1, chunk_horizon, width))
+        self.action_blocks = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(
+                d_model=width,
+                nhead=heads,
+                dim_feedforward=4 * width,
+                dropout=dropout,
+                activation="gelu",
+                batch_first=True,
+                norm_first=True,
+            ),
+            num_layers=action_depth,
+        )
+        self.head = nn.Sequential(nn.LayerNorm(width), nn.Linear(width, action_dim))
+
+        nn.init.normal_(self.image_pos, std=0.02)
+        nn.init.normal_(self.cls, std=0.02)
+        nn.init.normal_(self.action_queries, std=0.02)
+
+    def forward(
+        self,
+        prev_agent: torch.Tensor,
+        prev_wrist: torch.Tensor,
+        agent: torch.Tensor,
+        wrist: torch.Tensor,
+        prev_proprio: torch.Tensor,
+        proprio: torch.Tensor,
+        task_id: torch.Tensor,
+    ) -> torch.Tensor:
+        context = self.encode_obs(prev_agent, prev_wrist, agent, wrist, prev_proprio, proprio, task_id)
+        queries = self.action_queries.expand(context.shape[0], -1, -1)
+        tokens = self.action_blocks(torch.cat([context.unsqueeze(1), queries], dim=1))
+        return self.head(tokens[:, 1:])
+
+    def encode_obs(
+        self,
+        prev_agent: torch.Tensor,
+        prev_wrist: torch.Tensor,
+        agent: torch.Tensor,
+        wrist: torch.Tensor,
+        prev_proprio: torch.Tensor,
+        proprio: torch.Tensor,
+        task_id: torch.Tensor,
+    ) -> torch.Tensor:
+        if agent.max() > 1.5:
+            agent = agent / 255.0
+        if wrist.max() > 1.5:
+            wrist = wrist / 255.0
+        if prev_agent.max() > 1.5:
+            prev_agent = prev_agent / 255.0
+        if prev_wrist.max() > 1.5:
+            prev_wrist = prev_wrist / 255.0
+        image = self.vision(torch.cat([prev_agent, prev_wrist, agent, wrist], dim=1))
+        image = image.flatten(2).transpose(1, 2) + self.image_pos
+        prop = self.proprio(torch.cat([prev_proprio, proprio, proprio - prev_proprio], dim=-1)).unsqueeze(1)
+        task = self.task(task_id).unsqueeze(1)
+        cls = self.cls.expand(agent.shape[0], -1, -1)
+        tokens = torch.cat([cls, task, prop, image], dim=1)
+        tokens = self.context_blocks(tokens)
+        return self.context_norm(tokens[:, 0])
