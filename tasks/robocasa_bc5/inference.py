@@ -417,8 +417,9 @@ def act(policy: Policy, obs: dict, task: dict) -> np.ndarray:
         else:
             pred_norm = policy.model(agent_t, wrist_t, proprio_t, task_t)[0]
         pred = _denormalize_action(policy, pred_norm, task_id)
-    policy.history_step_idx = int(policy.history_step_idx) + int(policy.checkpoint.get("eval_commit_steps", 16))
-    return pred.detach().cpu().numpy().astype(np.float32)
+    out = _slice_return_horizon(policy, pred.detach().cpu().numpy().astype(np.float32), task_id)
+    policy.history_step_idx = int(policy.history_step_idx) + int(out.shape[0])
+    return out
 
 
 def _act_history(policy: Policy, obs: dict, task_id: int) -> np.ndarray:
@@ -486,8 +487,9 @@ def _act_history(policy: Policy, obs: dict, task_id: int) -> np.ndarray:
     policy.prev_proprio = proprio
     policy.history_task_id = task_id
     policy.history_episode_id = int(episode_id) if episode_id is not None else None
-    policy.history_step_idx = int(policy.history_step_idx) + int(policy.checkpoint.get("eval_commit_steps", 16))
-    return pred.detach().cpu().numpy().astype(np.float32)
+    out = _slice_return_horizon(policy, pred.detach().cpu().numpy().astype(np.float32), task_id)
+    policy.history_step_idx = int(policy.history_step_idx) + int(out.shape[0])
+    return out
 
 
 def _maybe_append_progress(checkpoint: dict, proprio: np.ndarray, frame_idx: int) -> np.ndarray:
@@ -516,6 +518,20 @@ def _denormalize_action(policy: Policy, pred_norm: torch.Tensor, task_id: int) -
         std = torch.as_tensor(stds[int(task_id)], dtype=pred_norm.dtype, device=policy.device)
         return pred_norm * std + mean
     return pred_norm * policy.action_std + policy.action_mean
+
+
+def _slice_return_horizon(policy: Policy, actions: np.ndarray, task_id: int | None = None) -> np.ndarray:
+    horizon_by_task = policy.checkpoint.get("return_horizon_by_task")
+    if horizon_by_task is not None and task_id is not None:
+        if isinstance(horizon_by_task, dict):
+            default = policy.checkpoint.get("return_horizon", actions.shape[0])
+            horizon = int(horizon_by_task.get(str(int(task_id)), horizon_by_task.get(int(task_id), default)))
+        else:
+            horizon = int(horizon_by_task[int(task_id)])
+    else:
+        horizon = int(policy.checkpoint.get("return_horizon", actions.shape[0]))
+    horizon = max(1, min(horizon, int(actions.shape[0])))
+    return actions[:horizon].astype(np.float32)
 
 
 def _non_history_step_idx(policy: Policy) -> int:

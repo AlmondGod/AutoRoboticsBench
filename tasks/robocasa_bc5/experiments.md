@@ -26,3 +26,21 @@ Follow-up closed-loop eval with 10 episodes/task:
 | CLIP ViT-B/32 | 0/10 | 6/10 | 0/10 | 0/10 | 0/10 | 6/50 |
 
 Conclusion: the larger SmolVLM2 frozen vision tower improves validation MSE slightly, but this did not transfer to measured closed-loop success under the 5-minute training budget. The current benchmark signal is dominated by `CloseDrawer`; the other four tasks remain unsolved by both policies.
+
+## Autoresearch pass: execution policy and full-data baselines
+
+Date: 2026-06-20
+
+Baseline to beat: `CLIP ViT-B/32`, 5 minute training, 4 demos/task, 6/50 closed-loop success.
+
+| # | Change | Offline signal | OpenDrawer | CloseDrawer | PickPlaceCounterToStove | TurnOffStove | PickPlaceCounterToCabinet | Total | Decision |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | Full 80 demos/task, history ACT, progress conditioning, per-task action normalization, 5 minute train | val MSE 0.3013 | 0/10 | 4/10 | 0/10 | 0/10 | 0/10 | 4/50 | discard |
+| 2 | Mean action ensemble of prior CLIP and SmolVLM2 frozen policies | n/a | 0/10 | 6/10 | 0/10 | 0/10 | 0/10 | 6/50 | discard, tied |
+| 3 | CLIP receding horizon on all tasks, return 4 actions per 16-action chunk | partial eval | 1/10 | 4/9 when stopped | - | - | - | - | discard, hurt CloseDrawer |
+| 4 | CLIP task-specific receding horizon: OpenDrawer returns 4 actions, other tasks return 16 | n/a | 1/10 | 6/10 | 0/10 | 0/10 | 0/10 | 7/50 | keep |
+
+Kept finding: a small ACT-style receding-horizon execution change improved the actual closed-loop benchmark without retraining. Applying faster replanning only to `OpenDrawer` found one new success while preserving the previous `CloseDrawer` success rate. Applying the same receding horizon to every task hurt `CloseDrawer`, so execution cadence should be task-aware until the policy is stronger.
+
+Kept checkpoint: `runs/autorobobench/robocasa_bc5/autoresearch_clip_recede4_open_only/policy_best.pt`
+Kept eval JSON: `runs/autorobobench/robocasa_bc5/autoresearch_clip_recede4_open_only/eval_10_per_task_local.json`
