@@ -1,0 +1,55 @@
+{
+  "id": "robotwin_bc3",
+  "name": "RoboTwin BC-3",
+  "version": "v0",
+  "setup": "tasks/robotwin_bc3/setup.py",
+  "train": "tasks/robotwin_bc3/train.py",
+  "train_offline": "tasks/robotwin_bc3/train_offline.py",
+  "inference": "tasks/robotwin_bc3/inference.py",
+  "eval": "tasks/robotwin_bc3/eval.py",
+  "eval_offline": "tasks/robotwin_bc3/eval_offline.py",
+  "dataset_repo": "lerobot/robotwin_unified",
+  "split": "data/autorobobench/robotwin_bc3_splits.json",
+  "starter_metric": 0.0,
+  "reference_metric": 0.5,
+  "train_contract": {
+    "single_model": true,
+    "train_tasks": 3,
+    "eval_tasks": 3,
+    "train_demos_per_task": 50,
+    "max_train_seconds": 300,
+    "test_time_demo_access": false,
+    "robot": "Aloha-AgileX bimanual",
+    "action_dim": 14,
+    "policy_family": "SmolVLA",
+    "language_backbone": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+    "frozen_vlm": true,
+    "action_expert": "flow_matching_transformer",
+    "action_expert_arch": "same_layer_count_as_smolvlm2",
+    "default_initial_policy": "lerobot/smolvla_robotwin"
+  },
+  "tasks": [
+    "blocks_ranking_rgb",
+    "place_a2b_left",
+    "place_object_basket"
+  ],
+  "observations": {
+    "state": "observation.state",
+    "videos": [
+      "observation.images.cam_high",
+      "observation.images.cam_left_wrist",
+      "observation.images.cam_right_wrist"
+    ],
+    "language": "RoboTwin task language from LeRobot metadata/env task strings"
+  },
+  "default_eval": {
+    "eval_episodes_per_task": 5,
+    "batch_size": 1,
+    "max_steps": 300
+  },
+  "metrics": {
+    "primary": "success_rate",
+    "offline_primary": "heldout_action_mse_norm",
+    "secondary": ["pc_success", "per_task", "heldout_action_mse_raw"]
+  }
+}
