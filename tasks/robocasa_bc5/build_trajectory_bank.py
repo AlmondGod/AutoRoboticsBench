@@ -5,6 +5,7 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import imageio.v3 as iio
 import numpy as np
@@ -41,7 +42,7 @@ def main() -> None:
     manifest_tasks = {task["alias"]: task for task in manifest["tasks"]}
     task_aliases = set(args.task_alias)
 
-    rows = []
+    rows: list[dict[str, Any]] = []
     max_len = 0
     start_time = time.monotonic()
     for split_task in split["tasks"]:
@@ -67,6 +68,7 @@ def main() -> None:
 
     if not rows:
         raise ValueError("no trajectory-bank episodes selected")
+    _validate_rows(rows)
     action_dim = int(rows[0]["actions"].shape[-1])
     action_bank = np.zeros((len(rows), max_len, action_dim), dtype=np.float32)
     lengths = np.zeros((len(rows),), dtype=np.int64)
@@ -131,6 +133,26 @@ def _episode_ids(split_task: dict, source: str) -> list[int]:
     else:
         ids = sorted(set(split_task.get("train_episode_ids", [])) | set(split_task.get("eval_episode_ids", [])))
     return [int(x) for x in ids]
+
+
+def _validate_rows(rows: list[dict[str, Any]]) -> None:
+    action_dim = int(np.asarray(rows[0]["actions"]).shape[-1])
+    embedding_dim = int(np.asarray(rows[0]["embedding"]).shape[0])
+    for row in rows:
+        actions = np.asarray(row["actions"])
+        embedding = np.asarray(row["embedding"])
+        if actions.ndim != 2:
+            raise ValueError(
+                f"episode {row['episode_id']} for {row['alias']} has action shape {actions.shape}; expected [T, A]"
+            )
+        if int(actions.shape[-1]) != action_dim:
+            raise ValueError(
+                f"episode {row['episode_id']} for {row['alias']} has action_dim={actions.shape[-1]}, expected {action_dim}"
+            )
+        if int(embedding.shape[0]) != embedding_dim:
+            raise ValueError(
+                f"episode {row['episode_id']} for {row['alias']} has embedding_dim={embedding.shape[0]}, expected {embedding_dim}"
+            )
 
 
 def _episode_embedding(dataset_root: Path, episode_id: int, embedding: str) -> np.ndarray:

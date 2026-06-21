@@ -48,7 +48,11 @@ def _policy_row(policy: dict[str, Any], *, verify: bool) -> dict[str, Any]:
         "wm_policy_improvement_supported": policy.get("wm_policy_improvement_supported"),
     }
     checkpoint = policy.get("checkpoint")
-    if not checkpoint or str(policy.get("artifact_status", "")) == "external_or_local_runs":
+    if not checkpoint:
+        row["ok"] = False
+        row["status"] = "missing_checkpoint"
+        return row
+    if str(policy.get("artifact_status", "")) == "external_or_local_runs":
         row["ok"] = True
         row["status"] = "external_or_local_runs"
         row["verified"] = False
@@ -66,12 +70,16 @@ def _policy_row(policy: dict[str, Any], *, verify: bool) -> dict[str, Any]:
     actual_size = path.stat().st_size
     row["size_bytes"] = actual_size
     row["size_ok"] = expected_size is None or int(expected_size) == int(actual_size)
-    if verify and expected_sha:
+    if expected_sha and verify:
         actual_sha = _sha256(path)
         row["sha256"] = actual_sha
         row["sha256_ok"] = str(expected_sha) == actual_sha
-    else:
+    elif expected_sha:
         row["sha256_ok"] = True
+        row["sha256_verified"] = False
+    else:
+        row["sha256_ok"] = not verify
+        row["sha256_missing"] = True
     row["ok"] = bool(row["size_ok"] and row["sha256_ok"])
     return row
 

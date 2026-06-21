@@ -8,13 +8,24 @@ import sys
 import time
 from collections import defaultdict
 from copy import deepcopy
+from dataclasses import dataclass
 from pathlib import Path
+from typing import TextIO
 
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
+
+
+@dataclass
+class WorkerProc:
+    worker_idx: int
+    process: subprocess.Popen
+    result_path: Path
+    log_path: Path
+    log_handle: TextIO
 
 
 def main() -> None:
@@ -66,7 +77,7 @@ def main() -> None:
         worker_specs.append((worker_idx, rows, shard_split_path, shard_out, shard_log))
 
     start_time = time.monotonic()
-    procs: list[tuple[int, subprocess.Popen, Path, Path]] = []
+    procs: list[WorkerProc] = []
     for worker_idx, rows, shard_split_path, shard_out, shard_log in worker_specs:
         cmd = [
             sys.executable,
@@ -117,33 +128,40 @@ def main() -> None:
             text=True,
             env=os.environ.copy(),
         )
-        proc._robocasa_log_handle = log_handle  # type: ignore[attr-defined]
-        procs.append((worker_idx, proc, shard_out, shard_log))
+        procs.append(
+            WorkerProc(
+                worker_idx=worker_idx,
+                process=proc,
+                result_path=shard_out,
+                log_path=shard_log,
+                log_handle=log_handle,
+            )
+        )
         print(json.dumps({"worker": worker_idx, "episodes": len(rows), "pid": proc.pid, "log": str(shard_log)}), flush=True)
 
     deadline = None
     if float(args.worker_timeout_seconds) > 0:
         deadline = time.monotonic() + float(args.worker_timeout_seconds)
     failures = []
-    for worker_idx, proc, shard_out, shard_log in procs:
+    for worker in procs:
         timeout = None
         if deadline is not None:
             timeout = max(0.0, deadline - time.monotonic())
+        timed_out = False
         try:
-            code = proc.wait(timeout=timeout)
+            code = worker.process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
-            proc.kill()
-            code = proc.wait(timeout=30)
-            failures.append((worker_idx, f"timeout exit={code}", shard_log))
+            worker.process.kill()
+            code = worker.process.wait(timeout=30)
+            timed_out = True
+            failures.append((worker.worker_idx, f"timeout exit={code}", worker.log_path))
         finally:
-            log_handle = getattr(proc, "_robocasa_log_handle", None)
-            if log_handle is not None:
-                log_handle.close()
-        if code != 0:
-            failures.append((worker_idx, f"exit={code}", shard_log))
-        elif not shard_out.exists():
-            failures.append((worker_idx, "missing result", shard_log))
-        print(json.dumps({"worker": worker_idx, "exit": int(code), "result": str(shard_out)}), flush=True)
+            worker.log_handle.close()
+        if code != 0 and not timed_out:
+            failures.append((worker.worker_idx, f"exit={code}", worker.log_path))
+        elif not worker.result_path.exists():
+            failures.append((worker.worker_idx, "missing result", worker.log_path))
+        print(json.dumps({"worker": worker.worker_idx, "exit": int(code), "result": str(worker.result_path)}), flush=True)
 
     if failures:
         for worker_idx, reason, shard_log in failures:
@@ -156,7 +174,7 @@ def main() -> None:
         args=args,
         manifest=manifest,
         split=split,
-        shard_results=[shard_out for _, _, shard_out, _ in procs],
+        shard_results=[worker.result_path for worker in procs],
         order=order,
         workers=len(procs),
         elapsed_seconds=time.monotonic() - start_time,
