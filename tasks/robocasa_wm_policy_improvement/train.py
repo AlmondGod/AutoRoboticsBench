@@ -10,7 +10,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from torch import nn
 
 ROOT = Path(__file__).resolve().parents[2]

@@ -238,26 +238,37 @@ def _rollout_episode(
                 step_idx += 1
                 actions_applied.append(np.asarray(action, dtype=np.float32).copy())
                 success = bool(info.get("success", False)) if isinstance(info, dict) else False
-                if not success and hasattr(env, "_check_success"):
-                    try:
-                        success = bool(env._check_success())
-                    except Exception:
-                        pass
+                if not success:
+                    success = _check_env_success(env)
                 success_trace.append(float(success))
                 frames.append(_compose_frame(env, camera, width, height, step_idx, success=success))
                 if success or step_idx >= max_steps:
                     break
     finally:
-        try:
-            if getattr(env, "viewer", None) is not None:
-                env.viewer.close()
-        except Exception:
-            pass
-        try:
-            env.close()
-        except Exception:
-            pass
+        _close_env(env)
     return frames, success, step_idx, actions_applied, success_trace
+
+
+def _check_env_success(env) -> bool:
+    if not hasattr(env, "_check_success"):
+        return False
+    try:
+        return bool(env._check_success())
+    except Exception:
+        return False
+
+
+def _close_env(env) -> None:
+    try:
+        viewer = getattr(env, "viewer", None)
+        if viewer is not None:
+            viewer.close()
+    except Exception:
+        pass
+    try:
+        env.close()
+    except Exception:
+        pass
 
 
 def _reset_state_index_for(split_task: dict, episode_id: int) -> int:
