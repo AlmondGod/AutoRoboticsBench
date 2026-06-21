@@ -1,0 +1,366 @@
+{
+  "baseline_mae": 0.2504764199256897,
+  "baseline_rmse": 0.2892236131726013,
+  "checkpoint": "runs/autorobobench/robocasa_progress_predictor/bc5_state_action_5min/progress_predictor.pt",
+  "history": [
+    {
+      "elapsed_seconds": 0.37685250071808696,
+      "loss": 0.08339128643274307,
+      "step": 1,
+      "val_mae": 0.24775342643260956,
+      "val_r2": 0.021711897188016693,
+      "val_rmse": 0.286068267833294
+    },
+    {
+      "elapsed_seconds": 0.6909010498784482,
+      "loss": 0.012236140668392181,
+      "step": 100,
+      "val_mae": 0.14067213237285614,
+      "val_r2": 0.49335625921566584,
+      "val_rmse": 0.2058674291377893
+    },
+    {
+      "elapsed_seconds": 1.0116492407396436,
+      "loss": 0.006862747948616743,
+      "step": 200,
+      "val_mae": 0.13671118021011353,
+      "val_r2": 0.49244643836086177,
+      "val_rmse": 0.206052192564409
+    },
+    {
+      "elapsed_seconds": 1.3312959959730506,
+      "loss": 0.006482644937932491,
+      "step": 300,
+      "val_mae": 0.13111437857151031,
+      "val_r2": 0.49487249370629305,
+      "val_rmse": 0.20555914822992183
+    },
+    {
+      "elapsed_seconds": 1.680675362702459,
+      "loss": 0.0050503285601735115,
+      "step": 400,
+      "val_mae": 0.1222490444779396,
+      "val_r2": 0.5543802997732796,
+      "val_rmse": 0.1930716425600933
+    },
+    {
+      "elapsed_seconds": 2.0560961309820414,
+      "loss": 0.004276332911103964,
+      "step": 500,
+      "val_mae": 0.11497502028942108,
+      "val_r2": 0.5587922851823004,
+      "val_rmse": 0.19211348449729787
+    },
+    {
+      "elapsed_seconds": 2.4266149536706507,
+      "loss": 0.004555858671665192,
+      "step": 600,
+      "val_mae": 0.11464063823223114,
+      "val_r2": 0.5693479884408663,
+      "val_rmse": 0.18980145630850592
+    },
+    {
+      "elapsed_seconds": 2.8000086518004537,
+      "loss": 0.0036583305336534977,
+      "step": 700,
+      "val_mae": 0.11310755461454391,
+      "val_r2": 0.5724712168397463,
+      "val_rmse": 0.18911195297394068
+    },
+    {
+      "elapsed_seconds": 3.182830549776554,
+      "loss": 0.00343554699793458,
+      "step": 800,
+      "val_mae": 0.11266796290874481,
+      "val_r2": 0.5818462460649023,
+      "val_rmse": 0.18702699683507443
+    },
+    {
+      "elapsed_seconds": 3.556883747689426,
+      "loss": 0.0025843181647360325,
+      "step": 900,
+      "val_mae": 0.1119498759508133,
+      "val_r2": 0.5689479433728926,
+      "val_rmse": 0.1898895918674343
+    },
+    {
+      "elapsed_seconds": 3.9274838748387992,
+      "loss": 0.002791091799736023,
+      "step": 1000,
+      "val_mae": 0.11135546118021011,
+      "val_r2": 0.5809058751804166,
+      "val_rmse": 0.18723717786563987
+    },
+    {
+      "elapsed_seconds": 4.296770242974162,
+      "loss": 0.002585436450317502,
+      "step": 1100,
+      "val_mae": 0.11203614622354507,
+      "val_r2": 0.5641881062410683,
+      "val_rmse": 0.19093512923833836
+    },
+    {
+      "elapsed_seconds": 4.6721311579458416,
+      "loss": 0.0021143127232789993,
+      "step": 1200,
+      "val_mae": 0.11190355569124222,
+      "val_r2": 0.5692458284290738,
+      "val_rmse": 0.1898239674877078
+    },
+    {
+      "elapsed_seconds": 5.04377478081733,
+      "loss": 0.002204673131927848,
+      "step": 1300,
+      "val_mae": 0.11083804816007614,
+      "val_r2": 0.5689395710615512,
+      "val_rmse": 0.1898914359684419
+    },
+    {
+      "elapsed_seconds": 5.414045151788741,
+      "loss": 0.001568308798596263,
+      "step": 1400,
+      "val_mae": 0.11196489632129669,
+      "val_r2": 0.5611420990542406,
+      "val_rmse": 0.1916012160271828
+    },
+    {
+      "elapsed_seconds": 5.782682810910046,
+      "loss": 0.0016390858218073845,
+      "step": 1500,
+      "val_mae": 0.11176992207765579,
+      "val_r2": 0.5620563287325702,
+      "val_rmse": 0.1914015399586901
+    },
+    {
+      "elapsed_seconds": 6.152220084797591,
+      "loss": 0.0016496960306540132,
+      "step": 1600,
+      "val_mae": 0.11101335287094116,
+      "val_r2": 0.5690704552266157,
+      "val_rmse": 0.18986260512794428
+    },
+    {
+      "elapsed_seconds": 6.525295509956777,
+      "loss": 0.0014882467221468687,
+      "step": 1700,
+      "val_mae": 0.11224362999200821,
+      "val_r2": 0.5457842517714342,
+      "val_rmse": 0.1949249332318027
+    },
+    {
+      "elapsed_seconds": 6.894648584071547,
+      "loss": 0.0011341208592057228,
+      "step": 1800,
+      "val_mae": 0.11191412061452866,
+      "val_r2": 0.5534125852762217,
+      "val_rmse": 0.19328116752295865
+    },
+    {
+      "elapsed_seconds": 7.269475056789815,
+      "loss": 0.0014603515155613422,
+      "step": 1900,
+      "val_mae": 0.10936209559440613,
+      "val_r2": 0.5782168490984401,
+      "val_rmse": 0.18783690067154268
+    },
+    {
+      "elapsed_seconds": 7.640753278043121,
+      "loss": 0.0010452053975313902,
+      "step": 2000,
+      "val_mae": 0.11195536702871323,
+      "val_r2": 0.5578387323608092,
+      "val_rmse": 0.1923209734833
+    }
+  ],
+  "monotonicity": 0.5438673328519876,
+  "split_summary": [
+    {
+      "alias": "OpenDrawer",
+      "dataset_path": "/Users/almondgod/robot-autoresearch/third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenDrawer/20250819/lerobot",
+      "task_id": 0,
+      "train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "train_transitions": 2032,
+      "val_episode_ids": [
+        80,
+        81,
+        82,
+        83,
+        84
+      ],
+      "val_transitions": 557
+    },
+    {
+      "alias": "CloseDrawer",
+      "dataset_path": "/Users/almondgod/robot-autoresearch/third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseDrawer/20250819/lerobot",
+      "task_id": 1,
+      "train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "train_transitions": 1410,
+      "val_episode_ids": [
+        80,
+        81,
+        82,
+        83,
+        84
+      ],
+      "val_transitions": 314
+    },
+    {
+      "alias": "CloseFridge",
+      "dataset_path": "/Users/almondgod/robot-autoresearch/third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseFridge/20250819/lerobot",
+      "task_id": 2,
+      "train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "train_transitions": 2625,
+      "val_episode_ids": [
+        80,
+        81,
+        82,
+        83,
+        84
+      ],
+      "val_transitions": 716
+    },
+    {
+      "alias": "TurnOffStove",
+      "dataset_path": "/Users/almondgod/robot-autoresearch/third_party/robocasa/datasets/v1.0/pretrain/atomic/TurnOffStove/20250819/lerobot",
+      "task_id": 3,
+      "train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "train_transitions": 3039,
+      "val_episode_ids": [
+        80,
+        81,
+        82,
+        83,
+        84
+      ],
+      "val_transitions": 730
+    },
+    {
+      "alias": "PickPlaceCounterToCabinet",
+      "dataset_path": "/Users/almondgod/robot-autoresearch/third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToCabinet/20250819/lerobot",
+      "task_id": 4,
+      "train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "train_transitions": 2230,
+      "val_episode_ids": [
+        80,
+        81,
+        82,
+        83,
+        84
+      ],
+      "val_transitions": 552
+    }
+  ],
+  "steps_completed": 2000,
+  "task": "robocasa_progress_predictor",
+  "train_samples": 11336,
+  "train_seconds": 7.699455318041146,
+  "val_mae": 0.11195536702871323,
+  "val_r2": 0.5578387323608092,
+  "val_rmse": 0.1923209734833,
+  "val_samples": 2869
+}

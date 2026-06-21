@@ -1,0 +1,13 @@
+{
+  "action_dim": 12,
+  "build_seconds": 36.54371445905417,
+  "checkpoint": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/policy.pt",
+  "episodes": 106,
+  "eval_chunk": 16,
+  "max_len": 522,
+  "per_task": {
+    "CloseFridge": 106
+  },
+  "policy_type": "robocasa_bc5_trajectory_bank",
+  "select_by_episode_id": true
+}

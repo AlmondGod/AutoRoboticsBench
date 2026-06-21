@@ -1,0 +1,180 @@
+{
+  "checkpoint": "runs/autorobobench/robocasa_faucet_peak/a100_bc_all_data_5min_seed0/policy_best.pt",
+  "commit_steps": 16,
+  "details": [
+    {
+      "episode_id": 2,
+      "reset_perturbation": {
+        "description": "Small deterministic robot arm qpos perturbation applied after loading the selected recovery state. Gripper, faucet, and fixture qpos are not perturbed.",
+        "qpos_indices": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "qpos_noise_clip": 0.01,
+        "qpos_noise_std": 0.005,
+        "seed": 20260621,
+        "type": "qpos_noise"
+      },
+      "reset_state_index": 79,
+      "steps": 207,
+      "success": true,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 15,
+      "steps": 181,
+      "success": true,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 75,
+      "steps": 400,
+      "success": false,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 65,
+      "steps": 253,
+      "success": true,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 60,
+      "steps": 213,
+      "success": true,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 62,
+      "steps": 199,
+      "success": true,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 51,
+      "steps": 400,
+      "success": false,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 54,
+      "reset_perturbation": {
+        "description": "Small deterministic robot arm qpos perturbation applied after loading the selected recovery state. Gripper, faucet, and fixture qpos are not perturbed.",
+        "qpos_indices": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "qpos_noise_clip": 0.01,
+        "qpos_noise_std": 0.005,
+        "seed": 20260621,
+        "type": "qpos_noise"
+      },
+      "reset_state_index": 109,
+      "steps": 400,
+      "success": false,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 82,
+      "steps": 400,
+      "success": false,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 90,
+      "reset_perturbation": {
+        "description": "Small deterministic robot arm qpos perturbation applied after loading the selected recovery state. Gripper, faucet, and fixture qpos are not perturbed.",
+        "qpos_indices": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "qpos_noise_clip": 0.01,
+        "qpos_noise_std": 0.005,
+        "seed": 20260621,
+        "type": "qpos_noise"
+      },
+      "reset_state_index": 57,
+      "steps": 315,
+      "success": true,
+      "task_alias": "TurnOnSinkFaucet",
+      "task_id": 0
+    }
+  ],
+  "episodes": 10,
+  "inference": "tasks.robocasa_bc5.inference",
+  "manifest": "data/autorobobench/robocasa_faucet_peak_manifest.json",
+  "manifest_track": "robocasa_faucet_peak",
+  "max_steps": 400,
+  "parallel_eval": {
+    "elapsed_seconds": 174.25820579985157,
+    "worker_results": [
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_wm_policy_improvement/faucet_direct_bc_wm_5min/eval_source_10x5_parallel/result_worker_000.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_wm_policy_improvement/faucet_direct_bc_wm_5min/eval_source_10x5_parallel/result_worker_001.json",
+        "success_rate": 0.5,
+        "successes": 1
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_wm_policy_improvement/faucet_direct_bc_wm_5min/eval_source_10x5_parallel/result_worker_002.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_wm_policy_improvement/faucet_direct_bc_wm_5min/eval_source_10x5_parallel/result_worker_003.json",
+        "success_rate": 0.5,
+        "successes": 1
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_wm_policy_improvement/faucet_direct_bc_wm_5min/eval_source_10x5_parallel/result_worker_004.json",
+        "success_rate": 1.0,
+        "successes": 2
+      }
+    ],
+    "workers": 5
+  },
+  "per_task": {
+    "TurnOnSinkFaucet": {
+      "episodes": 10,
+      "success_rate": 0.6,
+      "successes": 6
+    }
+  },
+  "split": "data/autorobobench/robocasa_faucet_peak_splits.json",
+  "split_track": "robocasa_faucet_peak",
+  "success_rate": 0.6,
+  "successes": 6,
+  "track": "robocasa_bc5"
+}

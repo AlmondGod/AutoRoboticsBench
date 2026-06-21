@@ -65,6 +65,9 @@ def load_policy(checkpoint: str, device: str = "auto") -> Policy:
     torch_device = device_from_arg(device)
     payload = torch.load(Path(checkpoint), map_location=torch_device, weights_only=False)
     if payload.get("policy_type") == "robocasa_bc5_trajectory_bank":
+        for key in ("actions", "lengths", "task_ids", "episode_ids", "embeddings"):
+            if key in payload:
+                payload[key] = _cpu_numpy(payload[key])
         action_dim = int(np.asarray(payload["actions"]).shape[-1])
         return Policy(
             model=None,
@@ -397,10 +400,10 @@ def act(policy: Policy, obs: dict, task: dict) -> np.ndarray:
     """
     device = policy.device
     task_id = int(task["task_id"])
-    if task_id < 0 or task_id >= int(policy.checkpoint["task_count"]):
-        raise ValueError(f"task_id={task_id} outside loaded policy task_count={policy.checkpoint['task_count']}")
     if policy.mode == "trajectory_bank":
         return _act_trajectory_bank(policy, obs, task_id)
+    if task_id < 0 or task_id >= int(policy.checkpoint["task_count"]):
+        raise ValueError(f"task_id={task_id} outside loaded policy task_count={policy.checkpoint['task_count']}")
     if policy.mode in {
         "history_act",
         "history_flow",
@@ -587,14 +590,16 @@ def _denormalize_action(policy: Policy, pred_norm: torch.Tensor, task_id: int) -
 
 def _slice_return_horizon(policy: Policy, actions: np.ndarray, task_id: int | None = None) -> np.ndarray:
     horizon_by_task = policy.checkpoint.get("return_horizon_by_task")
+    default_horizon = policy.checkpoint.get("return_horizon")
+    if default_horizon is None:
+        default_horizon = policy.checkpoint.get("eval_commit_steps", actions.shape[0])
     if horizon_by_task is not None and task_id is not None:
         if isinstance(horizon_by_task, dict):
-            default = policy.checkpoint.get("return_horizon", actions.shape[0])
-            horizon = int(horizon_by_task.get(str(int(task_id)), horizon_by_task.get(int(task_id), default)))
+            horizon = int(horizon_by_task.get(str(int(task_id)), horizon_by_task.get(int(task_id), default_horizon)))
         else:
             horizon = int(horizon_by_task[int(task_id)])
     else:
-        horizon = int(policy.checkpoint.get("return_horizon", actions.shape[0]))
+        horizon = int(default_horizon)
     horizon = max(1, min(horizon, int(actions.shape[0])))
     return actions[:horizon].astype(np.float32)
 
@@ -612,6 +617,12 @@ def _tensor(checkpoint: dict, key: str, device: torch.device) -> torch.Tensor:
     if not isinstance(value, torch.Tensor):
         value = torch.as_tensor(value)
     return value.to(device=device, dtype=torch.float32)
+
+
+def _cpu_numpy(value: Any) -> np.ndarray:
+    if isinstance(value, torch.Tensor):
+        return value.detach().cpu().numpy()
+    return np.asarray(value)
 
 
 def _act_trajectory_bank(policy: Policy, obs: dict, task_id: int) -> np.ndarray:

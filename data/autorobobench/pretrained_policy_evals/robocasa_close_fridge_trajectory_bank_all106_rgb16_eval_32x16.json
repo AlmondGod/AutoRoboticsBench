@@ -1,0 +1,349 @@
+{
+  "checkpoint": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/policy.pt",
+  "commit_steps": 16,
+  "details": [
+    {
+      "episode_id": 0,
+      "steps": 282,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 1,
+      "steps": 254,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 2,
+      "steps": 126,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 3,
+      "steps": 331,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 4,
+      "steps": 140,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 5,
+      "steps": 237,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 6,
+      "steps": 144,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 7,
+      "steps": 229,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 8,
+      "steps": 291,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 9,
+      "steps": 269,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 10,
+      "steps": 273,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 11,
+      "steps": 245,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 12,
+      "steps": 336,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 13,
+      "steps": 101,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 14,
+      "steps": 317,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 15,
+      "steps": 118,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 16,
+      "steps": 218,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 17,
+      "steps": 508,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 18,
+      "steps": 359,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 19,
+      "steps": 150,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 20,
+      "steps": 184,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 21,
+      "steps": 185,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 22,
+      "steps": 414,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 23,
+      "steps": 134,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 24,
+      "steps": 297,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 25,
+      "steps": 227,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 26,
+      "steps": 320,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 27,
+      "steps": 133,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 28,
+      "steps": 122,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 29,
+      "steps": 559,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 30,
+      "steps": 308,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    },
+    {
+      "episode_id": 31,
+      "steps": 339,
+      "success": true,
+      "task_alias": "CloseFridge",
+      "task_id": 0
+    }
+  ],
+  "episodes": 32,
+  "inference": "tasks.robocasa_bc5.inference",
+  "manifest": "data/autorobobench/robocasa_close_fridge_peak_manifest.json",
+  "manifest_track": "robocasa_close_fridge_peak",
+  "max_steps": 600,
+  "parallel_eval": {
+    "elapsed_seconds": 201.6529816170223,
+    "worker_results": [
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_000.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_001.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_002.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_003.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_004.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_005.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_006.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_007.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_008.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_009.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_010.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_011.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_012.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_013.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_014.json",
+        "success_rate": 1.0,
+        "successes": 2
+      },
+      {
+        "episodes": 2,
+        "path": "runs/autorobobench/robocasa_close_fridge_full_dataset/trajectory_bank_all106_rgb16/eval_parallel_32x16_parallel/result_worker_015.json",
+        "success_rate": 1.0,
+        "successes": 2
+      }
+    ],
+    "workers": 16
+  },
+  "per_task": {
+    "CloseFridge": {
+      "episodes": 32,
+      "success_rate": 1.0,
+      "successes": 32
+    }
+  },
+  "split": "data/autorobobench/robocasa_close_fridge_full_dataset_splits.json",
+  "split_track": "robocasa_close_fridge_full_dataset",
+  "success_rate": 1.0,
+  "successes": 32,
+  "track": "robocasa_bc5"
+}

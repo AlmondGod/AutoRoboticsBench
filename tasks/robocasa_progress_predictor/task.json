@@ -1,0 +1,41 @@
+{
+  "id": "robocasa_progress_predictor",
+  "name": "RoboCasa Task Progress Predictor",
+  "version": "v0",
+  "train": "tasks/robocasa_progress_predictor/train.py",
+  "manifest": "data/robocasa5/manifest.json",
+  "split": "data/autorobobench/robocasa_bc5_splits.json",
+  "starter_metric": 0.0,
+  "reference_metric": 0.75,
+  "benchmark": {
+    "phase": 1,
+    "primary_metric": "val_r2",
+    "higher_is_better": true,
+    "required_result_keys": [
+      "val_mae",
+      "val_rmse",
+      "val_r2",
+      "baseline_rmse"
+    ],
+    "notes": "Auxiliary benchmark for learning task progress from state/action/task data. This is not the final policy metric; real simulator success remains primary for policy optimization."
+  },
+  "default_train": {
+    "train_episodes_per_task": 20,
+    "val_episodes_per_task": 5,
+    "frame_stride": 2,
+    "steps": 2000,
+    "max_train_seconds": 300,
+    "batch_size": 512,
+    "hidden_dim": 256,
+    "depth": 3
+  },
+  "metrics": {
+    "primary": "val_r2",
+    "secondary": [
+      "val_mae",
+      "val_rmse",
+      "baseline_rmse",
+      "monotonicity"
+    ]
+  }
+}
