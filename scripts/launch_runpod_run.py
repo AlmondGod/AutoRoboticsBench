@@ -113,7 +113,7 @@ Instructions:
 - Read /workspace/task/task.md before making changes.
 - Run all commands through runs/{run_id}/run.sh "<command>" from the repo root.
 - Modify only /workspace/task and /workspace/output.
-- You may read /workspace/readonly, but do not modify it.
+- You may read /workspace/read_only, but do not modify it.
 - Put the final submission in /workspace/output/final_submission.
 - Do not access held-out eval data or modify eval code.
 - This mode is not clean Docker isolation; use it for RunPod development runs.
@@ -177,7 +177,7 @@ def main() -> int:
     link_workspace_path(workspace_root / "task", task_dir)
     link_workspace_path(workspace_root / "output", output_dir)
     link_workspace_path(workspace_root / "logs", logs_dir)
-    link_workspace_path(workspace_root / "readonly", repo_root / "readonly")
+    link_workspace_path(workspace_root / "read_only", repo_root / "read_only")
 
     prompt = build_prompt(
         run_id,

@@ -30,11 +30,11 @@ docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 docker run --rm \
   --name "${CONTAINER_NAME}" \
   --network none \
-  -v "${REPO_ROOT}/readonly:/workspace/readonly:ro" \
+  -v "${REPO_ROOT}/read_only:/workspace/read_only:ro" \
   -v "${SUBMISSION_DIR}:/workspace/final_submission:ro" \
   -v "${EVAL_DIR}:/workspace/eval" \
   "${IMAGE_NAME}" \
-  python /workspace/readonly/eval/evaluate_submission.py \
+  python /workspace/read_only/eval/evaluate_submission.py \
     --task "${TASK}" \
     --submission /workspace/final_submission \
     --out /workspace/eval/results.json

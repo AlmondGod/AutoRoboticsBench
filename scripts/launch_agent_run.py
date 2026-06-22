@@ -92,7 +92,7 @@ Instructions:
 - Read /workspace/task/task.md before making changes.
 - Run all commands through runs/{run_id}/run.sh "<command>" from the repo root.
 - Modify only /workspace/task and /workspace/output.
-- You may read /workspace/readonly, but do not modify it.
+- You may read /workspace/read_only, but do not modify it.
 - Put the final submission in /workspace/output/final_submission.
 - Do not access held-out eval data or modify eval code.
 - Do not attempt to bypass validators, replay checks, or privileged-state checks.

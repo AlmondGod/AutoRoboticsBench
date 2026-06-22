@@ -42,7 +42,7 @@ fi
 docker run -d \
   --name "${CONTAINER_NAME}" \
   "${GPU_ARGS[@]}" \
-  -v "${REPO_ROOT}/readonly:/workspace/readonly:ro" \
+  -v "${REPO_ROOT}/read_only:/workspace/read_only:ro" \
   -v "${RUN_DIR}/task:/workspace/task" \
   -v "${RUN_DIR}/output:/workspace/output" \
   -v "${RUN_DIR}/logs:/workspace/logs" \
