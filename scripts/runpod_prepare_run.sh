@@ -7,7 +7,7 @@ Usage:
   scripts/runpod_prepare_run.sh --agent AGENT --task TASK --base BASE [--model MODEL] [--scaffold SCAFFOLD] [--seed N] [--timeout-hours H] [--skip-setup] [--workspace-root PATH] [--no-git-branch]
 
 Example:
-  scripts/runpod_prepare_run.sh --agent codex --task toy_pickplace --base dummy --seed 0
+  scripts/runpod_prepare_run.sh --agent codex --task robocasa_bc5 --base dummy --seed 0
 EOF
 }
 

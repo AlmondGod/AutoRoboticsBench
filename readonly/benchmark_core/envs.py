@@ -8,5 +8,5 @@ def make_env(task_name: str, split: str, seed: int = 0) -> dict:
         "task_name": task_name,
         "split": split,
         "seed": seed,
-        "kind": "toy_env",
+        "kind": "placeholder_env",
     }

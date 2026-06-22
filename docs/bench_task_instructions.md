@@ -90,7 +90,7 @@ python3 tasks/robocasa_bc5/eval_parallel.py \
   --device cuda
 ```
 
-## `robocasa_faucet_peak`
+## `robocasa_bc1`
 
 - Optimize one policy for `TurnOnSinkFaucet`.
 - Metric: single-task reliability. Report success out of 100.
@@ -108,9 +108,9 @@ python3 tasks/robocasa_bc5/eval_parallel.py \
 
 ```bash
 python3 tasks/robocasa_bc5/train.py \
-  --manifest data/autorobobench/robocasa_faucet_peak_manifest.json \
-  --split data/autorobobench/robocasa_faucet_peak_splits.json \
-  --out-dir runs/autorobobench/robocasa_faucet_peak/<run> \
+  --manifest data/autorobobench/robocasa_bc1_manifest.json \
+  --split data/autorobobench/robocasa_bc1_splits.json \
+  --out-dir runs/autorobobench/robocasa_bc1/<run> \
   --policy-kind bc \
   --chunk-horizon 32 \
   --progress-conditioning \
@@ -124,11 +124,11 @@ python3 tasks/robocasa_bc5/train.py \
 
 ```bash
 python3 tasks/robocasa_bc5/eval_parallel.py \
-  --manifest data/autorobobench/robocasa_faucet_peak_manifest.json \
-  --split data/autorobobench/robocasa_faucet_peak_splits.json \
-  --inference tasks.robocasa_faucet_peak.inference \
-  --checkpoint runs/autorobobench/robocasa_faucet_peak/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_faucet_peak/<run>/eval_10.json \
+  --manifest data/autorobobench/robocasa_bc1_manifest.json \
+  --split data/autorobobench/robocasa_bc1_splits.json \
+  --inference tasks.robocasa_bc1.inference \
+  --checkpoint runs/autorobobench/robocasa_bc1/<run>/policy_best.pt \
+  --out runs/autorobobench/robocasa_bc1/<run>/eval_10.json \
   --eval-episodes-per-task 10 \
   --max-steps 400 \
   --commit-steps 8 \
@@ -163,7 +163,7 @@ python3 tasks/robocasa_offlinerl_posttraining/eval.py \
   --device cuda
 ```
 
-## `robocasa_choose_measuring_cup_language`
+## `robocasa_language_following`
 
 - Optimize one language-conditioned policy over four variants:
   `ChooseMeasuringCupLeftLarger`, `ChooseMeasuringCupLeftSmaller`,
@@ -174,19 +174,19 @@ python3 tasks/robocasa_offlinerl_posttraining/eval.py \
 - Train:
 
 ```bash
-python3 tasks/robocasa_choose_measuring_cup_language/train.py \
-  --manifest data/autorobobench/robocasa_choose_measuring_cup_language_manifest.json \
-  --split data/autorobobench/robocasa_choose_measuring_cup_language_splits.json \
-  --out-dir runs/autorobobench/robocasa_choose_measuring_cup_language/<run> \
+python3 tasks/robocasa_language_following/train.py \
+  --manifest data/autorobobench/robocasa_language_following_manifest.json \
+  --split data/autorobobench/robocasa_language_following_splits.json \
+  --out-dir runs/autorobobench/robocasa_language_following/<run> \
   --device cuda
 ```
 
 - Eval:
 
 ```bash
-python3 tasks/robocasa_choose_measuring_cup_language/eval.py \
-  --checkpoint runs/autorobobench/robocasa_choose_measuring_cup_language/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_choose_measuring_cup_language/<run>/eval.json \
+python3 tasks/robocasa_language_following/eval.py \
+  --checkpoint runs/autorobobench/robocasa_language_following/<run>/policy_best.pt \
+  --out runs/autorobobench/robocasa_language_following/<run>/eval.json \
   --device cuda
 ```
 
@@ -301,7 +301,7 @@ python3 tasks/robocasa_world_model_posttraining/eval_parallel.py \
   --device cuda
 ```
 
-## `video_policy_transfer`
+## `robocasa_bc5_with_video`
 
 - Train one policy from scarce paired action demos plus RGB-only video.
 - Tasks use BC5 task set.
@@ -311,19 +311,19 @@ python3 tasks/robocasa_world_model_posttraining/eval_parallel.py \
 - Train:
 
 ```bash
-python3 tasks/video_policy_transfer/train.py \
+python3 tasks/robocasa_bc5_with_video/train.py \
   --manifest data/robocasa5/manifest.json \
-  --split data/autorobobench/video_policy_transfer_splits.json \
-  --video-pool data/autorobobench/video_policy_transfer_video_pool.json \
-  --out-dir runs/autorobobench/video_policy_transfer/<run> \
+  --split data/autorobobench/robocasa_bc5_with_video_splits.json \
+  --video-pool data/autorobobench/robocasa_bc5_with_video_video_pool.json \
+  --out-dir runs/autorobobench/robocasa_bc5_with_video/<run> \
   --device cuda
 ```
 
 - Eval:
 
 ```bash
-python3 tasks/video_policy_transfer/eval.py \
-  --checkpoint runs/autorobobench/video_policy_transfer/<run>/policy_best.pt \
-  --out runs/autorobobench/video_policy_transfer/<run>/eval.json \
+python3 tasks/robocasa_bc5_with_video/eval.py \
+  --checkpoint runs/autorobobench/robocasa_bc5_with_video/<run>/policy_best.pt \
+  --out runs/autorobobench/robocasa_bc5_with_video/<run>/eval.json \
   --device cuda
 ```

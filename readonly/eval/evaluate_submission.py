@@ -20,15 +20,20 @@ def clamp_score(value: object) -> float:
     return max(0.0, min(1.0, score))
 
 
-def evaluate_toy_pickplace(submission: Path) -> float:
+def evaluate_result_json(submission: Path) -> tuple[float, int]:
     result_path = submission / "result.json"
     if not result_path.exists():
-        return 0.0
+        return 0.0, 0
     try:
         data = json.loads(result_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return 0.0
-    return clamp_score(data.get("score"))
+        return 0.0, 0
+    episodes = data.get("num_eval_episodes", data.get("num_episodes", 0))
+    try:
+        num_episodes = int(episodes)
+    except (TypeError, ValueError):
+        num_episodes = 0
+    return clamp_score(data.get("score", data.get("success_rate"))), num_episodes
 
 
 def main() -> int:
@@ -45,11 +50,8 @@ def main() -> int:
 
     success = 0.0
     num_episodes = 0
-    if valid and args.task == "toy_pickplace":
-        success = evaluate_toy_pickplace(submission)
-        num_episodes = 10
-    elif valid:
-        flags.append("unknown_task")
+    if valid:
+        success, num_episodes = evaluate_result_json(submission)
 
     result = {
         "task": args.task,

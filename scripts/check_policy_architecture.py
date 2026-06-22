@@ -10,7 +10,7 @@ from pathlib import Path
 
 TASKS = [
     "robocasa_long_horizon",
-    "robocasa_faucet_peak",
+    "robocasa_bc1",
 ]
 
 ARCH_FLAGS = [

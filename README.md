@@ -71,9 +71,9 @@ Additional suite keys are `visual_world_model_v0` and
 
 The Docker harness creates a fresh training container for an external agent,
 collects artifacts, runs a simple rule-based judge, and evaluates the final
-submission in a separate clean eval container. The included `toy_pickplace`
-task is a placeholder smoke test for the harness; it is not real robotics
-training.
+submission in a separate clean eval container. The examples below use
+`robocasa_bc5` as a lightweight real RoboCasa task for smoke testing the
+harness.
 
 Build the image:
 
@@ -84,7 +84,7 @@ Build the image:
 Start a run:
 
 ```bash
-python scripts/launch_agent_run.py --agent codex --task toy_pickplace --base dummy --seed 0
+python scripts/launch_agent_run.py --agent codex --task robocasa_bc5 --base dummy --seed 0
 ```
 
 Copy the printed prompt into Codex, Claude, Gemini, or another external agent.
@@ -105,13 +105,13 @@ python scripts/collect_artifacts.py --run-id <RUN_ID>
 Run the rule-based judge:
 
 ```bash
-python scripts/judge_run.py --run-id <RUN_ID> --task toy_pickplace
+python scripts/judge_run.py --run-id <RUN_ID> --task robocasa_bc5
 ```
 
 Evaluate in a clean eval container:
 
 ```bash
-RUN_ID=<RUN_ID> TASK=toy_pickplace ./docker/run_eval_container.sh
+RUN_ID=<RUN_ID> TASK=robocasa_bc5 ./docker/run_eval_container.sh
 ```
 
 For remote GPU execution, copy `configs/compute.yaml.example` to
@@ -135,7 +135,7 @@ cd /workspace/autoroboticsbench
   --agent codex \
   --model gpt-5-codex \
   --scaffold manual \
-  --task toy_pickplace \
+  --task robocasa_bc5 \
   --base dummy \
   --seed 0
 ```
@@ -155,7 +155,7 @@ a per-run branch named `codex/<RUN_ID>`. Agents must never merge this branch to
 `main`. If a tracked source change improves eval score, commit it with:
 
 ```bash
-python scripts/commit_improvement.py --run-id <RUN_ID> --task toy_pickplace
+python scripts/commit_improvement.py --run-id <RUN_ID> --task robocasa_bc5
 ```
 
 The commit helper reads `runs/<RUN_ID>/eval/results.json`, refuses to commit on
@@ -167,7 +167,7 @@ You can also run the two steps separately:
 
 ```bash
 ./scripts/setup_runpod_env.sh
-python scripts/launch_runpod_run.py --agent codex --task toy_pickplace --base dummy --seed 0
+python scripts/launch_runpod_run.py --agent codex --task robocasa_bc5 --base dummy --seed 0
 ```
 
 Run commands through the generated wrapper:
@@ -186,7 +186,7 @@ The wrapper records every command in `runs/<RUN_ID>/commands.jsonl` and refuses
 to execute commands after the run deadline. Finalize the run with:
 
 ```bash
-python scripts/finalize_run.py --run-id <RUN_ID> --task toy_pickplace --mode runpod
+python scripts/finalize_run.py --run-id <RUN_ID> --task robocasa_bc5 --mode runpod
 ```
 
 Finalization runs eval, judge, artifact collection, writes
@@ -250,13 +250,13 @@ The active task packages are:
 | --- | --- | --- |
 | RoboCasa BC-5 | `tasks/robocasa_bc5/` | `OpenCabinet`, `CloseDrawer`, `CloseFridge`, `TurnOffStove`, `PickPlaceCounterToCabinet` |
 | Long-Horizon Microwave | `tasks/robocasa_long_horizon/` | `PickPlaceCounterToMicrowave` |
-| Video Data to Policy Transfer | `tasks/video_policy_transfer/` | BC-5 demos plus RGB-only video pool |
+| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool |
 | RoboCasa World Model | `tasks/robocasa_world_model/` | BC-5 transition and policy-ranking world model |
-| Choose Measuring Cup Language | `tasks/robocasa_choose_measuring_cup_language/` | measuring-cup language variants |
+| RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants |
 | Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction |
 | World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
 | Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
-| Faucet Peak | `tasks/robocasa_faucet_peak/` | `TurnOnSinkFaucet` |
+| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` |
 
 Each task owns its `setup.py`, `train.py`, `inference.py`, `eval.py`,
 `visualize.py`, `task.json`, and `INSTRUCTIONS.md`. Visualizers write compact
@@ -299,6 +299,6 @@ python tasks/robocasa_long_horizon/train.py --max-train-seconds 60
 Video-transfer wrapper:
 
 ```bash
-python tasks/video_policy_transfer/setup.py --verify
-python tasks/video_policy_transfer/train.py --max-train-seconds 300
+python tasks/robocasa_bc5_with_video/setup.py --verify
+python tasks/robocasa_bc5_with_video/train.py --max-train-seconds 300
 ```

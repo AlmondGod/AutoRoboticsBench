@@ -16,8 +16,8 @@
           "weight": 40
         },
         {
-          "id": "video_policy_transfer",
-          "task_spec": "tasks/video_policy_transfer/task.json",
+          "id": "robocasa_bc5_with_video",
+          "task_spec": "tasks/robocasa_bc5_with_video/task.json",
           "weight": 30
         },
         {
@@ -26,8 +26,8 @@
           "weight": 20
         },
         {
-          "id": "robocasa_choose_measuring_cup_language",
-          "task_spec": "tasks/robocasa_choose_measuring_cup_language/task.json",
+          "id": "robocasa_language_following",
+          "task_spec": "tasks/robocasa_language_following/task.json",
           "weight": 20
         }
       ],

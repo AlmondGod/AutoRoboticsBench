@@ -1,0 +1,80 @@
+{
+  "benchmark": {
+    "allowed_edit_globs": [
+      "program_autorobobench.md",
+      "tasks/robocasa_language_following/**",
+      "tasks/robocasa_language_following/inference.py",
+      "tasks/robocasa_language_following/train.py"
+    ],
+    "higher_is_better": true,
+    "immutable_globs": [
+      "benchmark.json",
+      "data/autorobobench/robocasa_language_following_manifest.json",
+      "data/autorobobench/robocasa_language_following_splits.json",
+      "tasks/robocasa_language_following/eval.py",
+      "tasks/robocasa_language_following/setup.py",
+      "tasks/robocasa_language_following/task.json"
+    ],
+    "notes": "Language-conditioned ChooseMeasuringCup track over four prompt variants: left/right drawer and larger/smaller cup.",
+    "phase": 1,
+    "primary_metric": "language_success_rate",
+    "reference_metric": 0.75,
+    "required_result_keys": [
+      "language_success_rate",
+      "conditioning_gap",
+      "language_variant_balance",
+      "reproducibility_integrity"
+    ],
+    "score_weights": {
+      "conditioning_gap": 0.3,
+      "language_success_rate": 0.55,
+      "language_variant_balance": 0.1,
+      "reproducibility_integrity": 0.05
+    },
+    "starter_metric": 0.0
+  },
+  "default_eval": {
+    "commit_steps": 8,
+    "eval_episodes_per_task": 3,
+    "max_steps": 900
+  },
+  "eval": "tasks/robocasa_language_following/eval.py",
+  "id": "robocasa_language_following",
+  "inference": "tasks/robocasa_language_following/inference.py",
+  "manifest": "data/autorobobench/robocasa_language_following_manifest.json",
+  "metrics": {
+    "primary": "language_success_rate",
+    "secondary": [
+      "success_rate",
+      "wrong_language_success_rate",
+      "conditioning_gap",
+      "language_variant_balance",
+      "per_task"
+    ]
+  },
+  "name": "RoboCasa Language Following",
+  "policy_interface": {
+    "act": "act(policy, obs: dict, task: dict) -> np.ndarray[action_horizon, action_dim]",
+    "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
+    "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
+  },
+  "reference_metric": 0.75,
+  "setup": "tasks/robocasa_language_following/setup.py",
+  "split": "data/autorobobench/robocasa_language_following_splits.json",
+  "starter_metric": 0.0,
+  "train": "tasks/robocasa_language_following/train.py",
+  "train_contract": {
+    "action_dim": 12,
+    "eval_demos_per_variant": 3,
+    "language_backbone": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+    "policy_family": "frozen SmolVLM + flow action head",
+    "robocasa_task": "ChooseMeasuringCup",
+    "single_model": true,
+    "test_time_demo_access": false,
+    "train_demos_per_variant": 16,
+    "train_language_variants": 4,
+    "val_demos_per_variant": 2
+  },
+  "version": "v0",
+  "visualize": "tasks/robocasa_language_following/visualize.py"
+}

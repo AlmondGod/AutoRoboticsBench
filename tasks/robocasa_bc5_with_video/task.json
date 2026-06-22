@@ -1,0 +1,84 @@
+{
+  "benchmark": {
+    "allowed_edit_globs": [
+      "program_autorobobench.md",
+      "tasks/robocasa_bc5_with_video/**",
+      "tasks/robocasa_bc5_with_video/inference.py",
+      "tasks/robocasa_bc5_with_video/train.py"
+    ],
+    "higher_is_better": true,
+    "immutable_globs": [
+      "benchmark.json",
+      "data/autorobobench/robocasa_bc5_with_video_splits.json",
+      "data/autorobobench/robocasa_bc5_with_video_video_pool.json",
+      "data/robocasa5/manifest.json",
+      "tasks/robocasa_bc5/eval.py",
+      "tasks/robocasa_bc5_with_video/eval.py",
+      "tasks/robocasa_bc5_with_video/setup.py",
+      "tasks/robocasa_bc5_with_video/task.json"
+    ],
+    "notes": "Scarce-action transfer track using two paired demos per task plus an RGB-only RoboCasa video pool.",
+    "phase": 1,
+    "primary_metric": "video_transfer_success",
+    "reference_metric": 0.35,
+    "required_result_keys": [
+      "video_transfer_success",
+      "paired_action_efficiency",
+      "data_budget_integrity",
+      "reproducibility_integrity"
+    ],
+    "score_weights": {
+      "data_budget_integrity": 0.15,
+      "normalized_primary_progress": 0.55,
+      "paired_action_efficiency": 0.2,
+      "reproducibility_integrity": 0.1
+    },
+    "starter_metric": 0.05
+  },
+  "default_eval": {
+    "commit_steps": 16,
+    "eval_episodes_per_task": 10,
+    "max_steps": 260
+  },
+  "eval": "tasks/robocasa_bc5_with_video/eval.py",
+  "id": "robocasa_bc5_with_video",
+  "inference": "tasks/robocasa_bc5_with_video/inference.py",
+  "manifest": "data/robocasa5/manifest.json",
+  "metrics": {
+    "primary": "video_transfer_success",
+    "secondary": [
+      "success_rate",
+      "paired_action_efficiency",
+      "data_budget_integrity"
+    ]
+  },
+  "name": "RoboCasa BC5 With Video",
+  "policy_interface": {
+    "act": "act(policy, obs: dict, task: dict) -> np.ndarray[action_horizon, action_dim]",
+    "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
+    "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
+  },
+  "reference_metric": 0.35,
+  "setup": "tasks/robocasa_bc5_with_video/setup.py",
+  "split": "data/autorobobench/robocasa_bc5_with_video_splits.json",
+  "starter_metric": 0.05,
+  "train": "tasks/robocasa_bc5_with_video/train.py",
+  "train_contract": {
+    "eval_code_mutable": false,
+    "eval_tasks": 5,
+    "in_task_video_only_demos_per_task": 78,
+    "max_train_seconds": 300,
+    "paired_action_demos_per_task": 2,
+    "single_model": true,
+    "test_time_demo_access": false,
+    "total_video_only_demos": 924,
+    "train_tasks": 5,
+    "unique_video_to_paired_demo_ratio": 92.4,
+    "video_pool_contains_actions": false,
+    "video_pool_contains_proprio": false,
+    "video_to_paired_frame_ratio": 103.75103391232423
+  },
+  "version": "v0",
+  "video_pool": "data/autorobobench/robocasa_bc5_with_video_video_pool.json",
+  "visualize": "tasks/robocasa_bc5_with_video/visualize.py"
+}

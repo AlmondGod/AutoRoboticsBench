@@ -25,4 +25,4 @@ mkdir -p /workspace/cache /workspace/task /workspace/output /workspace/logs
 echo
 echo "RunPod environment is ready."
 echo "Start a dockerless run with:"
-echo "  python scripts/launch_runpod_run.py --agent codex --task toy_pickplace --base dummy --seed 0"
+echo "  python scripts/launch_runpod_run.py --agent codex --task robocasa_bc5 --base dummy --seed 0"
