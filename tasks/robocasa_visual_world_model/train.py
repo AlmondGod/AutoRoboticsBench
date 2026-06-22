@@ -46,21 +46,24 @@ def main() -> None:
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--split", default=str(DEFAULT_SPLIT))
     parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_visual_world_model/base")
-    parser.add_argument("--train-episodes-per-task", type=int, default=20)
+    parser.add_argument("--train-episodes-per-task", type=int, default=0)
     parser.add_argument("--val-episodes-per-task", type=int, default=5)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--frame-stride", type=int, default=1)
     parser.add_argument("--view", default="robot0_agentview_right")
-    parser.add_argument("--image-size", type=int, default=32)
+    parser.add_argument("--image-size", type=int, default=64)
     parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--width", type=int, default=512)
     parser.add_argument("--depth", type=int, default=4)
     parser.add_argument("--task-dim", type=int, default=64)
     parser.add_argument("--latent-dim", type=int, default=64)
-    parser.add_argument("--visual-latent-dim", type=int, default=64)
+    parser.add_argument("--visual-latent-dim", type=int, default=128)
+    parser.add_argument("--visual-decoder-width", type=int, default=512)
+    parser.add_argument("--visual-decoder-depth", type=int, default=3)
     parser.add_argument("--dropout", type=float, default=0.05)
     parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--visual-lr-scale", type=float, default=0.5)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--state-weight", type=float, default=1.0)
     parser.add_argument("--progress-weight", type=float, default=0.25)
@@ -69,6 +72,13 @@ def main() -> None:
     parser.add_argument("--image-vae-weight", type=float, default=0.25)
     parser.add_argument("--visual-flow-weight", type=float, default=0.5)
     parser.add_argument("--state-flow-weight", type=float, default=0.25)
+    parser.add_argument("--visual-latent-weight", type=float, default=0.5)
+    parser.add_argument("--image-augment", type=float, default=0.15)
+    parser.add_argument("--rollout-horizon", type=int, default=4)
+    parser.add_argument("--rollout-batch-size", type=int, default=128)
+    parser.add_argument("--rollout-visual-weight", type=float, default=0.25)
+    parser.add_argument("--rollout-state-weight", type=float, default=0.10)
+    parser.add_argument("--rollout-progress-weight", type=float, default=0.05)
     parser.add_argument("--kl-weight", type=float, default=1e-4)
     parser.add_argument("--visual-kl-weight", type=float, default=1e-5)
     parser.add_argument("--inverse-dynamics-checkpoint", default="")
@@ -107,20 +117,28 @@ def main() -> None:
         task_dim=int(args.task_dim),
         latent_dim=int(args.latent_dim),
         visual_latent_dim=int(args.visual_latent_dim),
+        visual_decoder_width=int(args.visual_decoder_width) if int(args.visual_decoder_width) > 0 else None,
+        visual_decoder_depth=int(args.visual_decoder_depth),
+        visual_decoder_type="conv",
+        current_rgb_conditioned=True,
         dropout=float(args.dropout),
     ).to(device)
 
     print("precomputing_rgb_targets", flush=True)
     train_rgb, train_next_rgb = _precompute_rgb_targets(train, summary, str(args.view), int(args.image_size))
     val_rgb, val_next_rgb = _precompute_rgb_targets(val, summary, str(args.view), int(args.image_size))
+    rollout_starts = _sequence_starts(train, horizon=int(args.rollout_horizon), frame_stride=int(args.frame_stride))
     inverse_align, inverse_head = _build_inverse_alignment(args, device, width=int(args.width))
     if inverse_align is not None and float(inverse_align["weight"]) > 0:
         print("precomputing_inverse_targets", flush=True)
         inverse_align["train_targets"] = _precompute_inverse_targets(train, summary, inverse_align, device)
 
-    params = list(model.parameters())
+    params = _optimizer_param_groups(model, lr=float(args.lr), visual_lr_scale=float(args.visual_lr_scale))
+    trainable_params = [param for group in params for param in group["params"]]
     if inverse_head is not None:
-        params.extend(inverse_head.parameters())
+        inverse_params = list(inverse_head.parameters())
+        params.append({"params": inverse_params, "lr": float(args.lr)})
+        trainable_params.extend(inverse_params)
     opt = torch.optim.AdamW(params, lr=float(args.lr), weight_decay=float(args.weight_decay))
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -135,6 +153,8 @@ def main() -> None:
         model.train()
         idx = rng.integers(0, len(train), size=int(args.batch_size))
         batch = _batch(train, train_rgb, train_next_rgb, idx, device)
+        if float(args.image_augment) > 0:
+            batch = _augment_batch_images(batch, strength=float(args.image_augment))
         loss, metrics = model.loss(
             batch,
             state_weight=float(args.state_weight),
@@ -144,6 +164,7 @@ def main() -> None:
             image_vae_weight=float(args.image_vae_weight),
             visual_flow_weight=float(args.visual_flow_weight),
             state_flow_weight=float(args.state_flow_weight),
+            visual_latent_weight=float(args.visual_latent_weight),
             kl_weight=float(args.kl_weight),
             visual_kl_weight=float(args.visual_kl_weight),
         )
@@ -151,9 +172,21 @@ def main() -> None:
             inverse_loss = _inverse_alignment_loss(model, batch, idx, inverse_align, device)
             loss = loss + float(inverse_align["weight"]) * inverse_loss
             metrics["inverse_align_loss"] = inverse_loss.detach()
+        if int(args.rollout_horizon) > 1 and float(args.rollout_visual_weight) > 0 and len(rollout_starts) > 0:
+            rollout_idx = rng.choice(rollout_starts, size=min(int(args.rollout_batch_size), len(rollout_starts)), replace=len(rollout_starts) < int(args.rollout_batch_size))
+            rollout_batch = _sequence_batch(train, train_rgb, train_next_rgb, rollout_idx, int(args.rollout_horizon), device)
+            rollout_loss, rollout_metrics = _rollout_loss(
+                model,
+                rollout_batch,
+                visual_weight=float(args.rollout_visual_weight),
+                state_weight=float(args.rollout_state_weight),
+                progress_weight=float(args.rollout_progress_weight),
+            )
+            loss = loss + rollout_loss
+            metrics.update(rollout_metrics)
         opt.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(params, 1.0)
+        torch.nn.utils.clip_grad_norm_(trainable_params, 1.0)
         opt.step()
         if step == 1 or step % 25 == 0:
             val_metrics = _eval(model, val, val_rgb, val_next_rgb, int(args.batch_size), device)
@@ -181,6 +214,8 @@ def main() -> None:
         "view": str(args.view),
         "inverse_alignment": _inverse_alignment_summary(args, inverse_align),
         "flow_matching": _flow_matching_summary(args),
+        "multi_step_rollout": _rollout_summary(args, rollout_starts),
+        "image_augmentation": _augmentation_summary(args),
         "summary": summary,
         "final_val": final_metrics,
         "best_val_visual_score_loss": best_val,
@@ -208,6 +243,146 @@ def _batch(
         "task_id": torch.as_tensor(data.task_id[idx], dtype=torch.long, device=device),
         "rgb": torch.as_tensor(rgb[idx], dtype=torch.float32, device=device),
         "next_rgb": torch.as_tensor(next_rgb[idx], dtype=torch.float32, device=device),
+    }
+
+
+def _optimizer_param_groups(model: VisualRoboCasaWorldModel, *, lr: float, visual_lr_scale: float) -> list[dict]:
+    visual_prefixes = ("image_vae.", "next_visual_latent.", "visual_flow.")
+    visual_params = []
+    other_params = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if name.startswith(visual_prefixes):
+            visual_params.append(param)
+        else:
+            other_params.append(param)
+    groups = []
+    if other_params:
+        groups.append({"params": other_params, "lr": float(lr)})
+    if visual_params:
+        groups.append({"params": visual_params, "lr": float(lr) * float(visual_lr_scale)})
+    return groups
+
+
+def _augment_batch_images(batch: dict[str, torch.Tensor], *, strength: float) -> dict[str, torch.Tensor]:
+    strength = float(strength)
+    if strength <= 0:
+        return batch
+    rgb = batch["rgb"]
+    next_rgb = batch["next_rgb"]
+    b = rgb.shape[0]
+    device = rgb.device
+    dtype = rgb.dtype
+    brightness = 1.0 + (torch.rand((b, 1, 1, 1), dtype=dtype, device=device) * 2.0 - 1.0) * (0.35 * strength)
+    contrast = 1.0 + (torch.rand((b, 1, 1, 1), dtype=dtype, device=device) * 2.0 - 1.0) * (0.35 * strength)
+    noise = torch.randn_like(rgb) * (0.03 * strength)
+    rgb_aug = _apply_color_aug(rgb, brightness, contrast) + noise
+    next_aug = _apply_color_aug(next_rgb, brightness, contrast) + noise
+    max_shift = int(round(max(rgb.shape[-1], rgb.shape[-2]) * 0.04 * strength))
+    if max_shift > 0:
+        shifts_y = torch.randint(-max_shift, max_shift + 1, (b,), device=device)
+        shifts_x = torch.randint(-max_shift, max_shift + 1, (b,), device=device)
+        rgb_aug = _shift_images(rgb_aug, shifts_y, shifts_x)
+        next_aug = _shift_images(next_aug, shifts_y, shifts_x)
+    out = dict(batch)
+    out["rgb"] = rgb_aug.clamp(0.0, 1.0)
+    out["next_rgb"] = next_aug.clamp(0.0, 1.0)
+    return out
+
+
+def _apply_color_aug(image: torch.Tensor, brightness: torch.Tensor, contrast: torch.Tensor) -> torch.Tensor:
+    mean = image.mean(dim=(2, 3), keepdim=True)
+    return (image - mean) * contrast + mean * brightness
+
+
+def _shift_images(image: torch.Tensor, shifts_y: torch.Tensor, shifts_x: torch.Tensor) -> torch.Tensor:
+    shifted = []
+    for item, dy, dx in zip(image, shifts_y.tolist(), shifts_x.tolist()):
+        shifted.append(torch.roll(item, shifts=(int(dy), int(dx)), dims=(-2, -1)))
+    return torch.stack(shifted, dim=0)
+
+
+def _sequence_starts(data: TransitionData, *, horizon: int, frame_stride: int) -> np.ndarray:
+    horizon = int(horizon)
+    if horizon <= 1 or len(data) < horizon:
+        return np.zeros((0,), dtype=np.int64)
+    starts = []
+    stride = max(1, int(frame_stride))
+    for start in range(0, len(data) - horizon + 1):
+        end = start + horizon
+        if not np.all(data.task_id[start:end] == data.task_id[start]):
+            continue
+        if not np.all(data.episode_id[start:end] == data.episode_id[start]):
+            continue
+        expected = data.frame_idx[start] + stride * np.arange(horizon, dtype=np.int32)
+        if not np.array_equal(data.frame_idx[start:end], expected):
+            continue
+        starts.append(start)
+    return np.asarray(starts, dtype=np.int64)
+
+
+def _sequence_batch(
+    data: TransitionData,
+    rgb: np.ndarray,
+    next_rgb: np.ndarray,
+    starts: np.ndarray,
+    horizon: int,
+    device: torch.device,
+) -> dict[str, torch.Tensor]:
+    offsets = np.arange(int(horizon), dtype=np.int64)
+    indices = np.asarray(starts, dtype=np.int64)[:, None] + offsets[None, :]
+    return {
+        "state": torch.as_tensor(data.state[indices], dtype=torch.float32, device=device),
+        "action": torch.as_tensor(data.action[indices], dtype=torch.float32, device=device),
+        "next_state": torch.as_tensor(data.next_state[indices], dtype=torch.float32, device=device),
+        "progress": torch.as_tensor(data.progress[indices], dtype=torch.float32, device=device),
+        "next_progress": torch.as_tensor(data.next_progress[indices], dtype=torch.float32, device=device),
+        "success": torch.as_tensor(data.success[indices], dtype=torch.float32, device=device),
+        "task_id": torch.as_tensor(data.task_id[indices], dtype=torch.long, device=device),
+        "rgb": torch.as_tensor(rgb[indices], dtype=torch.float32, device=device),
+        "next_rgb": torch.as_tensor(next_rgb[indices], dtype=torch.float32, device=device),
+    }
+
+
+def _rollout_loss(
+    model: VisualRoboCasaWorldModel,
+    batch: dict[str, torch.Tensor],
+    *,
+    visual_weight: float,
+    state_weight: float,
+    progress_weight: float,
+) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    state = batch["state"][:, 0]
+    progress = batch["progress"][:, 0]
+    current_rgb = batch["rgb"][:, 0]
+    rgb_losses = []
+    state_losses = []
+    progress_losses = []
+    for offset in range(batch["action"].shape[1]):
+        out = model(
+            state,
+            batch["action"][:, offset],
+            batch["task_id"][:, offset],
+            progress,
+            current_rgb=current_rgb,
+            sample_latent=False,
+        )
+        rgb_losses.append(F.mse_loss(out["next_rgb"], batch["next_rgb"][:, offset]))
+        state_losses.append(F.mse_loss(out["next_state"], batch["next_state"][:, offset]))
+        progress_losses.append(F.mse_loss(out["next_progress"], batch["next_progress"][:, offset]))
+        state = out["next_state"]
+        progress = out["next_progress"]
+        current_rgb = out["next_rgb"]
+    rgb_loss = torch.stack(rgb_losses).mean()
+    state_loss = torch.stack(state_losses).mean()
+    progress_loss = torch.stack(progress_losses).mean()
+    total = float(visual_weight) * rgb_loss + float(state_weight) * state_loss + float(progress_weight) * progress_loss
+    return total, {
+        "rollout_rgb_mse": rgb_loss.detach(),
+        "rollout_state_mse": state_loss.detach(),
+        "rollout_progress_mse": progress_loss.detach(),
+        "rollout_loss": total.detach(),
     }
 
 
@@ -390,7 +565,12 @@ def _save_checkpoint(
         "task_dim": int(args.task_dim),
         "latent_dim": int(args.latent_dim),
         "visual_latent_dim": int(args.visual_latent_dim),
+        "visual_decoder_width": int(args.visual_decoder_width),
+        "visual_decoder_depth": int(args.visual_decoder_depth),
+        "visual_decoder_type": "conv",
+        "current_rgb_conditioned": True,
         "dropout": float(args.dropout),
+        "visual_lr_scale": float(args.visual_lr_scale),
         "view": str(args.view),
     }
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -404,6 +584,8 @@ def _save_checkpoint(
             "step": int(step),
             "inverse_alignment": _inverse_alignment_summary(args, inverse_align),
             "flow_matching": _flow_matching_summary(args),
+            "multi_step_rollout": _rollout_summary(args, []),
+            "image_augmentation": _augmentation_summary(args),
             "task": "robocasa_visual_world_model",
         },
         path,
@@ -427,9 +609,30 @@ def _flow_matching_summary(args: argparse.Namespace) -> dict:
         "visual_latent_dim": int(args.visual_latent_dim),
         "image_vae_weight": float(args.image_vae_weight),
         "visual_flow_weight": float(args.visual_flow_weight),
+        "visual_latent_weight": float(args.visual_latent_weight),
         "state_flow_weight": float(args.state_flow_weight),
         "visual_kl_weight": float(args.visual_kl_weight),
         "targets": ["next_visual_latent", "state_delta"],
+    }
+
+
+def _augmentation_summary(args: argparse.Namespace) -> dict:
+    return {
+        "enabled": float(args.image_augment) > 0,
+        "strength": float(args.image_augment),
+        "transforms": ["paired_brightness", "paired_contrast", "paired_noise", "paired_translation_roll"],
+    }
+
+
+def _rollout_summary(args: argparse.Namespace, rollout_starts: np.ndarray | list) -> dict:
+    return {
+        "enabled": int(args.rollout_horizon) > 1 and float(args.rollout_visual_weight) > 0,
+        "horizon": int(args.rollout_horizon),
+        "batch_size": int(args.rollout_batch_size),
+        "valid_sequence_starts": int(len(rollout_starts)),
+        "visual_weight": float(args.rollout_visual_weight),
+        "state_weight": float(args.rollout_state_weight),
+        "progress_weight": float(args.rollout_progress_weight),
     }
 
 

@@ -66,6 +66,7 @@ from tasks.robocasa_bc5.train import (
     _weighted_masked_mean_std,
     load_split_data,
 )
+from tasks.robocasa_world_model.inference import load_world_model, predict_next
 
 
 ensure_robocasa_runtime()
@@ -78,6 +79,11 @@ INIT_CHECKPOINT_CANDIDATES = (
     "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt",
     "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt",
     "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_seed0/policy_best.pt",
+)
+DEFAULT_REWARD_MODEL_CHECKPOINT = "auto"
+REWARD_MODEL_CHECKPOINT_CANDIDATES = (
+    "data/autorobobench/pretrained_reward_models/robocasa_stand_mixer_reward_model.pt",
+    "runs/autorobobench/robocasa_reward_model/stand_mixer_pretrained/policy_best.pt",
 )
 
 
@@ -111,6 +117,8 @@ def main() -> None:
     parser.add_argument("--action-smooth", type=float, default=0.0005)
     parser.add_argument("--chunk-decay", type=float, default=0.82)
     parser.add_argument("--init-checkpoint", default=DEFAULT_INIT_CHECKPOINT)
+    parser.add_argument("--reward-model-checkpoint", default=DEFAULT_REWARD_MODEL_CHECKPOINT)
+    parser.add_argument("--reward-model-advantage-weight", type=float, default=1.0)
     parser.add_argument("--experience-multiplier", type=float, default=1.0)
     parser.add_argument("--bad-action-noise", type=float, default=0.35)
     parser.add_argument("--bad-sample-weight", type=float, default=0.35)
@@ -150,6 +158,13 @@ def main() -> None:
         bad_sample_weight=float(args.bad_sample_weight),
         correction_fraction=float(args.correction_fraction),
         correction_weight=float(args.correction_weight),
+    )
+    reward_info = _apply_reward_model_advantages(
+        train_recap,
+        raw_proprio_dim=raw_proprio_dim,
+        reward_model_checkpoint=str(args.reward_model_checkpoint),
+        reward_model_advantage_weight=float(args.reward_model_advantage_weight),
+        device=device_from_arg(str(args.device)),
     )
     val_recap = RecapData(
         data=_with_advantage(train_like=val_demo, advantage=np.ones((len(val_demo),), dtype=np.float32)),
@@ -259,9 +274,11 @@ def main() -> None:
         "recap_bad_action_noise": float(args.bad_action_noise),
         "recap_bad_sample_weight": float(args.bad_sample_weight),
         "recap_correction_fraction": float(args.correction_fraction),
+        "reward_model_info": reward_info,
         "init_checkpoint": str(args.init_checkpoint),
         "resolved_init_checkpoint": str(init_info.get("path", "")),
         "init_info": init_info,
+        "reward_model_info": reward_info,
     }
     torch.save(checkpoint, out_dir / "policy.pt")
     best_checkpoint = dict(checkpoint)
@@ -301,6 +318,8 @@ def main() -> None:
         "correction_fraction": float(args.correction_fraction),
         "correction_weight": float(args.correction_weight),
         "eval_advantage": float(args.eval_advantage),
+        "reward_model_checkpoint": str(args.reward_model_checkpoint),
+        "reward_model_info": reward_info,
         "init_checkpoint": str(args.init_checkpoint),
         "resolved_init_checkpoint": str(init_info.get("path", "")),
         "init_info": init_info,
@@ -381,6 +400,84 @@ def _load_recap_init_checkpoint(model: torch.nn.Module, checkpoint: str, device:
             f"missing --init-checkpoint {checkpoint_path}; pass --init-checkpoint '' to train from scratch"
         )
     return _load_init_checkpoint(model, str(checkpoint_path), device)
+
+
+def _resolve_reward_model_checkpoint(checkpoint: str) -> str:
+    if not checkpoint:
+        return ""
+    if checkpoint == "auto":
+        for candidate in REWARD_MODEL_CHECKPOINT_CANDIDATES:
+            if Path(candidate).exists():
+                return candidate
+        return ""
+    return checkpoint
+
+
+def _apply_reward_model_advantages(
+    recap: RecapData,
+    *,
+    raw_proprio_dim: int,
+    reward_model_checkpoint: str,
+    reward_model_advantage_weight: float,
+    device: torch.device,
+) -> dict:
+    checkpoint = _resolve_reward_model_checkpoint(reward_model_checkpoint)
+    if not checkpoint or float(reward_model_advantage_weight) <= 0:
+        return {
+            "enabled": False,
+            "requested_checkpoint": str(reward_model_checkpoint),
+            "resolved_checkpoint": str(checkpoint),
+        }
+    if not Path(checkpoint).exists():
+        return {
+            "enabled": False,
+            "requested_checkpoint": str(reward_model_checkpoint),
+            "resolved_checkpoint": str(checkpoint),
+            "reason": "checkpoint_missing",
+        }
+    reward_model = load_world_model(checkpoint, device=str(device))
+    scores = []
+    states = recap.data.proprio[:, :raw_proprio_dim].astype(np.float32)
+    actions = recap.data.actions[:, 0].astype(np.float32)
+    progresses = _progress_from_frame_indices(recap.data.episode_idx, recap.data.frame_idx)
+    for state, action, task_id, progress in zip(states, actions, recap.data.task_id, progresses):
+        pred = predict_next(reward_model, state, action, int(task_id), float(progress))
+        scores.append(float(pred["success_prob"]) + 0.25 * float(pred["next_progress"]))
+    raw = np.asarray(scores, dtype=np.float32)
+    if raw.size == 0:
+        return {"enabled": False, "resolved_checkpoint": str(checkpoint), "reason": "no_samples"}
+    center = float(np.median(raw))
+    scale = float(np.percentile(raw, 90) - np.percentile(raw, 10))
+    if scale <= 1e-6:
+        scale = float(raw.std() + 1e-6)
+    advantage = np.clip((raw - center) / scale, -1.0, 1.0).astype(np.float32)
+    mixed = (
+        (1.0 - float(reward_model_advantage_weight)) * recap.advantage
+        + float(reward_model_advantage_weight) * advantage
+    ).astype(np.float32)
+    recap.advantage = mixed
+    recap.data.proprio[:, raw_proprio_dim] = mixed
+    recap.sample_weight = (recap.sample_weight * (1.0 + 0.5 * np.abs(mixed))).astype(np.float32)
+    return {
+        "enabled": True,
+        "requested_checkpoint": str(reward_model_checkpoint),
+        "resolved_checkpoint": str(checkpoint),
+        "raw_score_mean": float(raw.mean()),
+        "raw_score_std": float(raw.std()),
+        "advantage_mean": float(mixed.mean()),
+        "advantage_std": float(mixed.std()),
+        "samples": int(raw.size),
+    }
+
+
+def _progress_from_frame_indices(episode_idx: np.ndarray, frame_idx: np.ndarray) -> np.ndarray:
+    progress = np.zeros((len(frame_idx),), dtype=np.float32)
+    for episode in np.unique(episode_idx):
+        mask = episode_idx == episode
+        frames = frame_idx[mask]
+        max_frame = max(1, int(frames.max()) if len(frames) else 1)
+        progress[mask] = frames.astype(np.float32) / float(max_frame)
+    return progress
 
 
 def _with_advantage(*, train_like: TemporalChunkData, advantage: np.ndarray) -> TemporalChunkData:

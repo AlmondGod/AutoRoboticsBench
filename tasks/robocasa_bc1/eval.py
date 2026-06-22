@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 FROZEN_MANIFEST = "data/autorobobench/robocasa_bc1_manifest.json"
 FROZEN_SPLIT = "data/autorobobench/robocasa_bc1_splits.json"
+SPEED_TIEBREAKER_SUCCESSES = 0.25
 
 
 def main() -> None:
@@ -65,6 +66,7 @@ def _rewrite_result(out: Path) -> dict | None:
     anti_replay_eval_protocol = split.get("anti_replay_eval_protocol")
     same_sink_protocol = split.get("same_sink_protocol")
     success_rate = float(payload.get("success_rate", 0.0))
+    speed_metrics = _successful_speed_metrics(payload)
     payload["track"] = "robocasa_bc1"
     payload["manifest"] = FROZEN_MANIFEST
     payload["split"] = FROZEN_SPLIT
@@ -75,6 +77,7 @@ def _rewrite_result(out: Path) -> dict | None:
     if same_sink_protocol is not None:
         payload["same_sink_protocol"] = same_sink_protocol
     payload["peak_final_success"] = success_rate
+    payload.update(speed_metrics)
     payload["reliability_stability"] = success_rate
     payload["data_budget_integrity"] = 1.0
     payload["reproducibility_integrity"] = 1.0
@@ -102,6 +105,34 @@ def _rewrite_result(out: Path) -> dict | None:
         payload["data_contract"]["sink_fixture_key"] = same_sink_protocol["sink_fixture_key"]
     out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     return payload
+
+
+def _successful_speed_metrics(payload: dict) -> dict:
+    details = payload.get("details") if isinstance(payload.get("details"), list) else []
+    episodes = int(payload.get("episodes") or len(details) or 0)
+    successes = int(payload.get("successes") or sum(1 for row in details if row.get("success")))
+    max_steps = max(1, int(payload.get("max_steps") or 750))
+    successful_steps = [int(row.get("steps", max_steps)) for row in details if row.get("success")]
+    speed_values = [
+        max(0.0, min(1.0, 1.0 - float(steps) / float(max_steps)))
+        for steps in successful_steps
+    ]
+    successful_eval_speed = sum(speed_values) / len(speed_values) if speed_values else 0.0
+    score = 0.0
+    if episodes > 0:
+        score = (float(successes) + SPEED_TIEBREAKER_SUCCESSES * successful_eval_speed) / (
+            float(episodes) + SPEED_TIEBREAKER_SUCCESSES
+        )
+    return {
+        "bc1_reliability_speed_score": max(0.0, min(1.0, score)),
+        "successful_eval_speed": successful_eval_speed,
+        "successful_eval_steps_mean": (
+            sum(successful_steps) / len(successful_steps) if successful_steps else None
+        ),
+        "successful_eval_steps_min": min(successful_steps) if successful_steps else None,
+        "successful_eval_steps_max": max(successful_steps) if successful_steps else None,
+        "speed_tiebreaker_successes": SPEED_TIEBREAKER_SUCCESSES,
+    }
 
 
 if __name__ == "__main__":

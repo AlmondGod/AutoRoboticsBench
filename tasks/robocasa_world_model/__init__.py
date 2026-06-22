@@ -1,2 +1,1 @@
-"""RoboCasa learned world-model task."""
-
+"""RoboCasa learned reward-model task."""

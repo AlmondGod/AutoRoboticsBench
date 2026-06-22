@@ -10,6 +10,10 @@ edit eval files or split files for scored runs.
 - Data: two paired action demos/task plus video-only pool.
 - Metric: rollout success and paired-action efficiency.
 - Current smoke evals are 0/100.
+- You do not have to use the whole paired or video-only dataset. It is allowed
+  to prioritize particular tasks, subsets, or curricula if that improves total
+  eval success. Once those tasks are saturated, adding the remaining tasks is
+  necessary to approach 100% overall score.
 
 ## Train
 

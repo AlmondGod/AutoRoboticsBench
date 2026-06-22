@@ -23,13 +23,13 @@ from tasks.robocasa_world_model.data import (
     normalize_data,
     save_json,
 )
-from tasks.robocasa_world_model.inference import load_world_model, rollout_score
+from tasks.robocasa_world_model.inference import load_world_model, score_trajectory
 from tasks.robocasa_world_model.policy_set import discover_policy_runs
 from tasks.robocasa_world_model.trace import generate_policy_traces
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate RoboCasa world-model transition fit and policy-score correlation.")
+    parser = argparse.ArgumentParser(description="Evaluate RoboCasa reward/progress model fit and policy-score correlation.")
     parser.add_argument("--checkpoint", "--world-model", dest="checkpoint", required=True)
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--split", default=str(DEFAULT_SPLIT))
@@ -41,7 +41,7 @@ def main() -> None:
     parser.add_argument("--device", default="auto")
     parser.add_argument("--policy-set", default="", help="Optional JSON listing real evals and world-model rollout traces.")
     parser.add_argument("--policy-runs-root", default="runs/autorobobench/robocasa_bc5")
-    parser.add_argument("--trace-root", default="runs/autorobobench/robocasa_world_model/policy_traces")
+    parser.add_argument("--trace-root", default="runs/autorobobench/robocasa_reward_model/policy_traces")
     parser.add_argument("--trace-episodes-per-task", type=int, default=1)
     parser.add_argument("--trace-max-steps", type=int, default=260)
     parser.add_argument("--trace-commit-steps", type=int, default=16)
@@ -83,9 +83,9 @@ def main() -> None:
     )
     benchmark = _benchmark_score(correlation, transition_metrics)
     payload = {
-        "task": "robocasa_world_model",
+        "task": "robocasa_reward_model",
         "checkpoint": str(args.checkpoint),
-        "metric": "world_model_benchmark_score",
+        "metric": "reward_model_benchmark_score",
         **benchmark,
         "reproducibility_integrity": 1.0,
         "transition_metrics": transition_metrics,
@@ -102,16 +102,15 @@ def _transition_eval(world: dict, data: TransitionData, batch_size: int) -> dict
     model = world["model"]
     device = world["device"]
     model.eval()
-    state_sse = 0.0
     progress_sse = 0.0
     success_loss = 0.0
+    success_sse = 0.0
     count = 0
     for start in range(0, len(data), batch_size):
         end = min(len(data), start + batch_size)
         batch = {
             "state": torch.as_tensor(data.state[start:end], dtype=torch.float32, device=device),
             "action": torch.as_tensor(data.action[start:end], dtype=torch.float32, device=device),
-            "next_state": torch.as_tensor(data.next_state[start:end], dtype=torch.float32, device=device),
             "progress": torch.as_tensor(data.progress[start:end], dtype=torch.float32, device=device),
             "next_progress": torch.as_tensor(data.next_progress[start:end], dtype=torch.float32, device=device),
             "success": torch.as_tensor(data.success[start:end], dtype=torch.float32, device=device),
@@ -119,15 +118,16 @@ def _transition_eval(world: dict, data: TransitionData, batch_size: int) -> dict
         }
         out = model(batch["state"], batch["action"], batch["task_id"], batch["progress"])
         n = end - start
-        state_sse += float((out["next_state"] - batch["next_state"]).square().mean(dim=-1).sum().detach().cpu())
         progress_sse += float((out["next_progress"] - batch["next_progress"]).square().sum().detach().cpu())
         success_loss += float(torch.nn.functional.binary_cross_entropy_with_logits(out["success_logit"], batch["success"], reduction="sum").detach().cpu())
+        success_prob = torch.sigmoid(out["success_logit"])
+        success_sse += float((success_prob - batch["success"]).square().sum().detach().cpu())
         count += n
     return {
         "samples": int(count),
-        "next_state_mse_norm": state_sse / max(1, count),
         "next_progress_mse": progress_sse / max(1, count),
         "success_bce": success_loss / max(1, count),
+        "success_mse": success_sse / max(1, count),
     }
 
 
@@ -219,25 +219,26 @@ def _benchmark_score(correlation: dict, transition: dict) -> dict:
         if ood == 0.0:
             ood = ranking
     progress = _mse_like_score(transition.get("next_progress_mse"), scale=0.05)
-    next_state = _mse_like_score(transition.get("next_state_mse_norm"), scale=0.05)
+    reward = _mse_like_score(transition.get("success_bce"), scale=0.1)
     weights = {
         "policy_and_ood_ranking_score": 0.50,
         "success_calibration_score": 0.20,
         "progress_score": 0.15,
-        "next_state_score": 0.10,
+        "reward_score": 0.15,
     }
+    ranking_and_ood = _mean_present([ranking, ood])
     score = (
-        weights["policy_and_ood_ranking_score"] * (ranking + ood)
+        weights["policy_and_ood_ranking_score"] * ranking_and_ood
         + weights["success_calibration_score"] * calibration
         + weights["progress_score"] * progress
-        + weights["next_state_score"] * next_state
+        + weights["reward_score"] * reward
     )
     return {
-        "world_model_benchmark_score": float(max(0.0, min(1.0, score))),
+        "reward_model_benchmark_score": float(max(0.0, min(1.0, score))),
         "policy_ranking_score": float(ranking),
         "success_calibration_score": float(calibration),
         "progress_score": float(progress),
-        "next_state_score": float(next_state),
+        "reward_score": float(reward),
         "ood_ranking_score": float(ood),
         "policy_score_pearson": None if pearson is None else float(pearson),
         "policy_score_spearman": None if spearman is None else float(spearman),
@@ -297,7 +298,7 @@ def _score_policy(world: dict, policy: dict) -> dict:
         if len(states) == 0 or len(actions) == 0:
             continue
         task_id = int(np.asarray(data["task_id"]).reshape(-1)[0]) if "task_id" in data else int(policy.get("task_id", 0))
-        score = rollout_score(world, states[0], actions, task_id)
+        score = score_trajectory(world, states[: len(actions)], actions, task_id)
         trace_scores.append(float(score["predicted_success"]))
     real = _real_success(policy.get("real_eval_json", ""))
     return {

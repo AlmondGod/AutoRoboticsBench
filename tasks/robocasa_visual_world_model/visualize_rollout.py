@@ -68,21 +68,25 @@ def main() -> None:
 
     state = np.asarray(episode["state"][0], dtype=np.float32)
     progress = float(np.asarray(episode["progress"][0]).reshape(-1)[0])
+    model_image_size = int(cfg["image_size"])
+    current_rgb_model = _preprocess_model_rgb(frames[0], model_image_size)
     panels = []
     rows = []
     for out_index, step in enumerate(step_ids):
         action = np.asarray(episode["action"][step], dtype=np.float32)
-        if str(args.mode) == "teacher_forced":
-            state_in = np.asarray(episode["state"][step], dtype=np.float32)
-            progress_in = float(np.asarray(episode["progress"][step]).reshape(-1)[0])
-        else:
-            state_in = state
-            progress_in = progress
-        pred = predict_next(world, state_in, action, task_id, progress_in)
         frame_idx = int(np.clip(episode["frame_idx"][step], 0, len(frames) - 1))
         next_idx = min(frame_idx + 1, len(frames) - 1)
         current = frames[frame_idx]
         target = frames[next_idx]
+        if str(args.mode) == "teacher_forced":
+            state_in = np.asarray(episode["state"][step], dtype=np.float32)
+            progress_in = float(np.asarray(episode["progress"][step]).reshape(-1)[0])
+            rgb_in = _preprocess_model_rgb(current, model_image_size)
+        else:
+            state_in = state
+            progress_in = progress
+            rgb_in = current_rgb_model
+        pred = predict_next(world, state_in, action, task_id, progress_in, current_rgb=rgb_in)
         predicted = _rgb_chw_to_uint8(pred["next_rgb"])
         panels.append(
             _make_panel(
@@ -105,6 +109,7 @@ def main() -> None:
         )
         state = np.asarray(pred["next_state"], dtype=np.float32)
         progress = float(np.clip(pred["next_progress"], 0.0, 1.0))
+        current_rgb_model = np.asarray(pred["next_rgb"], dtype=np.float32)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -152,6 +157,12 @@ def _rgb_chw_to_uint8(image: np.ndarray) -> np.ndarray:
         raise ValueError(f"expected CHW RGB image, got shape {image.shape}")
     image = np.transpose(image, (1, 2, 0))
     return np.clip(image * 255.0, 0.0, 255.0).astype(np.uint8)
+
+
+def _preprocess_model_rgb(image: np.ndarray, image_size: int) -> np.ndarray:
+    pil = Image.fromarray(np.asarray(image, dtype=np.uint8)).resize((int(image_size), int(image_size)), Image.Resampling.BILINEAR)
+    arr = np.asarray(pil, dtype=np.float32) / 255.0
+    return np.transpose(arr, (2, 0, 1))
 
 
 def _resize(image: np.ndarray, size: int) -> Image.Image:

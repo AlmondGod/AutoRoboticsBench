@@ -37,7 +37,7 @@
           "weight": 40
         },
         {
-          "id": "robocasa_world_model",
+          "id": "robocasa_reward_model",
           "task_spec": "tasks/robocasa_world_model/task.json",
           "weight": 20
         },

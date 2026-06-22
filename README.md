@@ -246,22 +246,22 @@ Generated CSVs and PNGs are written under `analysis/` and ignored by git.
 
 The counted `autorobobench_v0` task packages are:
 
-| Track | Package | Main RoboCasa task/data |
-| --- | --- | --- |
-| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` |
-| Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction |
-| World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
+| Track | Package | Main RoboCasa task/data | Evaluation metric |
+| --- | --- | --- | --- |
+| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` | `bc1_reliability_speed_score`: eval success plus a small speed bonus on successful episodes only |
+| Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction | `visual_world_model_score`: next-frame perceptual/pixel quality plus state, progress, and reward prediction |
+| World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | Eval rollout success rate |
 
 Optional extra task packages are:
 
-| Track | Package | Main RoboCasa task/data |
-| --- | --- | --- |
-| RoboCasa BC-5 | `tasks/robocasa_bc5/` | `OpenCabinet`, `CloseDrawer`, `CloseFridge`, `TurnOffStove`, `PickPlaceCounterToCabinet` |
-| Long-Horizon Microwave | `tasks/robocasa_long_horizon/` | `PickPlaceCounterToMicrowave` |
-| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool |
-| RoboCasa World Model | `tasks/robocasa_world_model/` | BC-5 transition and policy-ranking world model |
-| RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants |
-| Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
+| Track | Package | Main RoboCasa task/data | Evaluation metric |
+| --- | --- | --- | --- |
+| RoboCasa BC-5 | `tasks/robocasa_bc5/` | `OpenCabinet`, `CloseDrawer`, `CloseFridge`, `TurnOffStove`, `PickPlaceCounterToCabinet` | Mean eval success across the five tasks |
+| Long-Horizon Microwave | `tasks/robocasa_long_horizon/` | `PickPlaceCounterToMicrowave` | Eval success on the long-horizon task |
+| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool | Mean eval success across BC-5 tasks |
+| RoboCasa Reward Model | `tasks/robocasa_world_model/` | BC-5/StandMixer transition reward and policy-ranking model | `reward_model_benchmark_score`: policy ranking/calibration plus reward/progress prediction |
+| RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants | Language-conditioned eval success |
+| Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | `offlinerl_final_success`: eval rollout success after posttraining |
 
 Each task owns its `setup.py`, `train.py`, `inference.py`, `eval.py`,
 `visualize.py`, `task.json`, and `INSTRUCTIONS.md`. Visualizers write compact

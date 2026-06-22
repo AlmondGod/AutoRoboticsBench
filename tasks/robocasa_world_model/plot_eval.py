@@ -19,8 +19,8 @@ sys.path.insert(0, str(ROOT))
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Plot RoboCasa world-model correlation eval.")
-    parser.add_argument("--eval", default="runs/autorobobench/robocasa_world_model/quick_real/eval_correlation.json")
+    parser = argparse.ArgumentParser(description="Plot RoboCasa reward-model correlation eval.")
+    parser.add_argument("--eval", default="runs/autorobobench/robocasa_reward_model/quick_real/eval_correlation.json")
     parser.add_argument("--out", default="")
     args = parser.parse_args()
 
@@ -62,12 +62,12 @@ def plot(payload: dict, out: Path) -> None:
         ax_scatter.set_xlim(x0, x1)
     ax_scatter.set_title("Policy Score Correlation", fontsize=12, fontweight="bold")
     ax_scatter.set_xlabel("Real RoboCasa success rate")
-    ax_scatter.set_ylabel("World-model predicted success")
+    ax_scatter.set_ylabel("Reward-model predicted success")
     ax_scatter.grid(True, color="#dddddd", linewidth=0.8)
     ax_scatter.text(
         0.02,
         0.98,
-        f"Benchmark {payload.get('world_model_benchmark_score', 0.0):.3f}\nPearson {corr.get('pearson'):.3f}\nSpearman {corr.get('spearman'):.3f}\nN={corr.get('valid_policy_count')}",
+        f"Benchmark {payload.get('reward_model_benchmark_score', 0.0):.3f}\nPearson {corr.get('pearson'):.3f}\nSpearman {corr.get('spearman'):.3f}\nN={corr.get('valid_policy_count')}",
         transform=ax_scatter.transAxes,
         va="top",
         ha="left",
@@ -79,14 +79,14 @@ def plot(payload: dict, out: Path) -> None:
     x = np.arange(len(policies))
     width = 0.38
     ax_bar.bar(x - width / 2, real[order], width, label="real success", color="#7570b3")
-    ax_bar.bar(x + width / 2, pred[order], width, label="WM predicted", color="#66a61e")
+    ax_bar.bar(x + width / 2, pred[order], width, label="reward predicted", color="#66a61e")
     ax_bar.set_xticks(x)
     ax_bar.set_xticklabels([names[i] for i in order], rotation=18, ha="right", fontsize=8)
     ax_bar.set_title("Per-Policy Scores", fontsize=12, fontweight="bold")
     ax_bar.legend(frameon=False, fontsize=9)
     ax_bar.grid(True, axis="y", color="#dddddd", linewidth=0.8)
 
-    metric_names = ["next_state_mse_norm", "next_progress_mse", "success_bce"]
+    metric_names = ["next_progress_mse", "success_bce"]
     metric_values = [float(metrics[name]) for name in metric_names]
     ax_metrics.barh(np.arange(len(metric_names)), metric_values, color=["#1b9e77", "#66a61e", "#e6ab02", "#d95f02"])
     ax_metrics.set_yticks(np.arange(len(metric_names)))
@@ -97,7 +97,7 @@ def plot(payload: dict, out: Path) -> None:
     for idx, value in enumerate(metric_values):
         ax_metrics.text(value, idx, f" {value:.4f}", va="center", fontsize=8)
 
-    fig.suptitle("RoboCasa World Model Eval", fontsize=14, fontweight="bold")
+    fig.suptitle("RoboCasa Reward Model Eval", fontsize=14, fontweight="bold")
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
 

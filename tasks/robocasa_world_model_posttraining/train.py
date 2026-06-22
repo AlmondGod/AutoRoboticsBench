@@ -335,6 +335,10 @@ def _load_world_model(checkpoint: str, device: torch.device) -> dict:
             task_dim=int(cfg["task_dim"]),
             latent_dim=int(cfg["latent_dim"]),
             visual_latent_dim=int(cfg.get("visual_latent_dim", 64)),
+            visual_decoder_width=int(cfg.get("visual_decoder_width", 0)) or None,
+            visual_decoder_depth=int(cfg.get("visual_decoder_depth", 3)),
+            visual_decoder_type=str(cfg.get("visual_decoder_type", "mlp")),
+            current_rgb_conditioned=bool(cfg.get("current_rgb_conditioned", False)),
             dropout=float(cfg["dropout"]),
         ).to(device)
         wm_type = "visual"

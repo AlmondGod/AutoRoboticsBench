@@ -69,15 +69,15 @@ def _summary(
         if isinstance(row, dict)
     ]
     return {
-        "task": "robocasa_world_model",
+        "task": "robocasa_reward_model",
         "run_dir": str(run_dir),
         "eval_json": "" if eval_path is None else str(eval_path),
         "train_metrics": "" if train_path is None else str(train_path),
-        "world_model_benchmark_score": eval_payload.get("world_model_benchmark_score"),
+        "reward_model_benchmark_score": eval_payload.get("reward_model_benchmark_score"),
         "policy_ranking_score": eval_payload.get("policy_ranking_score"),
         "ood_ranking_score": eval_payload.get("ood_ranking_score"),
         "success_calibration_score": eval_payload.get("success_calibration_score"),
-        "next_state_score": eval_payload.get("next_state_score"),
+        "reward_score": eval_payload.get("reward_score"),
         "progress_score": eval_payload.get("progress_score") or eval_payload.get("reward_progress_score"),
         "transition_metrics": transition,
         "policy_rows": policy_rows,
@@ -93,8 +93,8 @@ def _summary_svg(summary: dict[str, Any]) -> str:
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="white"/>',
-        '<text x="24" y="38" font-family="Arial" font-size="24" font-weight="700" fill="#111">RoboCasa world model</text>',
-        f'<text x="24" y="68" font-family="Arial" font-size="14" fill="#333">benchmark={_fmt(summary.get("world_model_benchmark_score"))} ranking={_fmt(summary.get("policy_ranking_score"))} ood={_fmt(summary.get("ood_ranking_score"))} calibration={_fmt(summary.get("success_calibration_score"))}</text>',
+        '<text x="24" y="38" font-family="Arial" font-size="24" font-weight="700" fill="#111">RoboCasa reward model</text>',
+        f'<text x="24" y="68" font-family="Arial" font-size="14" fill="#333">benchmark={_fmt(summary.get("reward_model_benchmark_score"))} ranking={_fmt(summary.get("policy_ranking_score"))} ood={_fmt(summary.get("ood_ranking_score"))} calibration={_fmt(summary.get("success_calibration_score"))}</text>',
         f'<text x="24" y="94" font-family="Arial" font-size="12" fill="#666">{_esc(summary.get("eval_json", ""))}</text>',
     ]
     y0 = 136

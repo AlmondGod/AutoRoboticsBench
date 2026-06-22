@@ -17,7 +17,7 @@ DEFAULT_VIDEO_POOL = ROOT / "data" / "autorobobench" / "robocasa_world_model_vid
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Setup verifier for RoboCasa world-model eval.")
+    parser = argparse.ArgumentParser(description="Setup verifier for RoboCasa reward-model eval.")
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--split", default=str(DEFAULT_SPLIT))
     parser.add_argument("--policy-set", default=str(DEFAULT_POLICY_SET))
@@ -38,11 +38,11 @@ def main() -> None:
     split = json.loads(split_path.read_text())
     video_pool = json.loads(video_pool_path.read_text())
     if video_pool.get("contains_actions", True):
-        raise ValueError("world-model video pool must not expose actions")
+        raise ValueError("reward-model video pool must not expose actions")
     if video_pool.get("contains_proprio", True):
-        raise ValueError("world-model video pool must not expose proprio")
+        raise ValueError("reward-model video pool must not expose proprio")
     if video_pool.get("contains_state", True):
-        raise ValueError("world-model video pool must not expose state")
+        raise ValueError("reward-model video pool must not expose state")
     manifest_tasks = {task["alias"]: task for task in manifest["tasks"]}
     tasks = []
     for split_task in split["tasks"]:
@@ -67,7 +67,7 @@ def main() -> None:
         wrote_template = True
 
     payload = {
-        "task": "robocasa_world_model",
+        "task": "robocasa_reward_model",
         "manifest": str(manifest_path),
         "split": str(split_path),
         "policy_set": str(policy_set),
@@ -87,8 +87,8 @@ def main() -> None:
 
 def policy_template() -> dict:
     return {
-        "task": "robocasa_world_model_policy_set",
-        "description": "Optional policy set for world-model score correlation against real RoboCasa evals.",
+        "task": "robocasa_reward_model_policy_set",
+        "description": "Optional policy set for reward-model score correlation against real RoboCasa evals.",
         "policies": [
             {
                 "name": "bc5_baseline",

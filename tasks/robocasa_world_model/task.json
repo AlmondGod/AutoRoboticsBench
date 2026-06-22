@@ -24,21 +24,21 @@
       "tasks/robocasa_world_model/setup.py",
       "tasks/robocasa_world_model/task.json"
     ],
-    "notes": "Learned RoboCasa world-model track scored by policy ranking/calibration against real eval success plus transition prediction quality.",
+    "notes": "Learned RoboCasa reward-model track scored by policy ranking/calibration against real eval success plus reward/progress prediction quality.",
     "phase": 1,
-    "primary_metric": "world_model_benchmark_score",
+    "primary_metric": "reward_model_benchmark_score",
     "reference_metric": 1.0,
     "required_result_keys": [
-      "world_model_benchmark_score",
+      "reward_model_benchmark_score",
       "policy_ranking_score",
       "success_calibration_score",
       "progress_score",
-      "next_state_score",
+      "reward_score",
       "ood_ranking_score",
       "reproducibility_integrity"
     ],
     "score_weights": {
-      "world_model_benchmark_score": 1.0
+      "reward_model_benchmark_score": 1.0
     },
     "starter_metric": 0.0
   },
@@ -47,6 +47,9 @@
     "inverse_align_weight": 0.0,
     "latent_dim": 0,
     "max_train_seconds": 300,
+    "progress_weight": 1.0,
+    "state_weight": 0.0,
+    "success_weight": 1.0,
     "train_episodes_per_task": 20,
     "val_episodes_per_task": 5,
     "video_align_weight": 0.0,
@@ -54,31 +57,30 @@
     "video_repr_pretrain_seconds": 0
   },
   "eval": "tasks/robocasa_world_model/eval.py",
-  "id": "robocasa_world_model",
+  "id": "robocasa_reward_model",
   "inference": "tasks/robocasa_world_model/inference.py",
   "manifest": "data/robocasa5/manifest.json",
   "metrics": {
-    "primary": "world_model_benchmark_score",
+    "primary": "reward_model_benchmark_score",
     "score_weights": {
-      "next_state_score": 0.1,
       "policy_and_ood_ranking_score": 0.5,
       "progress_score": 0.15,
+      "reward_score": 0.15,
       "success_calibration_score": 0.2
     },
     "secondary": [
       "policy_ranking_score",
       "success_calibration_score",
       "progress_score",
-      "next_state_score",
+      "reward_score",
       "ood_ranking_score",
       "policy_score_spearman",
       "success_calibration_rmse",
-      "next_state_mse_norm",
       "next_progress_mse",
       "success_bce"
     ]
   },
-  "name": "RoboCasa World Model Policy Correlation",
+  "name": "RoboCasa Reward Model Policy Correlation",
   "policy_set": "data/autorobobench/robocasa_world_model_policy_set.json",
   "reference_metric": 1.0,
   "setup": "tasks/robocasa_world_model/setup.py",
@@ -95,9 +97,8 @@
     "optional_in_task_video_only_episodes_per_task": 60,
     "optional_related_video_only_episodes": 427,
     "optional_video_representation_pretraining": true,
-    "primary_eval": "correlation_between_world_model_policy_scores_and_real_sim_success",
+    "primary_eval": "correlation_between_reward_model_policy_scores_and_real_sim_success",
     "targets": [
-      "next_state",
       "next_task_progress",
       "task_success"
     ],
@@ -111,10 +112,10 @@
   },
   "version": "v0",
   "video_pool": "data/autorobobench/robocasa_world_model_video_pool.json",
-  "world_model_interface": {
+  "reward_model_interface": {
     "load_world_model": "load_world_model(checkpoint: str, device: str) -> dict",
-    "predict_next": "predict_next(world_model, state, action, task_id, progress) -> dict",
-    "rollout_score": "rollout_score(world_model, initial_state, actions, task_id) -> dict"
+    "predict_next": "predict_next(reward_model, state, action, task_id, progress) -> dict",
+    "score_trajectory": "score_trajectory(reward_model, states, actions, task_id) -> dict"
   },
   "visualize": "tasks/robocasa_world_model/visualize.py"
 }

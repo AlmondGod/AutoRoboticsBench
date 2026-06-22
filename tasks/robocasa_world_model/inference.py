@@ -58,6 +58,43 @@ def predict_next(world_model: dict, state: np.ndarray, action: np.ndarray, task_
 
 
 @torch.no_grad()
+def score_trajectory(world_model: dict, states: np.ndarray, actions: np.ndarray, task_id: int) -> dict:
+    device = world_model["device"]
+    stats = world_model["stats"]
+    states = np.asarray(states, dtype=np.float32)
+    actions = np.asarray(actions, dtype=np.float32)
+    n = min(len(states), len(actions))
+    if n <= 0:
+        return {
+            "predicted_success": 0.0,
+            "final_success_prob": 0.0,
+            "final_progress": 0.0,
+            "success_trace": np.zeros((0,), dtype=np.float32),
+            "progress_trace": np.zeros((0,), dtype=np.float32),
+        }
+    state_t = torch.as_tensor(states[:n], dtype=torch.float32, device=device)
+    action_t = torch.as_tensor(actions[:n], dtype=torch.float32, device=device)
+    state_n = (state_t - stats["state_mean"]) / stats["state_std"]
+    action_n = (action_t - stats["action_mean"]) / stats["action_std"]
+    progress = torch.linspace(0.0, 1.0, steps=n, dtype=torch.float32, device=device).reshape(-1, 1)
+    out = world_model["model"](
+        state_n,
+        action_n,
+        torch.full((n,), int(task_id), dtype=torch.long, device=device),
+        progress,
+    )
+    success = torch.sigmoid(out["success_logit"]).reshape(-1)
+    next_progress = out["next_progress"].reshape(-1).clamp(0.0, 1.0)
+    return {
+        "predicted_success": float(success.max().detach().cpu()),
+        "final_success_prob": float(success[-1].detach().cpu()),
+        "final_progress": float(next_progress[-1].detach().cpu()),
+        "success_trace": success.detach().cpu().numpy().astype(np.float32),
+        "progress_trace": next_progress.detach().cpu().numpy().astype(np.float32),
+    }
+
+
+@torch.no_grad()
 def rollout_score(
     world_model: dict,
     initial_state: np.ndarray,

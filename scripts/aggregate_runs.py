@@ -10,6 +10,21 @@ from pathlib import Path
 from typing import Any
 
 
+PRIMARY_SCORE_KEYS = (
+    "score",
+    "bc1_reliability_speed_score",
+    "success_rate",
+    "peak_final_success",
+    "hidden_final_success",
+    "video_transfer_success",
+    "language_success_rate",
+    "offlinerl_final_success",
+    "visual_world_model_score",
+    "reward_model_benchmark_score",
+    "world_model_benchmark_score",
+)
+
+
 RUN_COLUMNS = [
     "run_id",
     "agent",
@@ -95,6 +110,19 @@ def to_float(value: Any) -> float | None:
         return None
 
 
+def primary_score(payload: dict[str, Any]) -> float | None:
+    metric = payload.get("metric")
+    if isinstance(metric, str):
+        value = to_float(payload.get(metric))
+        if value is not None:
+            return value
+    for key in PRIMARY_SCORE_KEYS:
+        value = to_float(payload.get(key))
+        if value is not None:
+            return value
+    return None
+
+
 def to_int(value: Any) -> int | None:
     number = to_float(value)
     if number is None:
@@ -147,6 +175,8 @@ def flatten_run(summary_path: Path) -> dict[str, Any]:
         nested_get(merged, ["eval.score"]),
         nested_get(merged, ["eval_results.score"]),
         nested_get(merged, ["final_report.eval_results.score"]),
+        primary_score(eval_results),
+        primary_score(nested_get(merged, ["final_report.eval_results"], {}) or {}),
     )
     success_rate = coalesce(
         nested_get(merged, ["success_rate"]),

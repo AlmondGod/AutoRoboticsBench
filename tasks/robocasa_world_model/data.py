@@ -97,8 +97,12 @@ def load_transition_data(
             continue
         task_id = int(split_task["task_id"])
         dataset_root = Path(manifest_tasks[alias]["dataset_path"])
-        train_ids = [int(x) for x in split_task["train_episode_ids"][: int(train_episodes_per_task)]]
-        val_ids = [int(x) for x in split_task["val_episode_ids"][: int(val_episodes_per_task)]]
+        all_train_ids = [int(x) for x in split_task["train_episode_ids"]]
+        all_val_ids = [int(x) for x in split_task["val_episode_ids"]]
+        train_limit = int(train_episodes_per_task)
+        val_limit = int(val_episodes_per_task)
+        train_ids = all_train_ids if train_limit <= 0 else all_train_ids[:train_limit]
+        val_ids = all_val_ids if val_limit <= 0 else all_val_ids[:val_limit]
         train_count = _append_episodes(train_parts, dataset_root, train_ids, task_id, int(frame_stride))
         val_count = _append_episodes(val_parts, dataset_root, val_ids, task_id, int(frame_stride))
         summary.append(

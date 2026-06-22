@@ -47,7 +47,7 @@ def device_from_arg(name: str):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Train RoboCasa learned world model.")
+    parser = argparse.ArgumentParser(description="Train RoboCasa learned reward/progress model.")
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--split", default=str(DEFAULT_SPLIT))
     parser.add_argument("--video-pool", default=str(DEFAULT_VIDEO_POOL))
@@ -61,7 +61,7 @@ def main() -> None:
     parser.add_argument("--inverse-align-weight", type=float, default=0.0)
     parser.add_argument("--inverse-align-view", default="robot0_agentview_right")
     parser.add_argument("--inverse-align-image-size", type=int, default=64)
-    parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_world_model/base")
+    parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_reward_model/base")
     parser.add_argument("--train-episodes-per-task", type=int, default=20)
     parser.add_argument("--val-episodes-per-task", type=int, default=5)
     parser.add_argument("--task-alias", action="append", default=[])
@@ -75,9 +75,9 @@ def main() -> None:
     parser.add_argument("--dropout", type=float, default=0.05)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
-    parser.add_argument("--state-weight", type=float, default=1.0)
-    parser.add_argument("--progress-weight", type=float, default=0.25)
-    parser.add_argument("--success-weight", type=float, default=0.25)
+    parser.add_argument("--state-weight", type=float, default=0.0)
+    parser.add_argument("--progress-weight", type=float, default=1.0)
+    parser.add_argument("--success-weight", type=float, default=1.0)
     parser.add_argument("--kl-weight", type=float, default=1e-4)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="auto")
@@ -186,8 +186,8 @@ def main() -> None:
             }
             history.append(row)
             print(json.dumps(row, sort_keys=True), flush=True)
-            if row["val_score_loss"] < best_val:
-                best_val = row["val_score_loss"]
+            if row["val_reward_score_loss"] < best_val:
+                best_val = row["val_reward_score_loss"]
                 _save_checkpoint(
                     out_dir / "policy_best.pt",
                     model,
@@ -215,7 +215,7 @@ def main() -> None:
         len(history),
     )
     payload = {
-        "task": "robocasa_world_model",
+        "task": "robocasa_reward_model",
         "checkpoint": str(out_dir / "policy_best.pt"),
         "last_checkpoint": str(out_dir / "policy_last.pt"),
         "train_transitions": len(train),
@@ -225,7 +225,7 @@ def main() -> None:
         "inverse_alignment": _inverse_alignment_summary(args, inverse_align),
         "summary": summary,
         "final_val": final_metrics,
-        "best_val_score_loss": best_val,
+        "best_val_reward_score_loss": best_val,
         "history": history,
         "seconds": time.monotonic() - start_time,
     }
@@ -457,10 +457,9 @@ def _inverse_alignment_summary(args: argparse.Namespace, inverse_align: dict | N
 def _eval(model: RoboCasaWorldModel, data: TransitionData, batch_size: int, device: torch.device) -> dict[str, float]:
     model.eval()
     sums: dict[str, float] = {
-        "state_mse": 0.0,
         "progress_mse": 0.0,
         "success_bce": 0.0,
-        "score_loss": 0.0,
+        "reward_score_loss": 0.0,
     }
     count = 0
     for start in range(0, len(data), batch_size):
@@ -468,9 +467,10 @@ def _eval(model: RoboCasaWorldModel, data: TransitionData, batch_size: int, devi
         batch = _batch(data, idx, device)
         total, metrics = model.loss(batch)
         n = len(idx)
-        for key in ("state_mse", "progress_mse", "success_bce"):
+        for key in ("progress_mse", "success_bce"):
             sums[key] += float(metrics[key].detach().cpu()) * n
-        sums["score_loss"] += float(total.detach().cpu()) * n
+        reward_score_loss = metrics["progress_mse"] + metrics["success_bce"]
+        sums["reward_score_loss"] += float(reward_score_loss.detach().cpu()) * n
         count += n
     return {key: value / max(1, count) for key, value in sums.items()}
 
@@ -509,7 +509,7 @@ def _save_checkpoint(
             "inverse_alignment": _inverse_alignment_summary(args, inverse_align),
             "history": history,
             "step": int(step),
-            "task": "robocasa_world_model",
+            "task": "robocasa_reward_model",
         },
         path,
     )

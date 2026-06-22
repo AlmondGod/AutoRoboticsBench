@@ -9,9 +9,12 @@
   "inference": "tasks/robocasa_bc1/inference.py",
   "manifest": "data/autorobobench/robocasa_bc1_manifest.json",
   "metrics": {
-    "primary": "peak_final_success",
+    "primary": "bc1_reliability_speed_score",
     "secondary": [
+      "peak_final_success",
       "success_rate",
+      "successful_eval_speed",
+      "successful_eval_steps_mean",
       "reliability_stability",
       "data_budget_integrity"
     ]

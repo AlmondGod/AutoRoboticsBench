@@ -46,18 +46,27 @@
   },
   "default_train": {
     "frame_stride": 1,
-    "image_size": 32,
+    "image_size": 64,
     "image_vae_weight": 0.25,
     "inverse_align_weight": 0.0,
     "latent_dim": 64,
+    "rollout_horizon": 4,
+    "rollout_progress_weight": 0.05,
+    "rollout_state_weight": 0.1,
+    "rollout_visual_weight": 0.25,
     "state_flow_weight": 0.25,
     "max_train_seconds": 300,
-    "train_episodes_per_task": 20,
+    "train_episodes_per_task": 0,
     "val_episodes_per_task": 5,
     "view": "robot0_agentview_right",
+    "visual_decoder_depth": 3,
+    "visual_decoder_width": 512,
     "visual_flow_weight": 0.5,
-    "visual_latent_dim": 64,
-    "visual_weight": 1.0
+    "visual_latent_weight": 0.5,
+    "visual_latent_dim": 128,
+    "visual_lr_scale": 0.5,
+    "visual_weight": 1.0,
+    "image_augment": 0.15
   },
   "eval": "tasks/robocasa_visual_world_model/eval.py",
   "id": "robocasa_visual_world_model",
@@ -66,11 +75,12 @@
   "metrics": {
     "primary": "visual_world_model_score",
     "score_weights": {
-      "next_state_score": 0.15,
+      "generated_visual_policy_score": 0.25,
+      "next_state_score": 0.1,
       "progress_score": 0.05,
       "success_score": 0.05,
-      "visual_perceptual_score": 0.5,
-      "visual_reconstruction_score": 0.25
+      "visual_perceptual_score": 0.35,
+      "visual_reconstruction_score": 0.2
     },
     "secondary": [
       "visual_perceptual_score",
@@ -103,14 +113,14 @@
       "state_delta"
     ],
     "heldout_visual_eval": true,
-    "input": "state_t, action_t, task_id, progress_t, optional RGB frame_t during training",
+    "input": "state_t, action_t, task_id, progress_t, current RGB frame_t",
     "inverse_dynamics_auxiliary_allowed": true,
     "latent_prediction_allowed": true,
     "primary_eval": "heldout_next_frame_visual_accuracy_plus_generated_visual_policy_conditioning",
     "primary_visual_metric": "LPIPS alex next-frame distance",
     "rgb_reconstruction_allowed": true,
     "targets": [
-      "next_rgb_frame",
+      "next_rgb_frame conditioned on current RGB",
       "next_state",
       "next_task_progress",
       "task_success"
@@ -122,7 +132,7 @@
   "version": "v0",
   "world_model_interface": {
     "load_world_model": "load_world_model(checkpoint: str, device: str) -> dict",
-    "predict_next": "predict_next(world_model, state, action, task_id, progress) -> dict with next_rgb"
+    "predict_next": "predict_next(world_model, state, action, task_id, progress, current_rgb=None) -> dict with next_rgb"
   },
   "visualize": "tasks/robocasa_visual_world_model/visualize.py"
 }

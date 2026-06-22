@@ -12,6 +12,21 @@ from pathlib import Path
 from typing import Any
 
 
+PRIMARY_SCORE_KEYS = (
+    "score",
+    "bc1_reliability_speed_score",
+    "success_rate",
+    "peak_final_success",
+    "hidden_final_success",
+    "video_transfer_success",
+    "language_success_rate",
+    "offlinerl_final_success",
+    "visual_world_model_score",
+    "reward_model_benchmark_score",
+    "world_model_benchmark_score",
+)
+
+
 def run_step(name: str, command: list[str]) -> dict:
     started = datetime.now(timezone.utc)
     completed = subprocess.run(command, text=True, capture_output=True)
@@ -68,6 +83,21 @@ def to_float(value: Any) -> float | None:
         return None
 
 
+def primary_score(eval_results: dict | None) -> float | None:
+    if not isinstance(eval_results, dict):
+        return None
+    metric = eval_results.get("metric")
+    if isinstance(metric, str):
+        value = to_float(eval_results.get(metric))
+        if value is not None:
+            return value
+    for key in PRIMARY_SCORE_KEYS:
+        value = to_float(eval_results.get(key))
+        if value is not None:
+            return value
+    return None
+
+
 def count_flags(eval_results: dict | None, judge_report: dict | None) -> int:
     total = 0
     if isinstance(eval_results, dict) and isinstance(eval_results.get("flags"), list):
@@ -100,9 +130,7 @@ def build_run_summary(
     container_seconds = sum(float(row.get("duration_seconds") or 0) for row in commands) if commands else None
 
     success_rate = to_float(eval_results.get("success_rate"))
-    score = to_float(eval_results.get("score"))
-    if score is None:
-        score = success_rate
+    score = primary_score(eval_results)
     baseline_score = to_float(metadata.get("baseline_score"))
     improvement = None
     normalized_score = None

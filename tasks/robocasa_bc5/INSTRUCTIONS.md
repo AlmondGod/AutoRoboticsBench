@@ -13,6 +13,10 @@ for scored runs.
   overrides commit horizon.
 - Data: use `data/robocasa5/manifest.json` and
   `data/autorobobench/robocasa_bc5_splits.json`.
+- You do not have to train on the whole dataset. It is allowed to prioritize
+  particular tasks, subsets, or curricula if that improves total eval success.
+  Once those tasks are saturated, adding the remaining tasks is necessary to
+  approach 100% overall score.
 
 ## Train
 

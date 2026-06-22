@@ -8,6 +8,7 @@
   "id": "robocasa_offlinerl_posttraining",
   "inference": "tasks/robocasa_offlinerl_posttraining/inference.py",
   "manifest": "data/autorobobench/robocasa_stand_mixer_peak_manifest.json",
+  "default_reward_model_checkpoint": "data/autorobobench/pretrained_reward_models/robocasa_stand_mixer_reward_model.pt",
   "metrics": {
     "higher_is_better": true,
     "primary": "offlinerl_final_success",
@@ -29,11 +30,14 @@
   "train_contract": {
     "base_policy": "robocasa_stand_mixer_base nonzero learned temporal chunk BC warm start",
     "base_policy_note": "Current promoted A100 artifact scored 2/10 and was trained with an eval-included diagnostic split; use as a posttraining warm start, not as a fair standalone submission.",
+    "pretrained_reward_model": "data/autorobobench/pretrained_reward_models/robocasa_stand_mixer_reward_model.pt",
+    "pretrained_reward_model_note": "Reward/progress model trained from successful and failed StandMixer trajectories; train.py uses it to assign offline trajectory advantages when available.",
     "eval_tasks": 1,
     "experience_sources": [
       "demonstrations",
       "failed_rollouts",
-      "corrections"
+      "corrections",
+      "pretrained_reward_model"
     ],
     "offline_experience": true,
     "single_model": true,
