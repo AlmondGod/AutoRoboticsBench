@@ -24,8 +24,8 @@ class RoboCasaWorldModel(nn.Module):
         self.state_dim = int(state_dim)
         self.action_dim = int(action_dim)
         self.task_count = int(task_count)
+        self.task_dim = int(task_dim)
         self.latent_dim = int(latent_dim)
-        self.task = nn.Embedding(int(task_count), int(task_dim))
         state_width = self.latent_dim if self.latent_dim > 0 else self.state_dim
 
         if self.latent_dim > 0:
@@ -35,7 +35,7 @@ class RoboCasaWorldModel(nn.Module):
             self.encoder = None
             self.decoder = None
 
-        inp = state_width + self.action_dim + int(task_dim) + 1
+        inp = state_width + self.action_dim
         self.trunk = _mlp(inp, width, width, depth, dropout, final_norm=True)
         self.delta = nn.Linear(width, state_width)
         self.progress = nn.Linear(width, 1)
@@ -63,15 +63,11 @@ class RoboCasaWorldModel(nn.Module):
         self,
         state: torch.Tensor,
         action: torch.Tensor,
-        task_id: torch.Tensor,
-        progress: torch.Tensor,
         *,
         sample_latent: bool = False,
     ) -> dict[str, torch.Tensor]:
         z, mu, logvar = self.encode_state(state, sample=sample_latent)
-        if progress.ndim == 1:
-            progress = progress[:, None]
-        h = torch.cat([z, action, self.task(task_id.long()), progress.float()], dim=-1)
+        h = torch.cat([z, action], dim=-1)
         h = self.trunk(h)
         next_z = z + self.delta(h)
         next_state = self.decode_state(next_z)
@@ -96,8 +92,6 @@ class RoboCasaWorldModel(nn.Module):
         out = self(
             batch["state"],
             batch["action"],
-            batch["task_id"],
-            batch["progress"],
             sample_latent=True,
         )
         state_loss = F.mse_loss(out["next_state"], batch["next_state"])

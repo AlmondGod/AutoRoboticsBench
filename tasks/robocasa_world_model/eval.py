@@ -116,7 +116,7 @@ def _transition_eval(world: dict, data: TransitionData, batch_size: int) -> dict
             "success": torch.as_tensor(data.success[start:end], dtype=torch.float32, device=device),
             "task_id": torch.as_tensor(data.task_id[start:end], dtype=torch.long, device=device),
         }
-        out = model(batch["state"], batch["action"], batch["task_id"], batch["progress"])
+        out = model(batch["state"], batch["action"])
         n = end - start
         progress_sse += float((out["next_progress"] - batch["next_progress"]).square().sum().detach().cpu())
         success_loss += float(torch.nn.functional.binary_cross_entropy_with_logits(out["success_logit"], batch["success"], reduction="sum").detach().cpu())
@@ -297,8 +297,7 @@ def _score_policy(world: dict, policy: dict) -> dict:
         actions = np.asarray(data["actions"], dtype=np.float32)
         if len(states) == 0 or len(actions) == 0:
             continue
-        task_id = int(np.asarray(data["task_id"]).reshape(-1)[0]) if "task_id" in data else int(policy.get("task_id", 0))
-        score = score_trajectory(world, states[: len(actions)], actions, task_id)
+        score = score_trajectory(world, states[: len(actions)], actions)
         trace_scores.append(float(score["predicted_success"]))
     real = _real_success(policy.get("real_eval_json", ""))
     return {

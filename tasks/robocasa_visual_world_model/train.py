@@ -354,7 +354,6 @@ def _rollout_loss(
     progress_weight: float,
 ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
     state = batch["state"][:, 0]
-    progress = batch["progress"][:, 0]
     current_rgb = batch["rgb"][:, 0]
     rgb_losses = []
     state_losses = []
@@ -363,8 +362,6 @@ def _rollout_loss(
         out = model(
             state,
             batch["action"][:, offset],
-            batch["task_id"][:, offset],
-            progress,
             current_rgb=current_rgb,
             sample_latent=False,
         )
@@ -372,7 +369,6 @@ def _rollout_loss(
         state_losses.append(F.mse_loss(out["next_state"], batch["next_state"][:, offset]))
         progress_losses.append(F.mse_loss(out["next_progress"], batch["next_progress"][:, offset]))
         state = out["next_state"]
-        progress = out["next_progress"]
         current_rgb = out["next_rgb"]
     rgb_loss = torch.stack(rgb_losses).mean()
     state_loss = torch.stack(state_losses).mean()
@@ -504,8 +500,6 @@ def _inverse_alignment_loss(
     hidden, _, _, _ = model.transition_hidden(
         batch["state"],
         batch["action"],
-        batch["task_id"],
-        batch["progress"],
         sample_latent=False,
     )
     pred = F.normalize(inverse_align["head"](hidden), dim=-1)

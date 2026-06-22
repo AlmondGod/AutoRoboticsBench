@@ -136,7 +136,7 @@ def _visual_transition_eval(
             "rgb": torch.as_tensor(rgb[start:end], dtype=torch.float32, device=device),
             "next_rgb": torch.as_tensor(next_rgb[start:end], dtype=torch.float32, device=device),
         }
-        out = model(batch["state"], batch["action"], batch["task_id"], batch["progress"], current_rgb=batch["rgb"])
+        out = model(batch["state"], batch["action"], current_rgb=batch["rgb"])
         n = end - start
         sums["next_state_mse_norm"] += float((out["next_state"] - batch["next_state"]).square().mean(dim=-1).sum().detach().cpu())
         sums["next_progress_mse"] += float((out["next_progress"] - batch["next_progress"]).square().sum().detach().cpu())
@@ -270,7 +270,7 @@ def _rollout_policy_on_generated_visuals(
             horizon = int(commit_steps)
         horizon = max(1, min(horizon, int(commit_steps), int(action_chunk.shape[0]), int(rollout_steps) - steps))
         for action in np.clip(action_chunk[:horizon], -1.0, 1.0).astype(np.float32):
-            step = predict_next(world, state, action, int(task["task_id"]), progress, current_rgb=current_rgb)
+            step = predict_next(world, state, action, current_rgb=current_rgb)
             state = np.asarray(step["next_state"], dtype=np.float32)
             progress = float(np.clip(step["next_progress"], 0.0, 1.0))
             current_rgb = np.asarray(step["next_rgb"], dtype=np.float32)

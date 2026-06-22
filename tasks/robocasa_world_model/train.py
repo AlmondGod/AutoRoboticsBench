@@ -341,10 +341,7 @@ def _inverse_alignment_loss(
 
 def _transition_hidden(model: RoboCasaWorldModel, batch: dict[str, torch.Tensor]) -> torch.Tensor:
     z, _, _ = model.encode_state(batch["state"], sample=False)
-    progress = batch["progress"]
-    if progress.ndim == 1:
-        progress = progress[:, None]
-    h = torch.cat([z, batch["action"], model.task(batch["task_id"].long()), progress.float()], dim=-1)
+    h = torch.cat([z, batch["action"]], dim=-1)
     return model.trunk(h)
 
 

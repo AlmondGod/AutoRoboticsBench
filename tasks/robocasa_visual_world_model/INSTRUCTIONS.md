@@ -6,8 +6,10 @@ Do not edit eval files or split files for scored runs.
 ## Task
 
 - Train a visual world model on BC5 transitions and videos.
-- Inputs: state, action, task, progress, current RGB.
+- Inputs: state, action, current RGB.
 - Targets: next RGB, next state, next progress, success.
+- `task_id` and current task progress are split metadata / labels only; they
+  must not be passed to the world model as conditioning inputs.
 - Metric: visual world-model score. LPIPS next-frame quality is the main term,
   with a generated-visual policy probe when a policy checkpoint is supplied.
 - This is not a policy rollout score.

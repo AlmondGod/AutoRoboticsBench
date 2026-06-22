@@ -113,7 +113,7 @@
       "state_delta"
     ],
     "heldout_visual_eval": true,
-    "input": "state_t, action_t, task_id, progress_t, current RGB frame_t",
+    "input": "state_t, action_t, current RGB frame_t",
     "inverse_dynamics_auxiliary_allowed": true,
     "latent_prediction_allowed": true,
     "primary_eval": "heldout_next_frame_visual_accuracy_plus_generated_visual_policy_conditioning",
@@ -132,7 +132,7 @@
   "version": "v0",
   "world_model_interface": {
     "load_world_model": "load_world_model(checkpoint: str, device: str) -> dict",
-    "predict_next": "predict_next(world_model, state, action, task_id, progress, current_rgb=None) -> dict with next_rgb"
+    "predict_next": "predict_next(world_model, state, action, current_rgb=None) -> dict with next_rgb"
   },
   "visualize": "tasks/robocasa_visual_world_model/visualize.py"
 }

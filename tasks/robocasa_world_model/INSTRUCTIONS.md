@@ -6,9 +6,11 @@ edit eval files or split files for scored runs.
 ## Task
 
 - Train a state/action reward model on BC5 transitions.
-- Inputs: `state_t`, `action_t`, `task_id`, progress.
+- Inputs: `state_t`, `action_t`.
 - Targets: next progress and task success/reward only. Do not optimize or score
   next-proprio / next-state prediction.
+- `task_id` and current task progress are split metadata / labels only; they
+  must not be passed to the reward model as conditioning inputs.
 - Metric: policy ranking/calibration against real rollout success plus
   reward/progress prediction metrics.
 - This is not a policy rollout score. By default eval scores existing policy

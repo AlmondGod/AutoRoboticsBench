@@ -90,7 +90,7 @@
   "train_contract": {
     "default_action_labeled_train_rollouts_per_task": 20,
     "eval_tasks": 5,
-    "input": "state_t, action_t, task_id, progress_t",
+    "input": "state_t, action_t",
     "latent_prediction_allowed": true,
     "ood_policy_set_required_for_final_score": true,
     "optional_action_free_video_pool": true,
@@ -114,8 +114,8 @@
   "video_pool": "data/autorobobench/robocasa_world_model_video_pool.json",
   "reward_model_interface": {
     "load_world_model": "load_world_model(checkpoint: str, device: str) -> dict",
-    "predict_next": "predict_next(reward_model, state, action, task_id, progress) -> dict",
-    "score_trajectory": "score_trajectory(reward_model, states, actions, task_id) -> dict"
+    "predict_next": "predict_next(reward_model, state, action) -> dict",
+    "score_trajectory": "score_trajectory(reward_model, states, actions) -> dict"
   },
   "visualize": "tasks/robocasa_world_model/visualize.py"
 }

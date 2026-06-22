@@ -332,7 +332,7 @@ def _load_world_model(checkpoint: str, device: torch.device) -> dict:
             image_size=int(cfg.get("image_size", 32)),
             width=int(cfg["width"]),
             depth=int(cfg["depth"]),
-            task_dim=int(cfg["task_dim"]),
+            task_dim=int(cfg.get("task_dim", 0)),
             latent_dim=int(cfg["latent_dim"]),
             visual_latent_dim=int(cfg.get("visual_latent_dim", 64)),
             visual_decoder_width=int(cfg.get("visual_decoder_width", 0)) or None,
@@ -350,7 +350,7 @@ def _load_world_model(checkpoint: str, device: torch.device) -> dict:
             task_count=int(cfg["task_count"]),
             width=int(cfg["width"]),
             depth=int(cfg["depth"]),
-            task_dim=int(cfg["task_dim"]),
+            task_dim=int(cfg.get("task_dim", 0)),
             latent_dim=int(cfg["latent_dim"]),
             dropout=float(cfg["dropout"]),
         ).to(device)
@@ -443,25 +443,22 @@ def _wm_rollout_objective(
     stats = wm["stats"]
     model = wm["model"]
     state = (raw_state - stats["state_mean"]) / stats["state_std"].clamp_min(1e-6)
-    progress_t = progress.reshape(-1, 1).to(dtype=state.dtype, device=state.device)
     objective = torch.zeros((), dtype=state.dtype, device=state.device)
     success_terms = []
     progress_terms = []
     steps = max(1, min(int(horizon), int(actions_raw.shape[1])))
     for step in range(steps):
         action = (actions_raw[:, step] - stats["action_mean"]) / stats["action_std"].clamp_min(1e-6)
-        out = model(state, action, task_id.long(), progress_t)
+        out = model(state, action)
         success_prob = torch.sigmoid(out["success_logit"])
         next_progress = out["next_progress"].clamp(0.0, 1.0)
-        progress_gain = next_progress - progress_t
         objective = objective + (
             float(success_weight) * success_prob.mean()
-            + float(progress_weight) * progress_gain.mean()
+            + float(progress_weight) * next_progress.mean()
         )
         success_terms.append(success_prob.mean())
-        progress_terms.append(progress_gain.mean())
+        progress_terms.append(next_progress.mean())
         state = out["next_state"]
-        progress_t = next_progress
     scale = 1.0 / float(steps)
     return {
         "objective": objective * scale,

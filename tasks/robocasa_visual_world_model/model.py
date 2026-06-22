@@ -230,23 +230,17 @@ class VisualRoboCasaWorldModel(nn.Module):
         self,
         state: torch.Tensor,
         action: torch.Tensor,
-        task_id: torch.Tensor,
-        progress: torch.Tensor,
         *,
         sample_latent: bool = False,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         z, mu, logvar = self.dynamics.encode_state(state, sample=sample_latent)
-        if progress.ndim == 1:
-            progress = progress[:, None]
-        h = torch.cat([z, action, self.dynamics.task(task_id.long()), progress.float()], dim=-1)
+        h = torch.cat([z, action], dim=-1)
         return self.dynamics.trunk(h), z, mu, logvar
 
     def forward(
         self,
         state: torch.Tensor,
         action: torch.Tensor,
-        task_id: torch.Tensor,
-        progress: torch.Tensor,
         *,
         current_rgb: torch.Tensor | None = None,
         current_visual_latent: torch.Tensor | None = None,
@@ -255,8 +249,6 @@ class VisualRoboCasaWorldModel(nn.Module):
         hidden, z, mu, logvar = self.transition_hidden(
             state,
             action,
-            task_id,
-            progress,
             sample_latent=sample_latent,
         )
         next_z = z + self.dynamics.delta(hidden)
@@ -317,8 +309,6 @@ class VisualRoboCasaWorldModel(nn.Module):
         out = self(
             batch["state"],
             batch["action"],
-            batch["task_id"],
-            batch["progress"],
             current_visual_latent=current_visual.detach(),
             sample_latent=True,
         )

@@ -25,7 +25,7 @@ def load_world_model(checkpoint: str, device: str = "auto") -> dict:
         task_count=int(cfg["task_count"]),
         width=int(cfg["width"]),
         depth=int(cfg["depth"]),
-        task_dim=int(cfg["task_dim"]),
+        task_dim=int(cfg.get("task_dim", 0)),
         latent_dim=int(cfg["latent_dim"]),
         dropout=float(cfg["dropout"]),
     ).to(device)
@@ -36,19 +36,14 @@ def load_world_model(checkpoint: str, device: str = "auto") -> dict:
 
 
 @torch.no_grad()
-def predict_next(world_model: dict, state: np.ndarray, action: np.ndarray, task_id: int, progress: float) -> dict:
+def predict_next(world_model: dict, state: np.ndarray, action: np.ndarray) -> dict:
     device = world_model["device"]
     stats = world_model["stats"]
     state_t = torch.as_tensor(state, dtype=torch.float32, device=device).reshape(1, -1)
     action_t = torch.as_tensor(action, dtype=torch.float32, device=device).reshape(1, -1)
     state_n = (state_t - stats["state_mean"]) / stats["state_std"]
     action_n = (action_t - stats["action_mean"]) / stats["action_std"]
-    out = world_model["model"](
-        state_n,
-        action_n,
-        torch.tensor([int(task_id)], dtype=torch.long, device=device),
-        torch.tensor([[float(progress)]], dtype=torch.float32, device=device),
-    )
+    out = world_model["model"](state_n, action_n)
     next_state = out["next_state"] * stats["state_std"] + stats["state_mean"]
     return {
         "next_state": next_state.squeeze(0).detach().cpu().numpy().astype(np.float32),
@@ -58,7 +53,7 @@ def predict_next(world_model: dict, state: np.ndarray, action: np.ndarray, task_
 
 
 @torch.no_grad()
-def score_trajectory(world_model: dict, states: np.ndarray, actions: np.ndarray, task_id: int) -> dict:
+def score_trajectory(world_model: dict, states: np.ndarray, actions: np.ndarray) -> dict:
     device = world_model["device"]
     stats = world_model["stats"]
     states = np.asarray(states, dtype=np.float32)
@@ -76,13 +71,7 @@ def score_trajectory(world_model: dict, states: np.ndarray, actions: np.ndarray,
     action_t = torch.as_tensor(actions[:n], dtype=torch.float32, device=device)
     state_n = (state_t - stats["state_mean"]) / stats["state_std"]
     action_n = (action_t - stats["action_mean"]) / stats["action_std"]
-    progress = torch.linspace(0.0, 1.0, steps=n, dtype=torch.float32, device=device).reshape(-1, 1)
-    out = world_model["model"](
-        state_n,
-        action_n,
-        torch.full((n,), int(task_id), dtype=torch.long, device=device),
-        progress,
-    )
+    out = world_model["model"](state_n, action_n)
     success = torch.sigmoid(out["success_logit"]).reshape(-1)
     next_progress = out["next_progress"].reshape(-1).clamp(0.0, 1.0)
     return {
@@ -99,25 +88,20 @@ def rollout_score(
     world_model: dict,
     initial_state: np.ndarray,
     actions: np.ndarray,
-    task_id: int,
-    *,
-    initial_progress: float = 0.0,
 ) -> dict:
     state = np.asarray(initial_state, dtype=np.float32)
     actions = np.asarray(actions, dtype=np.float32)
     successes = []
-    progress = float(initial_progress)
     states = [state.copy()]
     for action in actions:
-        step = predict_next(world_model, state, action, int(task_id), progress)
+        step = predict_next(world_model, state, action)
         state = step["next_state"]
-        progress = float(np.clip(step["next_progress"], 0.0, 1.0))
         successes.append(float(step["success_prob"]))
         states.append(state.copy())
     return {
         "predicted_success": float(max(successes) if successes else 0.0),
         "final_success_prob": float(successes[-1] if successes else 0.0),
-        "final_progress": float(progress),
+        "final_progress": float(step["next_progress"]) if successes else 0.0,
         "states": np.asarray(states, dtype=np.float32),
         "success_trace": np.asarray(successes, dtype=np.float32),
     }

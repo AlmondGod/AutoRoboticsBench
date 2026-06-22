@@ -26,7 +26,7 @@ def load_world_model(checkpoint: str, device: str = "auto") -> dict:
         image_size=int(cfg["image_size"]),
         width=int(cfg["width"]),
         depth=int(cfg["depth"]),
-        task_dim=int(cfg["task_dim"]),
+        task_dim=int(cfg.get("task_dim", 0)),
         latent_dim=int(cfg["latent_dim"]),
         visual_latent_dim=int(cfg.get("visual_latent_dim", 64)),
         visual_decoder_width=int(cfg.get("visual_decoder_width", 0)) or None,
@@ -46,8 +46,6 @@ def predict_next(
     world_model: dict,
     state: np.ndarray,
     action: np.ndarray,
-    task_id: int,
-    progress: float,
     current_rgb: np.ndarray | None = None,
 ) -> dict:
     device = world_model["device"]
@@ -73,8 +71,6 @@ def predict_next(
     out = world_model["model"](
         state_n,
         action_n,
-        torch.tensor([int(task_id)], dtype=torch.long, device=device),
-        torch.tensor([[float(progress)]], dtype=torch.float32, device=device),
         current_rgb=rgb_t,
     )
     next_state = out["next_state"] * stats["state_std"] + stats["state_mean"]

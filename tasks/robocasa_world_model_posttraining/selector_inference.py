@@ -88,24 +88,18 @@ def _score_actions(policy: SelectorPolicy, obs: dict, actions: np.ndarray, task_
     wm_state_dim = int(policy.wm["config"]["state_dim"])
     raw_state = raw_state[:, :wm_state_dim]
     state = (raw_state - stats["state_mean"]) / stats["state_std"].clamp_min(1e-6)
-    task_t = torch.as_tensor([int(task_id)], dtype=torch.long, device=policy.device)
-    progress_step = int(getattr(subpolicy, "history_step_idx", 0))
-    progress = min(max(float(progress_step) / max(float(policy.checkpoint.get("wm_progress_scale", 260.0)), 1.0), 0.0), 1.0)
-    progress_t = torch.full((1, 1), progress, dtype=torch.float32, device=policy.device)
     score = torch.zeros((), dtype=torch.float32, device=policy.device)
     horizon = min(int(policy.checkpoint.get("wm_rollout_horizon", 4)), int(actions.shape[0]))
     for step in range(max(1, horizon)):
         action = torch.as_tensor(actions[step : step + 1], dtype=torch.float32, device=policy.device)
         action_norm = (action - stats["action_mean"]) / stats["action_std"].clamp_min(1e-6)
-        out = model(state, action_norm, task_t, progress_t)
+        out = model(state, action_norm)
         success = torch.sigmoid(out["success_logit"]).mean()
         next_progress = out["next_progress"].clamp(0.0, 1.0)
-        progress_gain = (next_progress - progress_t).mean()
         score = score + (
             float(policy.checkpoint.get("wm_success_weight", 1.0)) * success
-            + float(policy.checkpoint.get("wm_progress_weight", 0.4)) * progress_gain
+            + float(policy.checkpoint.get("wm_progress_weight", 0.4)) * next_progress.mean()
         )
         state = out["next_state"]
-        progress_t = next_progress
     score = score / float(max(1, horizon))
     return float(score.detach().cpu())

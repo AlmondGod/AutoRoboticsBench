@@ -439,9 +439,8 @@ def _apply_reward_model_advantages(
     scores = []
     states = recap.data.proprio[:, :raw_proprio_dim].astype(np.float32)
     actions = recap.data.actions[:, 0].astype(np.float32)
-    progresses = _progress_from_frame_indices(recap.data.episode_idx, recap.data.frame_idx)
-    for state, action, task_id, progress in zip(states, actions, recap.data.task_id, progresses):
-        pred = predict_next(reward_model, state, action, int(task_id), float(progress))
+    for state, action in zip(states, actions):
+        pred = predict_next(reward_model, state, action)
         scores.append(float(pred["success_prob"]) + 0.25 * float(pred["next_progress"]))
     raw = np.asarray(scores, dtype=np.float32)
     if raw.size == 0:

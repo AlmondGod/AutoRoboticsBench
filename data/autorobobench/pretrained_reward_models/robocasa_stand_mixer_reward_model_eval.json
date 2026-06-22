@@ -5,8 +5,8 @@
     "reward_score": 0.15,
     "success_calibration_score": 0.2
   },
-  "checkpoint": "runs/autorobobench/robocasa_reward_model/stand_mixer_pretrained/policy_best.pt",
-  "eval_seconds": 4.2301398403942585,
+  "checkpoint": "runs/autorobobench/robocasa_reward_model/stand_mixer_pretrained_no_task_progress/policy_best.pt",
+  "eval_seconds": 2.9283676706254482,
   "metric": "reward_model_benchmark_score",
   "ood_ranking_score": 0.0,
   "policy_correlation": {
@@ -16,10 +16,10 @@
   "policy_ranking_score": 0.0,
   "policy_score_pearson": null,
   "policy_score_spearman": null,
-  "progress_score": 0.9500985593405152,
+  "progress_score": 0.8988067033520699,
   "reproducibility_integrity": 1.0,
-  "reward_model_benchmark_score": 0.2726948148216844,
-  "reward_score": 0.8678668728040475,
+  "reward_model_benchmark_score": 0.26039400112545086,
+  "reward_score": 0.837153304150936,
   "success_calibration_mae": null,
   "success_calibration_rmse": null,
   "success_calibration_score": 0.0,
@@ -128,9 +128,9 @@
   ],
   "task": "robocasa_reward_model",
   "transition_metrics": {
-    "next_progress_mse": 0.0024950720329742367,
+    "next_progress_mse": 0.005059664832396502,
     "samples": 2417,
-    "success_bce": 0.01321331271959525,
-    "success_mse": 0.0035703360763126826
+    "success_bce": 0.016284669584906392,
+    "success_mse": 0.003979923215147184
   }
 }
