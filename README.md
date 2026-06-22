@@ -67,6 +67,181 @@ python setup.py --hash-manifest --suite autorobobench_v0 --out runs/autorobobenc
 Additional suite keys are `visual_world_model_v0` and
 `world_model_posttraining_v0`.
 
+## Docker Harness
+
+The Docker harness creates a fresh training container for an external agent,
+collects artifacts, runs a simple rule-based judge, and evaluates the final
+submission in a separate clean eval container. The included `toy_pickplace`
+task is a placeholder smoke test for the harness; it is not real robotics
+training.
+
+Build the image:
+
+```bash
+./docker/build.sh
+```
+
+Start a run:
+
+```bash
+python scripts/launch_agent_run.py --agent codex --task toy_pickplace --base dummy --seed 0
+```
+
+Copy the printed prompt into Codex, Claude, Gemini, or another external agent.
+The run launcher also writes the same prompt to `runs/<RUN_ID>/prompt.txt`.
+
+Run commands through the generated wrapper:
+
+```bash
+runs/<RUN_ID>/run.sh "cd /workspace/task && python train.py"
+```
+
+Collect artifact metadata and snapshots:
+
+```bash
+python scripts/collect_artifacts.py --run-id <RUN_ID>
+```
+
+Run the rule-based judge:
+
+```bash
+python scripts/judge_run.py --run-id <RUN_ID> --task toy_pickplace
+```
+
+Evaluate in a clean eval container:
+
+```bash
+RUN_ID=<RUN_ID> TASK=toy_pickplace ./docker/run_eval_container.sh
+```
+
+For remote GPU execution, copy `configs/compute.yaml.example` to
+`configs/compute.yaml`, fill in the host settings, and set `REMOTE_GPU=1` when
+using `scripts/run_in_container.sh` or `runs/<RUN_ID>/run.sh`.
+
+## RunPod Dockerless Mode
+
+RunPod Pods are already containers, so they usually cannot launch nested Docker
+training/eval containers. For RunPod development runs, use the dockerless
+launcher. This keeps the same `/workspace/task`, `/workspace/output`, and
+`/workspace/logs` paths by symlinking them to `runs/<RUN_ID>/`.
+
+On a fresh RunPod GPU pod:
+
+```bash
+cd /workspace
+git clone <repo-url> autoroboticsbench
+cd /workspace/autoroboticsbench
+./scripts/runpod_prepare_run.sh \
+  --agent codex \
+  --model gpt-5-codex \
+  --scaffold manual \
+  --task toy_pickplace \
+  --base dummy \
+  --seed 0
+```
+
+The prepare command bootstraps Python dependencies, checks GPU visibility,
+creates a run directory, writes `runs/<RUN_ID>/prompt.txt`, and prints the exact
+commands to use next. If setup is already done, pass `--skip-setup`.
+
+RoboCasa eval dependencies can also be installed directly with:
+
+```bash
+./scripts/install_robocasa_runtime.sh
+```
+
+By default the launcher expects to start from a clean `main` branch and creates
+a per-run branch named `codex/<RUN_ID>`. Agents must never merge this branch to
+`main`. If a tracked source change improves eval score, commit it with:
+
+```bash
+python scripts/commit_improvement.py --run-id <RUN_ID> --task toy_pickplace
+```
+
+The commit helper reads `runs/<RUN_ID>/eval/results.json`, refuses to commit on
+`main`/`master`, stages non-`runs/` source changes, and commits only when the
+score improves the run's last committed score. For local smoke tests or a dirty
+checkout, pass `--no-git-branch`.
+
+You can also run the two steps separately:
+
+```bash
+./scripts/setup_runpod_env.sh
+python scripts/launch_runpod_run.py --agent codex --task toy_pickplace --base dummy --seed 0
+```
+
+Run commands through the generated wrapper:
+
+```bash
+runs/<RUN_ID>/run.sh "cd /workspace/task && python train.py"
+```
+
+The exact start message for an agent is:
+
+```bash
+Read runs/<RUN_ID>/prompt.txt and follow it exactly.
+```
+
+The wrapper records every command in `runs/<RUN_ID>/commands.jsonl` and refuses
+to execute commands after the run deadline. Finalize the run with:
+
+```bash
+python scripts/finalize_run.py --run-id <RUN_ID> --task toy_pickplace --mode runpod
+```
+
+Finalization runs eval, judge, artifact collection, writes
+`runs/<RUN_ID>/final_report.json`, writes aggregate-ready
+`runs/<RUN_ID>/run_summary.json`, and records `runs/<RUN_ID>/finished_at.txt`.
+
+Agents should not manually edit `run_summary.json`. If token or cost usage is
+available, write it before finalization to `runs/<RUN_ID>/run_usage.json`:
+
+```json
+{
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "reasoning_tokens": 0,
+  "total_tokens": 0,
+  "estimated_usd": 0.0
+}
+```
+
+Each agent run branch contains only source changes; `runs/` is ignored and
+stays local to the worktree or pod. For a local multi-run comparison, return to
+a clean `main` checkout before preparing the next run, but keep the `runs/`
+directory. For separate RunPod pods, copy or sync each completed `runs/<RUN_ID>/`
+directory back to one analysis checkout before aggregating.
+
+This mode is useful for RunPod iteration, but it is not equivalent to the clean
+Docker train/eval isolation used by the benchmark harness.
+
+## Time Budget Policy
+
+The default v0 policy is strict per-task wall-clock time: each task run gets the
+same `--timeout-hours`, resource class, and seed protocol. This is easier to
+compare across agents and prevents a run from spending the whole benchmark
+budget on one task.
+
+A separate portfolio track can allow one total suite budget where agents choose
+how to allocate time across tasks. Report it separately because it measures both
+task performance and scheduling strategy.
+
+## Analysis
+
+Aggregate completed runs:
+
+```bash
+python scripts/aggregate_runs.py
+```
+
+Create scaling plots:
+
+```bash
+python scripts/plot_scaling.py
+```
+
+Generated CSVs and PNGs are written under `analysis/` and ignored by git.
+
 ## Tracks
 
 The active task packages are:

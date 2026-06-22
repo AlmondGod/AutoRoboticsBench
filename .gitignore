@@ -5,7 +5,12 @@ data/**
 !data/autorobobench/
 !data/autorobobench/pretrained_policies/
 !data/autorobobench/pretrained_policies/**
-runs/
+runs/*
+!runs/.gitignore
+configs/compute.yaml
+.env
+*.pem
+*.key
 *.egg-info/
 __pycache__/
 *.pyc

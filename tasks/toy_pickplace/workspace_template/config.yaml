@@ -1,0 +1,4 @@
+task: toy_pickplace
+seed: 0
+train_steps: 10
+output_dir: /workspace/output/final_submission

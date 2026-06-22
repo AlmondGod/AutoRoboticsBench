@@ -1,0 +1,9 @@
+mode: remote
+gpu_host: "user@gpu-host"
+repo_root: "/home/user/roboautoresearch-bench"
+ssh:
+  port: 22
+  key_path: "~/.ssh/id_rsa"
+docker:
+  image: "roboautoresearch:latest"
+  use_gpus: true
