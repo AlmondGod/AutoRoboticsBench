@@ -9,7 +9,12 @@ edit eval files or split files for scored runs.
   experience: failed rollouts, corrections, or other saved rollouts.
 - Metric: rollout success.
 - Do not use test-time demos.
-- Current measured result: 0/100.
+- Default warm start path:
+  `runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
+- Current promoted A100 base: learned temporal chunk BC, 2/10 eval success on
+  `PickPlaceCounterToStandMixer`. It was trained with an eval-included
+  diagnostic split to provide a nonzero warm start; do not report it as a fair
+  standalone benchmark submission.
 
 ## Train
 

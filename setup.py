@@ -4964,33 +4964,37 @@ GENERATED_JSON: dict[str, Any] = {'data/autorobobench/pretrained_policies.json':
 
 BENCHMARK_SPEC: dict[str, Any] = {'description': 'RoboCasa benchmark suite definitions and scoring inputs.',
  'name': 'AutoRoboBench',
- 'suites': {'autorobobench_v0': {'total_points': 140,
-                                 'tracks': [{'id': 'robocasa_bc5',
-                                             'task_spec': 'tasks/robocasa_bc5/task.json',
+ 'suites': {'autorobobench_extra_v0': {'total_points': 160,
+                                       'tracks': [{'id': 'robocasa_bc5',
+                                                   'task_spec': 'tasks/robocasa_bc5/task.json',
+                                                   'weight': 30},
+                                                  {'id': 'robocasa_long_horizon',
+                                                   'task_spec': 'tasks/robocasa_long_horizon/task.json',
+                                                   'weight': 40},
+                                                  {'id': 'robocasa_world_model',
+                                                   'task_spec': 'tasks/robocasa_world_model/task.json',
+                                                   'weight': 20},
+                                                  {'id': 'robocasa_language_following',
+                                                   'task_spec': 'tasks/robocasa_language_following/task.json',
+                                                   'weight': 20},
+                                                  {'id': 'robocasa_offlinerl_posttraining',
+                                                   'task_spec': 'tasks/robocasa_offlinerl_posttraining/task.json',
+                                                   'weight': 20},
+                                                  {'id': 'robocasa_bc5_with_video',
+                                                   'task_spec': 'tasks/robocasa_bc5_with_video/task.json',
+                                                   'weight': 30}],
+                                       'version': 'autorobobench-extra-v0'},
+            'autorobobench_v0': {'total_points': 100,
+                                 'tracks': [{'id': 'robocasa_bc1',
+                                             'task_spec': 'tasks/robocasa_bc1/task.json',
                                              'weight': 30},
-                                            {'id': 'robocasa_long_horizon',
-                                             'task_spec': 'tasks/robocasa_long_horizon/task.json',
-                                             'weight': 40},
-                                            {'id': 'robocasa_bc5_with_video',
-                                             'task_spec': 'tasks/robocasa_bc5_with_video/task.json',
+                                            {'id': 'robocasa_visual_world_model',
+                                             'task_spec': 'tasks/robocasa_visual_world_model/task.json',
                                              'weight': 30},
-                                            {'id': 'robocasa_world_model',
-                                             'task_spec': 'tasks/robocasa_world_model/task.json',
-                                             'weight': 20},
-                                            {'id': 'robocasa_language_following',
-                                             'task_spec': 'tasks/robocasa_language_following/task.json',
-                                             'weight': 20}],
-                                 'version': 'autorobobench-v0'},
-            'visual_world_model_v0': {'total_points': 20,
-                                      'tracks': [{'id': 'robocasa_visual_world_model',
-                                                  'task_spec': 'tasks/robocasa_visual_world_model/task.json',
-                                                  'weight': 20}],
-                                      'version': 'autorobobench-visual-world-model-v0'},
-            'world_model_posttraining_v0': {'total_points': 20,
-                                            'tracks': [{'id': 'robocasa_world_model_posttraining',
-                                                        'task_spec': 'tasks/robocasa_world_model_posttraining/task.json',
-                                                        'weight': 20}],
-                                            'version': 'autorobobench-world-model-posttraining-v0'}},
+                                            {'id': 'robocasa_world_model_posttraining',
+                                             'task_spec': 'tasks/robocasa_world_model_posttraining/task.json',
+                                             'weight': 40}],
+                                 'version': 'autorobobench-v0'}},
  'version': 'v0'}
 
 METADATA_SETUP_COMMANDS = (
@@ -5051,8 +5055,7 @@ def main() -> None:
 
     _check_json_files()
     _describe_suite("autorobobench_v0")
-    _describe_suite("visual_world_model_v0")
-    _describe_suite("world_model_posttraining_v0")
+    _describe_suite("autorobobench_extra_v0")
 
     if not args.skip_task_setup:
         _run_task_setups(verify=bool(args.verify))

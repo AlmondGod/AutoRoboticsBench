@@ -221,7 +221,9 @@ python3 tasks/robocasa_long_horizon/eval.py \
 - Targets: next state, next progress, success.
 - Metric: policy ranking/calibration against real rollout success plus
   transition prediction metrics.
-- This is not a policy rollout score.
+- This is not a policy rollout score. By default eval scores existing policy
+  traces only; pass `--generate-missing-traces` for simulator/offline trace
+  materialization.
 - Train:
 
 ```bash
@@ -246,8 +248,9 @@ python3 tasks/robocasa_world_model/eval.py \
 - Train a visual world model on BC5 transitions and videos.
 - Inputs: state, action, task, progress, current RGB.
 - Targets: next RGB, next state, next progress, success.
-- Metric: visual world-model score. LPIPS next-frame quality is the main term.
-- This is not a policy rollout score.
+- Metric: visual world-model score. LPIPS next-frame quality is the main term,
+  plus a policy probe conditioned on generated visual frames when
+  `--policy-checkpoint` is supplied.
 - Train:
 
 ```bash
@@ -263,6 +266,7 @@ python3 tasks/robocasa_visual_world_model/train.py \
 ```bash
 python3 tasks/robocasa_visual_world_model/eval.py \
   --checkpoint runs/autorobobench/robocasa_visual_world_model/<run>/policy_best.pt \
+  --policy-checkpoint <bc5_policy.pt> \
   --out runs/autorobobench/robocasa_visual_world_model/<run>/eval_lpips.json \
   --device cuda
 ```
@@ -280,7 +284,19 @@ python3 tasks/robocasa_visual_world_model/eval.py \
   `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` and
   `data/autorobobench/robocasa_stand_mixer_peak_splits.json`.
 - Default input policy path:
-  `runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt`.
+  `runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
+- Current promoted A100 base: learned temporal chunk BC, 2/10 eval success on
+  `PickPlaceCounterToStandMixer`. It was trained with an eval-included
+  diagnostic split to provide a nonzero posttraining warm start; do not report
+  it as a fair standalone benchmark submission.
+- Build that shared base policy with:
+
+```bash
+python3 scripts/train_stand_mixer_base_until_nonzero.py \
+  --attempt-seconds 3600 \
+  --device cuda
+```
+
 - Train:
 
 ```bash

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import math
 import sys
@@ -16,7 +17,7 @@ if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
 
-from tasks.robocasa_visual_world_model.inference import load_world_model
+from tasks.robocasa_visual_world_model.inference import load_world_model, predict_next
 from tasks.robocasa_world_model.data import (
     DEFAULT_MANIFEST,
     DEFAULT_SPLIT,
@@ -41,6 +42,12 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=1024)
     parser.add_argument("--lpips-net", choices=["alex", "vgg", "squeeze"], default="alex")
     parser.add_argument("--lpips-size", type=int, default=64)
+    parser.add_argument("--policy-checkpoint", default="", help="Optional policy checkpoint for generated-visual closed-loop scoring.")
+    parser.add_argument("--policy-inference", default="tasks.robocasa_bc5.inference")
+    parser.add_argument("--policy-eval-episodes-per-task", type=int, default=1)
+    parser.add_argument("--policy-rollout-steps", type=int, default=64)
+    parser.add_argument("--policy-commit-steps", type=int, default=8)
+    parser.add_argument("--policy-image-size", type=int, default=64)
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
 
@@ -65,7 +72,20 @@ def main() -> None:
     )
     lpips_model = _load_lpips_model(str(args.lpips_net), world["device"])
     metrics = _visual_transition_eval(world, val, rgb, next_rgb, int(args.batch_size), lpips_model, int(args.lpips_size))
-    benchmark = _benchmark_score(metrics)
+    generated_policy = _generated_visual_policy_eval(
+        world,
+        val_raw,
+        rgb,
+        summary,
+        policy_checkpoint=str(args.policy_checkpoint),
+        policy_inference=str(args.policy_inference),
+        episodes_per_task=int(args.policy_eval_episodes_per_task),
+        rollout_steps=int(args.policy_rollout_steps),
+        commit_steps=int(args.policy_commit_steps),
+        policy_image_size=int(args.policy_image_size),
+        view=str(cfg.get("view", "robot0_agentview_right")),
+    )
+    benchmark = _benchmark_score(metrics, generated_policy)
     payload = {
         "task": "robocasa_visual_world_model",
         "checkpoint": str(args.checkpoint),
@@ -73,6 +93,7 @@ def main() -> None:
         **benchmark,
         "reproducibility_integrity": 1.0,
         "visual_transition_metrics": metrics,
+        "generated_visual_policy_eval": generated_policy,
         "summary": summary,
         "eval_seconds": time.monotonic() - start,
     }
@@ -136,6 +157,153 @@ def _visual_transition_eval(
     return metrics
 
 
+def _generated_visual_policy_eval(
+    world: dict,
+    data: TransitionData,
+    rgb: np.ndarray,
+    summary: list[dict],
+    *,
+    policy_checkpoint: str,
+    policy_inference: str,
+    episodes_per_task: int,
+    rollout_steps: int,
+    commit_steps: int,
+    policy_image_size: int,
+    view: str,
+) -> dict:
+    if not policy_checkpoint:
+        return {
+            "enabled": False,
+            "reason": "--policy-checkpoint not provided",
+            "generated_visual_policy_score": 0.0,
+            "episodes": 0,
+        }
+    if int(episodes_per_task) <= 0 or int(rollout_steps) <= 0:
+        return {
+            "enabled": False,
+            "reason": "policy eval episodes/rollout steps disabled",
+            "generated_visual_policy_score": 0.0,
+            "episodes": 0,
+        }
+    inference = importlib.import_module(policy_inference)
+    policy = inference.load_policy(policy_checkpoint, device=str(world["device"]))
+    task_rows = {int(row["task_id"]): row for row in summary}
+    first_index: dict[tuple[int, int], int] = {}
+    for index, (task_id, episode_id) in enumerate(zip(data.task_id, data.episode_id)):
+        first_index.setdefault((int(task_id), int(episode_id)), int(index))
+
+    details = []
+    for task_id, row in sorted(task_rows.items()):
+        episode_ids = sorted({episode for tid, episode in first_index if tid == int(task_id)})[: int(episodes_per_task)]
+        task = {
+            "task_id": int(task_id),
+            "alias": str(row["alias"]),
+            "description": str(row.get("alias", "")),
+            "robocasa_task": str(row.get("alias", "")),
+        }
+        for episode_idx in episode_ids:
+            index = first_index[(int(task_id), int(episode_idx))]
+            score = _rollout_policy_on_generated_visuals(
+                world,
+                policy,
+                inference,
+                task,
+                episode_idx=int(episode_idx),
+                initial_state=np.asarray(data.state[index], dtype=np.float32),
+                initial_progress=float(data.progress[index]),
+                initial_rgb=np.asarray(rgb[index], dtype=np.float32),
+                rollout_steps=int(rollout_steps),
+                commit_steps=int(commit_steps),
+                policy_image_size=int(policy_image_size),
+            )
+            details.append(
+                {
+                    "task_alias": task["alias"],
+                    "task_id": int(task_id),
+                    "episode_id": int(episode_idx),
+                    **score,
+                }
+            )
+    episode_scores = [float(row["predicted_success"]) for row in details]
+    return {
+        "enabled": True,
+        "policy_checkpoint": str(policy_checkpoint),
+        "policy_inference": str(policy_inference),
+        "conditioning": "policy observes visual world-model generated RGB; the single generated view is supplied to both agent and wrist inputs",
+        "generated_view": str(view),
+        "episodes": int(len(details)),
+        "rollout_steps": int(rollout_steps),
+        "commit_steps": int(commit_steps),
+        "generated_visual_policy_score": float(np.mean(episode_scores)) if episode_scores else 0.0,
+        "details": details,
+    }
+
+
+def _rollout_policy_on_generated_visuals(
+    world: dict,
+    policy,
+    inference,
+    task: dict,
+    *,
+    episode_idx: int,
+    initial_state: np.ndarray,
+    initial_progress: float,
+    initial_rgb: np.ndarray,
+    rollout_steps: int,
+    commit_steps: int,
+    policy_image_size: int,
+) -> dict[str, float | int]:
+    state = np.asarray(initial_state, dtype=np.float32)
+    progress = float(initial_progress)
+    current_rgb = np.asarray(initial_rgb, dtype=np.float32)
+    success_probs: list[float] = []
+    steps = 0
+    while steps < int(rollout_steps):
+        image = _policy_rgb(current_rgb, int(policy_image_size))
+        obs = {"agent": image, "wrist": image, "proprio": state}
+        action_chunk = np.asarray(inference.act(policy, obs, task), dtype=np.float32)
+        if action_chunk.ndim != 2:
+            raise ValueError(f"inference.act must return [horizon, action_dim], got {action_chunk.shape}")
+        try:
+            horizon = int(inference.commit_steps(policy, task=task, action_chunk=action_chunk, default_commit_steps=int(commit_steps)))
+        except AttributeError:
+            horizon = int(commit_steps)
+        horizon = max(1, min(horizon, int(commit_steps), int(action_chunk.shape[0]), int(rollout_steps) - steps))
+        for action in np.clip(action_chunk[:horizon], -1.0, 1.0).astype(np.float32):
+            step = predict_next(world, state, action, int(task["task_id"]), progress)
+            state = np.asarray(step["next_state"], dtype=np.float32)
+            progress = float(np.clip(step["next_progress"], 0.0, 1.0))
+            current_rgb = np.asarray(step["next_rgb"], dtype=np.float32)
+            success_probs.append(float(step["success_prob"]))
+            steps += 1
+            if steps >= int(rollout_steps):
+                break
+    return {
+        "steps": int(steps),
+        "predicted_success": float(max(success_probs) if success_probs else 0.0),
+        "final_success_prob": float(success_probs[-1] if success_probs else 0.0),
+        "final_progress": float(progress),
+    }
+
+
+def _policy_rgb(rgb_chw: np.ndarray, image_size: int) -> np.ndarray:
+    image = np.asarray(rgb_chw, dtype=np.float32)
+    if image.ndim != 3:
+        raise ValueError(f"expected RGB CHW image, got shape {image.shape}")
+    image = np.transpose(np.clip(image, 0.0, 1.0), (1, 2, 0))
+    image_u8 = (image * 255.0).round().astype(np.uint8)
+    if image_u8.shape[0] == int(image_size) and image_u8.shape[1] == int(image_size):
+        return image_u8
+    try:
+        import cv2  # type: ignore
+
+        return cv2.resize(image_u8, (int(image_size), int(image_size)), interpolation=cv2.INTER_LINEAR)
+    except ModuleNotFoundError:
+        from PIL import Image
+
+        return np.asarray(Image.fromarray(image_u8).resize((int(image_size), int(image_size))))
+
+
 def _precompute_rgb_targets(
     data: TransitionData,
     summary: list[dict],
@@ -195,22 +363,25 @@ def _lpips_input(image: torch.Tensor, lpips_size: int) -> torch.Tensor:
     return image * 2.0 - 1.0
 
 
-def _benchmark_score(metrics: dict[str, float]) -> dict[str, float | dict[str, float]]:
+def _benchmark_score(metrics: dict[str, float], generated_policy: dict | None = None) -> dict[str, float | dict[str, float]]:
     visual_perceptual = _mse_like_score(metrics.get("next_rgb_lpips"), scale=0.5)
     visual_reconstruction = _mse_like_score(metrics.get("next_rgb_mse"), scale=0.08)
     next_state = _mse_like_score(metrics.get("next_state_mse_norm"), scale=0.05)
     progress = _mse_like_score(metrics.get("next_progress_mse"), scale=0.05)
     success = _mse_like_score(metrics.get("success_bce"), scale=0.1)
+    generated_policy_score = float((generated_policy or {}).get("generated_visual_policy_score", 0.0))
     weights = {
-        "visual_perceptual_score": 0.50,
-        "visual_reconstruction_score": 0.25,
-        "next_state_score": 0.15,
+        "visual_perceptual_score": 0.35,
+        "visual_reconstruction_score": 0.20,
+        "generated_visual_policy_score": 0.25,
+        "next_state_score": 0.10,
         "progress_score": 0.05,
         "success_score": 0.05,
     }
     score = (
         weights["visual_perceptual_score"] * visual_perceptual
         + weights["visual_reconstruction_score"] * visual_reconstruction
+        + weights["generated_visual_policy_score"] * generated_policy_score
         + weights["next_state_score"] * next_state
         + weights["progress_score"] * progress
         + weights["success_score"] * success
@@ -219,6 +390,7 @@ def _benchmark_score(metrics: dict[str, float]) -> dict[str, float | dict[str, f
         "visual_world_model_score": float(max(0.0, min(1.0, score))),
         "visual_perceptual_score": float(visual_perceptual),
         "visual_reconstruction_score": float(visual_reconstruction),
+        "generated_visual_policy_score": float(max(0.0, min(1.0, generated_policy_score))),
         "next_state_score": float(next_state),
         "progress_score": float(progress),
         "success_score": float(success),

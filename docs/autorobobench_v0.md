@@ -11,6 +11,11 @@ python setup.py --score-results path/to/results.json --suite autorobobench_v0
 python setup.py --hash-manifest --suite autorobobench_v0 --out runs/autorobobench/v0_hashes.json
 ```
 
+The counted `autorobobench_v0` suite contains `robocasa_bc1`,
+`robocasa_visual_world_model`, and `robocasa_world_model_posttraining`.
+Other task packages are available through `autorobobench_extra_v0` for
+optional runs and ablations.
+
 ## Task Contract
 
 Each task package owns:

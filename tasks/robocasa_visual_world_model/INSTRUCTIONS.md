@@ -8,7 +8,8 @@ Do not edit eval files or split files for scored runs.
 - Train a visual world model on BC5 transitions and videos.
 - Inputs: state, action, task, progress, current RGB.
 - Targets: next RGB, next state, next progress, success.
-- Metric: visual world-model score. LPIPS next-frame quality is the main term.
+- Metric: visual world-model score. LPIPS next-frame quality is the main term,
+  with a generated-visual policy probe when a policy checkpoint is supplied.
 - This is not a policy rollout score.
 
 ## Train
@@ -26,6 +27,7 @@ python3 tasks/robocasa_visual_world_model/train.py \
 ```bash
 python3 tasks/robocasa_visual_world_model/eval.py \
   --checkpoint runs/autorobobench/robocasa_visual_world_model/<run>/policy_best.pt \
+  --policy-checkpoint <bc5_policy.pt> \
   --out runs/autorobobench/robocasa_visual_world_model/<run>/eval_lpips.json \
   --device cuda
 ```

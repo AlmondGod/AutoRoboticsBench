@@ -64,8 +64,8 @@ Hash immutable benchmark files:
 python setup.py --hash-manifest --suite autorobobench_v0 --out runs/autorobobench/v0_hashes.json
 ```
 
-Additional suite keys are `visual_world_model_v0` and
-`world_model_posttraining_v0`.
+Additional task packages are grouped under `autorobobench_extra_v0` for
+optional, non-main-score runs.
 
 ## Docker Harness
 
@@ -244,7 +244,15 @@ Generated CSVs and PNGs are written under `analysis/` and ignored by git.
 
 ## Tracks
 
-The active task packages are:
+The counted `autorobobench_v0` task packages are:
+
+| Track | Package | Main RoboCasa task/data |
+| --- | --- | --- |
+| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` |
+| Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction |
+| World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
+
+Optional extra task packages are:
 
 | Track | Package | Main RoboCasa task/data |
 | --- | --- | --- |
@@ -253,10 +261,7 @@ The active task packages are:
 | RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool |
 | RoboCasa World Model | `tasks/robocasa_world_model/` | BC-5 transition and policy-ranking world model |
 | RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants |
-| Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction |
-| World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
 | Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
-| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` |
 
 Each task owns its `setup.py`, `train.py`, `inference.py`, `eval.py`,
 `visualize.py`, `task.json`, and `INSTRUCTIONS.md`. Visualizers write compact
@@ -301,4 +306,23 @@ Video-transfer wrapper:
 ```bash
 python tasks/robocasa_bc5_with_video/setup.py --verify
 python tasks/robocasa_bc5_with_video/train.py --max-train-seconds 300
+```
+
+StandMixer base policy for posttraining tasks:
+
+```bash
+python scripts/train_stand_mixer_base_until_nonzero.py --attempt-seconds 3600 --device cuda
+```
+
+The shared default path for the two StandMixer posttraining tasks is
+`runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
+The current promoted A100 artifact is a learned BC checkpoint that scored 2/10
+on `PickPlaceCounterToStandMixer`; it was trained with an eval-included
+diagnostic split and should be treated as a posttraining base artifact, not as a
+fair standalone benchmark submission.
+
+Visual world-model autoresearch sweep:
+
+```bash
+python scripts/run_visual_world_model_autoresearch.py --time-budget-hours 9 --device cuda
 ```

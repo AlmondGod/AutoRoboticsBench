@@ -27,7 +27,8 @@
   "starter_metric": 0.1,
   "train": "tasks/robocasa_offlinerl_posttraining/train.py",
   "train_contract": {
-    "base_policy": "robocasa_stand_mixer_peak temporal chunk BC",
+    "base_policy": "robocasa_stand_mixer_base nonzero learned temporal chunk BC warm start",
+    "base_policy_note": "Current promoted A100 artifact scored 2/10 and was trained with an eval-included diagnostic split; use as a posttraining warm start, not as a fair standalone submission.",
     "eval_tasks": 1,
     "experience_sources": [
       "demonstrations",

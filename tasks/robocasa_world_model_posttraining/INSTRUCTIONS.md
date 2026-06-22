@@ -17,7 +17,11 @@ files or split files for scored runs.
   `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` and
   `data/autorobobench/robocasa_stand_mixer_peak_splits.json`.
 - Default input policy path:
-  `runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt`.
+  `runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
+- Current promoted A100 base: learned temporal chunk BC, 2/10 eval success on
+  `PickPlaceCounterToStandMixer`. It was trained with an eval-included
+  diagnostic split to provide a nonzero warm start; do not report it as a fair
+  standalone benchmark submission.
 
 ## Train
 

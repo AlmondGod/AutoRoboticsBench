@@ -3,7 +3,28 @@
   "name": "AutoRoboBench",
   "suites": {
     "autorobobench_v0": {
-      "total_points": 140,
+      "total_points": 100,
+      "tracks": [
+        {
+          "id": "robocasa_bc1",
+          "task_spec": "tasks/robocasa_bc1/task.json",
+          "weight": 30
+        },
+        {
+          "id": "robocasa_visual_world_model",
+          "task_spec": "tasks/robocasa_visual_world_model/task.json",
+          "weight": 30
+        },
+        {
+          "id": "robocasa_world_model_posttraining",
+          "task_spec": "tasks/robocasa_world_model_posttraining/task.json",
+          "weight": 40
+        }
+      ],
+      "version": "autorobobench-v0"
+    },
+    "autorobobench_extra_v0": {
+      "total_points": 160,
       "tracks": [
         {
           "id": "robocasa_bc5",
@@ -16,11 +37,6 @@
           "weight": 40
         },
         {
-          "id": "robocasa_bc5_with_video",
-          "task_spec": "tasks/robocasa_bc5_with_video/task.json",
-          "weight": 30
-        },
-        {
           "id": "robocasa_world_model",
           "task_spec": "tasks/robocasa_world_model/task.json",
           "weight": 20
@@ -29,31 +45,19 @@
           "id": "robocasa_language_following",
           "task_spec": "tasks/robocasa_language_following/task.json",
           "weight": 20
-        }
-      ],
-      "version": "autorobobench-v0"
-    },
-    "visual_world_model_v0": {
-      "total_points": 20,
-      "tracks": [
+        },
         {
-          "id": "robocasa_visual_world_model",
-          "task_spec": "tasks/robocasa_visual_world_model/task.json",
+          "id": "robocasa_offlinerl_posttraining",
+          "task_spec": "tasks/robocasa_offlinerl_posttraining/task.json",
           "weight": 20
-        }
-      ],
-      "version": "autorobobench-visual-world-model-v0"
-    },
-    "world_model_posttraining_v0": {
-      "total_points": 20,
-      "tracks": [
+        },
         {
-          "id": "robocasa_world_model_posttraining",
-          "task_spec": "tasks/robocasa_world_model_posttraining/task.json",
-          "weight": 20
+          "id": "robocasa_bc5_with_video",
+          "task_spec": "tasks/robocasa_bc5_with_video/task.json",
+          "weight": 30
         }
       ],
-      "version": "autorobobench-world-model-posttraining-v0"
+      "version": "autorobobench-extra-v0"
     }
   },
   "version": "v0"

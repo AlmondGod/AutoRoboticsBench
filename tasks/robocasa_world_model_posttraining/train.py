@@ -45,7 +45,7 @@ SUPPORTED_MODES = {"chunk", "sequence_flow"}
 SUPPORTED_KINDS = {"bc", "flow", "sequence_flow"}
 DEFAULT_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
 DEFAULT_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
-DEFAULT_POLICY_CHECKPOINT = "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt"
+DEFAULT_POLICY_CHECKPOINT = "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt"
 
 
 def main() -> None:

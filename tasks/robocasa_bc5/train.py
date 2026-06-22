@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import math
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,6 +16,11 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torch import nn
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) in sys.path:
+    sys.path.remove(str(ROOT))
+sys.path.insert(0, str(ROOT))
 
 def ensure_robocasa_runtime() -> None:
     import json as _json

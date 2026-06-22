@@ -31,7 +31,7 @@
     },
     "starter_metric": 0.0
   },
-  "default_policy_checkpoint": "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt",
+  "default_policy_checkpoint": "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt",
   "default_train": {
     "action_l2_weight": 0.01,
     "batch_size": 64,
@@ -69,8 +69,9 @@
   "target_task": "PickPlaceCounterToStandMixer",
   "train": "tasks/robocasa_world_model_posttraining/train.py",
   "train_contract": {
-    "default_input_policy": "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt",
-    "input_policy": "PickPlaceCounterToStandMixer BC-compatible pretrained policy checkpoint",
+    "default_input_policy": "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt",
+    "default_input_policy_note": "Current promoted A100 artifact scored 2/10 and was trained with an eval-included diagnostic split; use as a posttraining warm start, not as a fair standalone submission.",
+    "input_policy": "PickPlaceCounterToStandMixer nonzero learned temporal chunk BC warm-start checkpoint",
     "input_world_model": "RoboCasaWorldModel or VisualRoboCasaWorldModel checkpoint predicting next_state, next_progress, success, and optionally next_rgb",
     "output": "BC5-compatible policy.pt and policy_best.pt",
     "policy_warm_start_required": true,

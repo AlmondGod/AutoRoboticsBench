@@ -10,7 +10,9 @@ edit eval files or split files for scored runs.
 - Targets: next state, next progress, success.
 - Metric: policy ranking/calibration against real rollout success plus
   transition prediction metrics.
-- This is not a policy rollout score.
+- This is not a policy rollout score. By default eval scores existing policy
+  traces only; pass `--generate-missing-traces` for simulator/offline trace
+  materialization.
 
 ## Train
 

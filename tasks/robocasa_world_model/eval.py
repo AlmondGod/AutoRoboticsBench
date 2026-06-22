@@ -46,7 +46,8 @@ def main() -> None:
     parser.add_argument("--trace-max-steps", type=int, default=260)
     parser.add_argument("--trace-commit-steps", type=int, default=16)
     parser.add_argument("--trace-source", choices=["auto", "sim", "offline"], default="auto")
-    parser.add_argument("--no-generate-missing-traces", action="store_true")
+    parser.add_argument("--generate-missing-traces", action="store_true", help="Generate missing policy traces before scoring.")
+    parser.add_argument("--no-generate-missing-traces", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--transition-only", action="store_true")
     args = parser.parse_args()
 
@@ -77,7 +78,7 @@ def main() -> None:
             commit_steps=int(args.trace_commit_steps),
             device=str(args.device),
             trace_source=str(args.trace_source),
-            generate_missing=not bool(args.no_generate_missing_traces),
+            generate_missing=bool(args.generate_missing_traces) and not bool(args.no_generate_missing_traces),
         )
     )
     benchmark = _benchmark_score(correlation, transition_metrics)
