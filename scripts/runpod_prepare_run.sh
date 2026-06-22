@@ -162,8 +162,8 @@ echo
 echo "Start message for Codex/Claude/Gemini:"
 echo "  Read runs/${RUN_ID}/prompt.txt and follow it exactly."
 echo
-echo "Toy smoke command:"
-echo "  runs/${RUN_ID}/run.sh \"cd /workspace/task && python train.py\""
+echo "Example timed command:"
+echo "  runs/${RUN_ID}/run.sh \"python tasks/${TASK}/train.py --device cuda\""
 echo
 echo "After the agent finishes:"
 echo "  python scripts/finalize_run.py --run-id ${RUN_ID} --task ${TASK} --mode runpod"

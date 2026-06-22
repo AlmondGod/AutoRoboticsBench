@@ -70,8 +70,6 @@ def main() -> None:
     parser.add_argument("--success-weight", type=float, default=0.25)
     parser.add_argument("--visual-weight", type=float, default=1.0)
     parser.add_argument("--image-vae-weight", type=float, default=0.25)
-    parser.add_argument("--visual-flow-weight", type=float, default=0.5)
-    parser.add_argument("--state-flow-weight", type=float, default=0.25)
     parser.add_argument("--visual-latent-weight", type=float, default=0.5)
     parser.add_argument("--image-augment", type=float, default=0.15)
     parser.add_argument("--rollout-horizon", type=int, default=4)
@@ -162,8 +160,6 @@ def main() -> None:
             success_weight=float(args.success_weight),
             visual_weight=float(args.visual_weight),
             image_vae_weight=float(args.image_vae_weight),
-            visual_flow_weight=float(args.visual_flow_weight),
-            state_flow_weight=float(args.state_flow_weight),
             visual_latent_weight=float(args.visual_latent_weight),
             kl_weight=float(args.kl_weight),
             visual_kl_weight=float(args.visual_kl_weight),
@@ -213,7 +209,7 @@ def main() -> None:
         "image_size": int(args.image_size),
         "view": str(args.view),
         "inverse_alignment": _inverse_alignment_summary(args, inverse_align),
-        "flow_matching": _flow_matching_summary(args),
+        "visual_latent_prediction": _visual_latent_summary(args),
         "multi_step_rollout": _rollout_summary(args, rollout_starts),
         "image_augmentation": _augmentation_summary(args),
         "summary": summary,
@@ -247,7 +243,7 @@ def _batch(
 
 
 def _optimizer_param_groups(model: VisualRoboCasaWorldModel, *, lr: float, visual_lr_scale: float) -> list[dict]:
-    visual_prefixes = ("image_vae.", "next_visual_latent.", "visual_flow.")
+    visual_prefixes = ("image_vae.", "next_visual_latent.")
     visual_params = []
     other_params = []
     for name, param in model.named_parameters():
@@ -577,7 +573,7 @@ def _save_checkpoint(
             "history": history,
             "step": int(step),
             "inverse_alignment": _inverse_alignment_summary(args, inverse_align),
-            "flow_matching": _flow_matching_summary(args),
+            "visual_latent_prediction": _visual_latent_summary(args),
             "multi_step_rollout": _rollout_summary(args, []),
             "image_augmentation": _augmentation_summary(args),
             "task": "robocasa_visual_world_model",
@@ -597,16 +593,14 @@ def _inverse_alignment_summary(args: argparse.Namespace, inverse_align: dict | N
     }
 
 
-def _flow_matching_summary(args: argparse.Namespace) -> dict:
+def _visual_latent_summary(args: argparse.Namespace) -> dict:
     return {
         "image_vae_enabled": True,
         "visual_latent_dim": int(args.visual_latent_dim),
         "image_vae_weight": float(args.image_vae_weight),
-        "visual_flow_weight": float(args.visual_flow_weight),
         "visual_latent_weight": float(args.visual_latent_weight),
-        "state_flow_weight": float(args.state_flow_weight),
         "visual_kl_weight": float(args.visual_kl_weight),
-        "targets": ["next_visual_latent", "state_delta"],
+        "target": "next_visual_latent",
     }
 
 

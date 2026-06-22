@@ -122,31 +122,8 @@ class ImageVAE(nn.Module):
         return {"latent": z, "mu": mu, "logvar": logvar, "reconstruction": self.decode(z)}
 
 
-class FlowHead(nn.Module):
-    """Conditional rectified-flow vector field for latent or state-delta targets."""
-
-    def __init__(self, *, condition_dim: int, sample_dim: int, width: int, dropout: float = 0.05) -> None:
-        super().__init__()
-        self.sample_dim = int(sample_dim)
-        self.net = nn.Sequential(
-            nn.Linear(int(condition_dim) + int(sample_dim) + 1, int(width)),
-            nn.LayerNorm(int(width)),
-            nn.GELU(),
-            nn.Dropout(float(dropout)),
-            nn.Linear(int(width), int(width)),
-            nn.LayerNorm(int(width)),
-            nn.GELU(),
-            nn.Linear(int(width), int(sample_dim)),
-        )
-
-    def forward(self, condition: torch.Tensor, sample: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
-        if t.ndim == 1:
-            t = t[:, None]
-        return self.net(torch.cat([condition, sample, t.float()], dim=-1))
-
-
 class VisualRoboCasaWorldModel(nn.Module):
-    """State/action dynamics model with image-VAE latents and flow-matching heads."""
+    """State/action dynamics model with image-VAE latent prediction."""
 
     def __init__(
         self,
@@ -197,19 +174,6 @@ class VisualRoboCasaWorldModel(nn.Module):
             nn.Dropout(float(dropout)),
             nn.Linear(int(width), int(visual_latent_dim)),
         )
-        self.visual_flow = FlowHead(
-            condition_dim=visual_condition_dim,
-            sample_dim=int(visual_latent_dim),
-            width=int(width),
-            dropout=float(dropout),
-        )
-        self.state_delta_flow = FlowHead(
-            condition_dim=int(width),
-            sample_dim=int(state_dim),
-            width=int(width),
-            dropout=float(dropout),
-        )
-
     @property
     def state_dim(self) -> int:
         return int(self.dynamics.state_dim)
@@ -298,8 +262,6 @@ class VisualRoboCasaWorldModel(nn.Module):
         success_weight: float = 0.25,
         visual_weight: float = 1.0,
         image_vae_weight: float = 0.25,
-        visual_flow_weight: float = 0.5,
-        state_flow_weight: float = 0.25,
         visual_latent_weight: float = 0.5,
         kl_weight: float = 1e-4,
         visual_kl_weight: float = 1e-5,
@@ -322,17 +284,6 @@ class VisualRoboCasaWorldModel(nn.Module):
         next_recon = self.image_vae.decode(next_visual)
         image_vae_loss = 0.5 * (F.mse_loss(current_recon, batch["rgb"]) + F.mse_loss(next_recon, batch["next_rgb"]))
         visual_kl = 0.5 * (_kl(current_visual_mu, current_visual_logvar) + _kl(next_visual_mu, next_visual_logvar))
-        visual_flow_loss = _flow_matching_loss(
-            self.visual_flow,
-            condition=out["visual_condition"],
-            target=next_visual.detach(),
-        )
-        state_delta = (batch["next_state"] - batch["state"]).detach()
-        state_flow_loss = _flow_matching_loss(
-            self.state_delta_flow,
-            condition=out["hidden"],
-            target=state_delta,
-        )
 
         if self.latent_dim > 0:
             kl = _kl(out["latent_mu"], out["latent_logvar"])
@@ -344,8 +295,6 @@ class VisualRoboCasaWorldModel(nn.Module):
             + float(success_weight) * success_loss
             + float(visual_weight) * rgb_loss
             + float(image_vae_weight) * image_vae_loss
-            + float(visual_flow_weight) * visual_flow_loss
-            + float(state_flow_weight) * state_flow_loss
             + float(visual_latent_weight) * visual_latent_loss
             + float(kl_weight) * kl
             + float(visual_kl_weight) * visual_kl
@@ -358,8 +307,6 @@ class VisualRoboCasaWorldModel(nn.Module):
             "rgb_mse": rgb_loss.detach(),
             "visual_latent_mse": visual_latent_loss.detach(),
             "image_vae_mse": image_vae_loss.detach(),
-            "visual_flow_mse": visual_flow_loss.detach(),
-            "state_flow_mse": state_flow_loss.detach(),
             "kl": kl.detach(),
             "visual_kl": visual_kl.detach(),
         }
@@ -367,12 +314,3 @@ class VisualRoboCasaWorldModel(nn.Module):
 
 def _kl(mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
     return -0.5 * torch.mean(1.0 + logvar - mu.square() - logvar.exp())
-
-
-def _flow_matching_loss(flow: FlowHead, *, condition: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    noise = torch.randn_like(target)
-    t = torch.rand((target.shape[0], 1), dtype=target.dtype, device=target.device)
-    sample = (1.0 - t) * noise + t * target
-    velocity = target - noise
-    pred = flow(condition, sample, t)
-    return F.mse_loss(pred, velocity)

@@ -320,9 +320,3 @@ The current promoted A100 artifact is a learned BC checkpoint that scored 2/10
 on `PickPlaceCounterToStandMixer`; it was trained with an eval-included
 diagnostic split and should be treated as a posttraining base artifact, not as a
 fair standalone benchmark submission.
-
-Visual world-model autoresearch sweep:
-
-```bash
-python scripts/run_visual_world_model_autoresearch.py --time-budget-hours 9 --device cuda
-```
