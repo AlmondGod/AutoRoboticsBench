@@ -88,6 +88,10 @@ def _rewrite_result(out: Path) -> dict | None:
         "video_pool_contains_actions": False,
         "video_pool_contains_proprio": False,
         "test_time_demo_access": False,
+        "test_time_trajectory_replay": False,
+        "inference_time_dataset_access": False,
+        "inference_time_manifest_split_access": False,
+        "inference_time_video_pool_access": False,
     }
     if visual_eval_protocol is not None:
         payload["data_contract"]["visual_eval_protocol"] = visual_eval_protocol["name"]

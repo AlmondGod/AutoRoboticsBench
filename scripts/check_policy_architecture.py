@@ -11,7 +11,6 @@ from pathlib import Path
 TASKS = [
     "robocasa_long_horizon",
     "robocasa_faucet_peak",
-    "robocasa_stand_mixer_peak",
 ]
 
 ARCH_FLAGS = [
@@ -74,6 +73,11 @@ def source_contains(path: Path, needle: str) -> bool:
     return needle in path.read_text(encoding="utf-8")
 
 
+def imports_bc5_inference(path: Path) -> bool:
+    text = path.read_text(encoding="utf-8")
+    return "tasks.robocasa_bc5.inference" in text or "from tasks.robocasa_bc5 import inference" in text
+
+
 def architecture_defaults(wrapper_defaults: dict[str, str]) -> dict[str, str]:
     merged = dict(BC5_DEFAULTS)
     merged.update({key: value for key, value in wrapper_defaults.items() if key in ARCH_FLAGS})
@@ -93,7 +97,7 @@ def main() -> int:
         arch = architecture_defaults(defaults)
         report[task] = {
             "uses_bc5_train": source_contains(train_path, "tasks.robocasa_bc5.train"),
-            "uses_bc5_inference": source_contains(inference_path, "tasks.robocasa_bc5.inference"),
+            "uses_bc5_inference": imports_bc5_inference(inference_path),
             "architecture": arch,
         }
         if not report[task]["uses_bc5_train"]:

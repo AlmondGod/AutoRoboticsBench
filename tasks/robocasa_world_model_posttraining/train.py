@@ -43,9 +43,9 @@ from tasks.robocasa_bc5.train import (
 
 SUPPORTED_MODES = {"chunk", "sequence_flow"}
 SUPPORTED_KINDS = {"bc", "flow", "sequence_flow"}
-DEFAULT_MANIFEST = "data/autorobobench/robocasa_long_horizon_manifest.json"
-DEFAULT_SPLIT = "data/autorobobench/robocasa_long_horizon_splits.json"
-DEFAULT_POLICY_CHECKPOINT = "runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt"
+DEFAULT_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
+DEFAULT_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
+DEFAULT_POLICY_CHECKPOINT = "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt"
 
 
 def main() -> None:
@@ -60,7 +60,6 @@ def main() -> None:
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--chunk-horizon", type=int, default=0)
     parser.add_argument("--frame-stride", type=int, default=2)
-    parser.add_argument("--steps", type=int, default=500)
     parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=5e-5)
@@ -80,6 +79,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
+    if float(args.max_train_seconds) <= 0:
+        raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
 
     device = device_from_arg(args.device)
     manifest = json.loads(Path(args.manifest).read_text())
@@ -143,9 +144,11 @@ def main() -> None:
     best_state: dict[str, torch.Tensor] | None = None
     start_time = time.monotonic()
 
-    for step in range(1, int(args.steps) + 1):
-        if args.max_train_seconds > 0 and time.monotonic() - start_time >= float(args.max_train_seconds):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(args.max_train_seconds):
             break
+        step += 1
         idx = _sample_indices(train_data, int(args.batch_size), rng, balanced=bool(args.balanced_sampling))
         batch = _batch(train_data, idx, device)
         raw_state = torch.as_tensor(raw_train_state[idx], dtype=torch.float32, device=device)
@@ -201,7 +204,7 @@ def main() -> None:
             "action_l2": float(action_l2.detach().cpu()),
             "elapsed_seconds": float(time.monotonic() - start_time),
         }
-        if step == 1 or step % int(args.log_interval) == 0 or step == int(args.steps):
+        if step == 1 or step % int(args.log_interval) == 0:
             val_metrics = _eval_improvement(
                 model,
                 init_model,

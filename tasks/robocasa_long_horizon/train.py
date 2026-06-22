@@ -19,7 +19,7 @@ DEFAULT_ARGS = {
     "--val-episodes-per-task": "10",
     "--chunk-horizon": "16",
     "--frame-stride": "1",
-    "--steps": "800",
+    "--max-train-seconds": "300",
     "--batch-size": "128",
     "--width": "256",
     "--dropout": "0.03",

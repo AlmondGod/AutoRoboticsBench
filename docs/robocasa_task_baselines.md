@@ -28,10 +28,9 @@ Current repo state after the single-task policy work:
 | `robocasa_bc5` | `OpenCabinet`, `CloseDrawer`, `CloseFridge`, `TurnOffStove`, `PickPlaceCounterToCabinet` | `data/robocasa5/manifest.json` | `data/autorobobench/robocasa_bc5_splits.json` |
 | `robocasa_world_model` | same as `robocasa_bc5` | `data/robocasa5/manifest.json` | `data/autorobobench/robocasa_bc5_splits.json` |
 | `robocasa_visual_world_model` | same as `robocasa_bc5` | `data/robocasa5/manifest.json` | `data/autorobobench/robocasa_bc5_splits.json` |
-| `robocasa_world_model_posttraining` | `PickPlaceCounterToMicrowave` | `data/autorobobench/robocasa_long_horizon_manifest.json` | `data/autorobobench/robocasa_long_horizon_splits.json` |
+| `robocasa_world_model_posttraining` | `PickPlaceCounterToStandMixer` | `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` | `data/autorobobench/robocasa_stand_mixer_peak_splits.json` |
 | `robocasa_faucet_peak` | `TurnOnSinkFaucet` | `data/autorobobench/robocasa_faucet_peak_manifest.json` | `data/autorobobench/robocasa_faucet_peak_splits.json` |
-| `robocasa_stand_mixer_peak` | `PickPlaceCounterToStandMixer` | `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` | `data/autorobobench/robocasa_stand_mixer_peak_splits.json` |
-| `robocasa_offlinerl_posttraining` | `PickPlaceCounterToMicrowave` | `data/autorobobench/robocasa_long_horizon_manifest.json` | `data/autorobobench/robocasa_long_horizon_splits.json` |
+| `robocasa_offlinerl_posttraining` | `PickPlaceCounterToStandMixer` | `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` | `data/autorobobench/robocasa_stand_mixer_peak_splits.json` |
 | `robocasa_choose_measuring_cup_language` | `ChooseMeasuringCupLeftLarger`, `ChooseMeasuringCupLeftSmaller`, `ChooseMeasuringCupRightLarger`, `ChooseMeasuringCupRightSmaller` | `data/autorobobench/robocasa_choose_measuring_cup_language_manifest.json` | `data/autorobobench/robocasa_choose_measuring_cup_language_splits.json` |
 | `robocasa_long_horizon` | `PickPlaceCounterToMicrowave` | `data/autorobobench/robocasa_long_horizon_manifest.json` | `data/autorobobench/robocasa_long_horizon_splits.json` |
 
@@ -39,6 +38,10 @@ Additional single-task/debug splits currently exist for `CloseFridge`,
 `CloseCabinet`, and same-setting `TurnOnSinkFaucet`.
 
 ## Base Rollout Rates
+
+Replay-bank rows are diagnostics only. They are not valid learned-policy
+submissions for tracks whose inference contract bans test-time trajectory
+replay, including `robocasa_faucet_peak`.
 
 | Scope | Policy / method | Type | Eval episodes | Successes | Rate out of 100 | Source |
 |---|---|---:|---:|---:|---:|---|
@@ -52,9 +55,7 @@ Additional single-task/debug splits currently exist for `CloseFridge`,
 | `robocasa_close_fridge_full_dataset` / `CloseFridge` | `history_act_seed0_5min` | learned history ACT | 8 | 0 | 0 | `runs/autorobobench/robocasa_close_fridge_full_dataset/history_act_seed0_5min/eval_parallel_smoke_8x4.json` |
 | `robocasa_close_cabinet_peak` / `CloseCabinet` | `five_min_history_act_seed0` | learned history ACT | 4 | 0 | 0 | `runs/autorobobench/robocasa_close_cabinet_peak/five_min_history_act_seed0/eval_4_max400.json` |
 | `robocasa_close_cabinet_peak` / `CloseCabinet` | `five_min_frozen_clip_seed0` | learned frozen CLIP flow | 4 | 0 | 0 | `runs/autorobobench/robocasa_close_cabinet_peak/five_min_frozen_clip_seed0/eval_4_max400.json` |
-| `robocasa_stand_mixer_peak` / `PickPlaceCounterToStandMixer` | `a100_5min_full_seed0` | learned BC | 10 | 0 | 0 | `runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/eval_10.json` |
-| `robocasa_stand_mixer_peak` / `PickPlaceCounterToStandMixer` | `a100_smolvlm_flow_5min_seed0` | learned frozen SmolVLM flow | 10 | 0 | 0 | `runs/autorobobench/robocasa_stand_mixer_peak/a100_smolvlm_flow_5min_seed0/eval_10.json` |
-| `robocasa_offlinerl_posttraining` / `PickPlaceCounterToMicrowave` | not yet measured after retarget | learned posttraining | 0 | 0 | 0 | n/a |
+| `robocasa_offlinerl_posttraining` / `PickPlaceCounterToStandMixer` | not yet measured after retarget | learned posttraining | 0 | 0 | 0 | n/a |
 | `video_policy_transfer` / BC5 tasks | `scarce_paired_bc` | learned transfer policy | 5 | 0 | 0 | `runs/autorobobench/video_policy_transfer/scarce_paired_bc/eval_smoke_1per_task.json` |
 | `video_policy_transfer` / BC5 tasks | `smolvlm_5min` | learned transfer policy | 5 | 0 | 0 | `runs/autorobobench/video_policy_transfer/smolvlm_5min/eval_smoke_1per_task.json` |
 | `video_policy_transfer` / BC5 tasks | `vit_act_5min` | learned transfer policy | 5 | 0 | 0 | `runs/autorobobench/video_policy_transfer/vit_act_5min/eval_smoke_1per_task.json` |

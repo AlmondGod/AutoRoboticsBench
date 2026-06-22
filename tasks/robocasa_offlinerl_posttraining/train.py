@@ -71,13 +71,12 @@ from tasks.robocasa_bc5.train import (
 ensure_robocasa_runtime()
 
 
-FROZEN_MANIFEST = "data/autorobobench/robocasa_long_horizon_manifest.json"
-FROZEN_SPLIT = "data/autorobobench/robocasa_long_horizon_splits.json"
+FROZEN_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
+FROZEN_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
 DEFAULT_INIT_CHECKPOINT = "auto"
 INIT_CHECKPOINT_CANDIDATES = (
-    "runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt",
-    "runs/autorobobench/robocasa_long_horizon/a100_5min_seed0/policy_best.pt",
-    "runs/autorobobench/robocasa_long_horizon/a100_5min_full_seed0/policy_best.pt",
+    "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt",
+    "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_seed0/policy_best.pt",
 )
 
 
@@ -93,15 +92,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Train an offline-RL posttraining RoboCasa policy.")
     parser.add_argument("--manifest", default=FROZEN_MANIFEST)
     parser.add_argument("--split", default=FROZEN_SPLIT)
-    parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_offlinerl_posttraining/microwave")
+    parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_offlinerl_posttraining/stand_mixer")
     parser.add_argument("--train-episodes-per-task", type=int, default=80)
     parser.add_argument("--val-episodes-per-task", type=int, default=10)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--chunk-horizon", type=int, default=16)
     parser.add_argument("--frame-stride", type=int, default=1)
     parser.add_argument("--eval-commit-steps", type=int, default=8)
-    parser.add_argument("--steps", type=int, default=800)
-    parser.add_argument("--max-train-seconds", type=float, default=0.0)
+    parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--width", type=int, default=256)
     parser.add_argument("--dropout", type=float, default=0.03)
@@ -121,6 +119,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
+    if float(args.max_train_seconds) <= 0:
+        raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
 
     start_time = time.monotonic()
     rng = np.random.default_rng(int(args.seed))
@@ -181,9 +181,11 @@ def main() -> None:
     best_step = 0
     best_state: dict[str, torch.Tensor] | None = None
     history = []
-    for step in range(1, int(args.steps) + 1):
-        if float(args.max_train_seconds) > 0 and time.monotonic() - start_time >= float(args.max_train_seconds):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(args.max_train_seconds):
             break
+        step += 1
         idx = rng.integers(0, len(train_data), size=int(args.batch_size), endpoint=False)
         batch = _batch(train_data, idx, device)
         batch = _augment_except_advantage(
@@ -208,7 +210,7 @@ def main() -> None:
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
 
-        if step == 1 or step % 25 == 0 or step == int(args.steps):
+        if step == 1 or step % 25 == 0:
             val_loss = _eval_loss(model, val_data, device, batch_size=max(64, int(args.batch_size)))
             row = {"step": int(step), "train_loss": float(loss.detach().cpu()), "val_action_mse_normalized": float(val_loss)}
             history.append(row)

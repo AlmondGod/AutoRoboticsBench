@@ -20,7 +20,12 @@
   "policy_interface": {
     "act": "act(policy, obs: dict, task: dict) -> np.ndarray[action_horizon, action_dim]",
     "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
-    "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
+    "load_policy": "load_policy(checkpoint: str, device: str) -> policy",
+    "test_time_inputs": [
+      "checkpoint learned weights/statistics",
+      "obs",
+      "task"
+    ]
   },
   "reference_metric": 0.98,
   "setup": "tasks/robocasa_faucet_peak/setup.py",
@@ -43,6 +48,22 @@
     "training_time_eval_trajectory_access": true,
     "video_pool_contains_actions": false,
     "video_pool_contains_proprio": false
+  },
+  "inference_contract": {
+    "forbidden_checkpoint_policy_types": [
+      "robocasa_bc5_trajectory_bank"
+    ],
+    "forbidden_checkpoint_keys": [
+      "actions",
+      "lengths",
+      "episode_ids",
+      "embeddings"
+    ],
+    "inference_time_dataset_access": false,
+    "inference_time_manifest_split_access": false,
+    "inference_time_video_pool_access": false,
+    "test_time_trajectory_replay": false,
+    "train_time_trajectory_access": true
   },
   "version": "v0",
   "video_pool": "data/autorobobench/robocasa_faucet_peak_video_pool.json",

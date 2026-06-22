@@ -52,8 +52,7 @@ def main() -> None:
     parser.add_argument("--frame-stride", type=int, default=1)
     parser.add_argument("--view", default="robot0_agentview_right")
     parser.add_argument("--image-size", type=int, default=32)
-    parser.add_argument("--steps", type=int, default=2000)
-    parser.add_argument("--max-train-seconds", type=float, default=0.0)
+    parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--width", type=int, default=512)
     parser.add_argument("--depth", type=int, default=4)
@@ -78,6 +77,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
+    if float(args.max_train_seconds) <= 0:
+        raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
 
     rng = np.random.default_rng(int(args.seed))
     torch.manual_seed(int(args.seed))
@@ -126,9 +127,11 @@ def main() -> None:
     history = []
     best_val = float("inf")
     start_time = time.monotonic()
-    for step in range(1, int(args.steps) + 1):
-        if float(args.max_train_seconds) > 0 and time.monotonic() - start_time >= float(args.max_train_seconds):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(args.max_train_seconds):
             break
+        step += 1
         model.train()
         idx = rng.integers(0, len(train), size=int(args.batch_size))
         batch = _batch(train, train_rgb, train_next_rgb, idx, device)
@@ -152,7 +155,7 @@ def main() -> None:
         loss.backward()
         torch.nn.utils.clip_grad_norm_(params, 1.0)
         opt.step()
-        if step == 1 or step % max(1, int(args.steps) // 20) == 0:
+        if step == 1 or step % 25 == 0:
             val_metrics = _eval(model, val, val_rgb, val_next_rgb, int(args.batch_size), device)
             row = {
                 "step": int(step),

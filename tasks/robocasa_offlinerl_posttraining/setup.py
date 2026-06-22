@@ -42,8 +42,8 @@ def ensure_robocasa_runtime() -> None:
 ensure_robocasa_runtime()
 
 
-FROZEN_MANIFEST = "data/autorobobench/robocasa_long_horizon_manifest.json"
-FROZEN_SPLIT = "data/autorobobench/robocasa_long_horizon_splits.json"
+FROZEN_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
+FROZEN_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
 
 
 def main() -> None:
@@ -87,7 +87,7 @@ def main() -> None:
         "manifest": str(manifest_path),
         "split": str(split_path),
         "task_count": len(summary),
-        "target_task": "PickPlaceCounterToMicrowave",
+        "target_task": "PickPlaceCounterToStandMixer",
         "offline_experience_contract": {
             "demo_advantage": 1.0,
             "bad_rollout_advantage": -1.0,

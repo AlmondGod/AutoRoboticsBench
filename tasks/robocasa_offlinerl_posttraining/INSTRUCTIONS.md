@@ -5,7 +5,7 @@ edit eval files or split files for scored runs.
 
 ## Task
 
-- Optimize `PickPlaceCounterToMicrowave` from demonstrations plus offline
+- Optimize `PickPlaceCounterToStandMixer` from demonstrations plus offline
   experience: failed rollouts, corrections, or other saved rollouts.
 - Metric: rollout success.
 - Do not use test-time demos.
@@ -15,8 +15,8 @@ edit eval files or split files for scored runs.
 
 ```bash
 python3 tasks/robocasa_offlinerl_posttraining/train.py \
-  --manifest data/autorobobench/robocasa_long_horizon_manifest.json \
-  --split data/autorobobench/robocasa_long_horizon_splits.json \
+  --manifest data/autorobobench/robocasa_stand_mixer_peak_manifest.json \
+  --split data/autorobobench/robocasa_stand_mixer_peak_splits.json \
   --out-dir runs/autorobobench/robocasa_offlinerl_posttraining/<run> \
   --device cuda
 ```

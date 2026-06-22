@@ -72,7 +72,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Pretrain a tiny RoboCasa video representation on action-free videos.")
     parser.add_argument("--video-pool", default=str(DEFAULT_VIDEO_POOL))
     parser.add_argument("--out", default="runs/autorobobench/robocasa_world_model/video_repr.pt")
-    parser.add_argument("--steps", type=int, default=1000)
+    parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--embed-dim", type=int, default=64)
     parser.add_argument("--image-size", type=int, default=96)
@@ -85,6 +85,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
+    if float(args.max_train_seconds) <= 0:
+        raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
 
     rng = np.random.default_rng(int(args.seed))
     torch.manual_seed(int(args.seed))
@@ -107,7 +109,11 @@ def main() -> None:
         )
     history = []
     start = time.monotonic()
-    for step in range(1, int(args.steps) + 1):
+    step = 0
+    while True:
+        if time.monotonic() - start >= float(args.max_train_seconds):
+            break
+        step += 1
         batch = _sample_batch(records, rng, int(args.batch_size), int(args.image_size), device, frame_cache)
         out = model(batch["image"])
         progress_loss = F.mse_loss(out["progress"], batch["progress"])
@@ -117,7 +123,7 @@ def main() -> None:
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        if step == 1 or step % max(1, int(args.steps) // 20) == 0:
+        if step == 1 or step % 25 == 0:
             row = {
                 "step": int(step),
                 "loss": float(loss.detach().cpu()),

@@ -96,7 +96,12 @@ python3 tasks/robocasa_bc5/eval_parallel.py \
 - Metric: single-task reliability. Report success out of 100.
 - Training cap: 300 seconds.
 - Data: task-specific trajectories are allowed. Generic video-only pool is
-  allowed. Test-time demo replay is not allowed for learned-policy claims.
+  allowed for training only.
+- Test-time replay is banned. `inference.py` and the submitted checkpoint may
+  not read or carry demonstration trajectories, trajectory banks, manifest/split
+  files, datasets, video pools, or per-episode action arrays during eval. The
+  only eval-time inputs are the checkpoint's learned weights/statistics, `obs`,
+  and `task`.
 - Current learned base: `robocasa_faucet_direct_bc_all_data_5min_seed0`,
   6/10 success, reported as 60/100 normalized.
 - Train:
@@ -121,7 +126,7 @@ python3 tasks/robocasa_bc5/train.py \
 python3 tasks/robocasa_bc5/eval_parallel.py \
   --manifest data/autorobobench/robocasa_faucet_peak_manifest.json \
   --split data/autorobobench/robocasa_faucet_peak_splits.json \
-  --inference tasks.robocasa_bc5.inference \
+  --inference tasks.robocasa_faucet_peak.inference \
   --checkpoint runs/autorobobench/robocasa_faucet_peak/<run>/policy_best.pt \
   --out runs/autorobobench/robocasa_faucet_peak/<run>/eval_10.json \
   --eval-episodes-per-task 10 \
@@ -131,37 +136,9 @@ python3 tasks/robocasa_bc5/eval_parallel.py \
   --device cuda
 ```
 
-## `robocasa_stand_mixer_peak`
-
-- Optimize one policy for `PickPlaceCounterToStandMixer`.
-- Metric: single-task rollout success.
-- Training cap: 300 seconds.
-- Data: task-specific action demos and generic video-only pool are allowed.
-- Current measured learned policies are 0/100.
-- Train:
-
-```bash
-python3 tasks/robocasa_stand_mixer_peak/train.py \
-  --manifest data/autorobobench/robocasa_stand_mixer_peak_manifest.json \
-  --split data/autorobobench/robocasa_stand_mixer_peak_splits.json \
-  --out-dir runs/autorobobench/robocasa_stand_mixer_peak/<run> \
-  --max-train-seconds 300 \
-  --device cuda
-```
-
-- Eval:
-
-```bash
-python3 tasks/robocasa_stand_mixer_peak/eval.py \
-  --checkpoint runs/autorobobench/robocasa_stand_mixer_peak/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_stand_mixer_peak/<run>/eval_10.json \
-  --eval-episodes-per-task 10 \
-  --device cuda
-```
-
 ## `robocasa_offlinerl_posttraining`
 
-- Optimize `PickPlaceCounterToMicrowave` from demonstrations plus offline
+- Optimize `PickPlaceCounterToStandMixer` from demonstrations plus offline
   experience: failed rollouts, corrections, or other saved rollouts.
 - Metric: rollout success.
 - Do not use test-time demos.
@@ -170,8 +147,8 @@ python3 tasks/robocasa_stand_mixer_peak/eval.py \
 
 ```bash
 python3 tasks/robocasa_offlinerl_posttraining/train.py \
-  --manifest data/autorobobench/robocasa_long_horizon_manifest.json \
-  --split data/autorobobench/robocasa_long_horizon_splits.json \
+  --manifest data/autorobobench/robocasa_stand_mixer_peak_manifest.json \
+  --split data/autorobobench/robocasa_stand_mixer_peak_splits.json \
   --out-dir runs/autorobobench/robocasa_offlinerl_posttraining/<run> \
   --device cuda
 ```
@@ -292,18 +269,18 @@ python3 tasks/robocasa_visual_world_model/eval.py \
 
 ## `robocasa_world_model_posttraining`
 
-- Start from the best differentiable `robocasa_long_horizon` policy.
+- Start from the best differentiable `robocasa_stand_mixer_peak` policy.
 - Use a frozen world model to improve the policy offline.
 - Keep BC loss, init-policy anchor, and action penalty active. Real simulator
   success is final; WM objective alone is not enough.
 - Supported policy modes: temporal chunk BC, temporal chunk flow, sequence flow.
 - Unsupported for v0: trajectory banks, history policies, frozen VLM feature
   cache policies.
-- Default task: `PickPlaceCounterToMicrowave` via
-  `data/autorobobench/robocasa_long_horizon_manifest.json` and
-  `data/autorobobench/robocasa_long_horizon_splits.json`.
+- Default task: `PickPlaceCounterToStandMixer` via
+  `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` and
+  `data/autorobobench/robocasa_stand_mixer_peak_splits.json`.
 - Default input policy path:
-  `runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt`.
+  `runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt`.
 - Train:
 
 ```bash

@@ -282,8 +282,7 @@ def main() -> None:
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--chunk-horizon", type=int, default=16)
     parser.add_argument("--frame-stride", type=int, default=2)
-    parser.add_argument("--steps", type=int, default=200)
-    parser.add_argument("--max-train-seconds", type=float, default=0.0)
+    parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--width", type=int, default=256)
     parser.add_argument("--dropout", type=float, default=0.05)
@@ -338,18 +337,20 @@ def main() -> None:
     parser.add_argument("--device", default="auto")
     parser.add_argument("--init-checkpoint", default="")
     parser.add_argument("--freeze-non-flow", action="store_true")
-    parser.add_argument("--video-pretrain-steps", type=int, default=0)
+    parser.add_argument("--video-pretrain-seconds", type=float, default=0.0)
     parser.add_argument("--video-pretrain-episodes-per-task", type=int, default=0)
     parser.add_argument("--video-pretrain-batch-size", type=int, default=128)
     parser.add_argument("--video-pretrain-gap", type=int, default=8)
     parser.add_argument("--video-pretrain-lr", type=float, default=3e-4)
     parser.add_argument("--video-pretrain-temperature", type=float, default=0.1)
-    parser.add_argument("--vpt-idm-steps", type=int, default=0)
+    parser.add_argument("--vpt-idm-seconds", type=float, default=0.0)
     parser.add_argument("--vpt-pseudo-episodes-per-task", type=int, default=0)
     parser.add_argument("--vpt-idm-batch-size", type=int, default=128)
     parser.add_argument("--vpt-idm-lr", type=float, default=3e-4)
     parser.add_argument("--vpt-pseudo-weight", type=float, default=1.0)
     args = parser.parse_args()
+    if float(args.max_train_seconds) <= 0:
+        raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
 
     manifest = json.loads(Path(args.manifest).read_text())
     split = json.loads(Path(args.split).read_text())
@@ -371,7 +372,7 @@ def main() -> None:
         manifest=manifest,
         split=split,
         task_aliases=task_aliases,
-        idm_steps=int(args.vpt_idm_steps),
+        idm_seconds=float(args.vpt_idm_seconds),
         pseudo_episodes_per_task=int(args.vpt_pseudo_episodes_per_task),
         batch_size=int(args.vpt_idm_batch_size),
         lr=float(args.vpt_idm_lr),
@@ -594,7 +595,7 @@ def main() -> None:
         split=split,
         video_pool_path=Path(args.video_pool) if args.video_pool else None,
         task_aliases=task_aliases,
-        steps=int(args.video_pretrain_steps),
+        max_train_seconds=float(args.video_pretrain_seconds),
         episodes_per_task=int(args.video_pretrain_episodes_per_task),
         batch_size=int(args.video_pretrain_batch_size),
         gap=int(args.video_pretrain_gap),
@@ -682,9 +683,11 @@ def main() -> None:
     best_state: dict[str, torch.Tensor] | None = None
     start_time = time.monotonic()
 
-    for step in range(1, int(args.steps) + 1):
-        if args.max_train_seconds > 0 and time.monotonic() - start_time >= float(args.max_train_seconds):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(args.max_train_seconds):
             break
+        step += 1
         sample_data = (
             clip_train_data
             if args.policy_kind in {"frozen_clip_flow", "frozen_r3m_flow", "frozen_smolvlm_flow"} and clip_train_data is not None
@@ -793,7 +796,7 @@ def main() -> None:
         opt.step()
 
         row = {"step": step, "train_loss": float(loss.detach().cpu()), "elapsed_seconds": time.monotonic() - start_time}
-        if step == 1 or step % int(args.log_interval) == 0 or step == int(args.steps):
+        if step == 1 or step % int(args.log_interval) == 0:
             if args.policy_kind in {"frozen_clip_flow", "frozen_r3m_flow", "frozen_smolvlm_flow"}:
                 val_loss = _eval_clip_feature_loss(
                     model,
@@ -1047,7 +1050,7 @@ def _maybe_add_vpt_pseudo_labels(
     manifest: dict,
     split: dict,
     task_aliases: set[str],
-    idm_steps: int,
+    idm_seconds: float,
     pseudo_episodes_per_task: int,
     batch_size: int,
     lr: float,
@@ -1057,7 +1060,7 @@ def _maybe_add_vpt_pseudo_labels(
     seed: int,
     device: torch.device,
 ) -> dict:
-    if idm_steps <= 0 or pseudo_episodes_per_task <= 0:
+    if idm_seconds <= 0 or pseudo_episodes_per_task <= 0:
         return {"enabled": False, "pseudo_samples": 0}
     idm_data, idm_summary = _load_idm_supervised_samples(manifest, split, task_aliases=task_aliases)
     if len(idm_data["actions"]) == 0:
@@ -1074,7 +1077,11 @@ def _maybe_add_vpt_pseudo_labels(
     history: list[dict] = []
     start_time = time.monotonic()
     idm.train()
-    for step in range(1, idm_steps + 1):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(idm_seconds):
+            break
+        step += 1
         idx = rng.integers(0, len(idm_data["actions"]), size=batch_size)
         batch = _idm_batch(idm_data, idx, device)
         pred = idm(**{key: value for key, value in batch.items() if key != "actions"})
@@ -1083,7 +1090,7 @@ def _maybe_add_vpt_pseudo_labels(
         loss.backward()
         nn.utils.clip_grad_norm_(idm.parameters(), 1.0)
         opt.step()
-        if step == 1 or step == idm_steps or step % max(1, idm_steps // 5) == 0:
+        if step == 1 or step % 25 == 0:
             row = {"step": step, "idm_action_mse": float(loss.detach().cpu()), "elapsed_seconds": time.monotonic() - start_time}
             history.append(row)
             print(f"vpt_idm step={step} action_mse={row['idm_action_mse']:.6f}", flush=True)
@@ -1104,7 +1111,8 @@ def _maybe_add_vpt_pseudo_labels(
     return {
         "enabled": True,
         "method": "mini_vpt_inverse_dynamics_pseudo_labels",
-        "idm_steps": int(idm_steps),
+        "idm_seconds": float(idm_seconds),
+        "idm_steps_completed": int(step),
         "idm_samples": int(len(idm_data["actions"])),
         "idm_summary": idm_summary,
         "idm_history": history,
@@ -1339,7 +1347,7 @@ def _maybe_video_pretrain(
     split: dict,
     video_pool_path: Path | None,
     task_aliases: set[str],
-    steps: int,
+    max_train_seconds: float,
     episodes_per_task: int,
     batch_size: int,
     gap: int,
@@ -1348,15 +1356,15 @@ def _maybe_video_pretrain(
     seed: int,
     device: torch.device,
 ) -> dict:
-    if steps <= 0 or episodes_per_task <= 0:
-        return {"enabled": False, "steps": 0, "samples": 0}
+    if max_train_seconds <= 0 or episodes_per_task <= 0:
+        return {"enabled": False, "steps_completed": 0, "samples": 0}
     if not hasattr(model, "vision") and not hasattr(model, "image"):
-        return {"enabled": False, "steps": 0, "samples": 0, "reason": "model has no image encoder"}
+        return {"enabled": False, "steps_completed": 0, "samples": 0, "reason": "model has no image encoder"}
     in_channels = _first_conv_in_channels(_image_encoder(model))
     if in_channels != 6:
         return {
             "enabled": False,
-            "steps": 0,
+            "steps_completed": 0,
             "samples": 0,
             "reason": f"video pretrain expects 6-channel encoder, got {in_channels}",
         }
@@ -1370,7 +1378,7 @@ def _maybe_video_pretrain(
         gap=max(1, gap),
     )
     if len(samples["agent_t"]) == 0:
-        return {"enabled": False, "steps": 0, "samples": 0, "reason": "no video transitions"}
+        return {"enabled": False, "steps_completed": 0, "samples": 0, "reason": "no video transitions"}
 
     width = _encoder_width(model)
     predictor = nn.Sequential(
@@ -1383,7 +1391,11 @@ def _maybe_video_pretrain(
     rng = np.random.default_rng(seed + 17)
     history: list[dict] = []
     start_time = time.monotonic()
-    for step in range(1, steps + 1):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(max_train_seconds):
+            break
+        step += 1
         idx = rng.integers(0, len(samples["agent_t"]), size=batch_size)
         agent_t = torch.as_tensor(samples["agent_t"][idx], dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
         wrist_t = torch.as_tensor(samples["wrist_t"][idx], dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
@@ -1403,7 +1415,7 @@ def _maybe_video_pretrain(
         loss.backward()
         nn.utils.clip_grad_norm_(params, 1.0)
         opt.step()
-        if step == 1 or step == steps or step % max(1, steps // 5) == 0:
+        if step == 1 or step % 25 == 0:
             acc = 0.5 * (
                 (logits_fwd.argmax(dim=-1) == labels).float().mean()
                 + (logits_bwd.argmax(dim=-1) == labels).float().mean()
@@ -1422,7 +1434,8 @@ def _maybe_video_pretrain(
     return {
         "enabled": True,
         "objective": "temporal_infonce",
-        "steps": int(steps),
+        "max_train_seconds": float(max_train_seconds),
+        "steps_completed": int(step),
         "samples": int(len(samples["agent_t"])),
         "episodes_per_task": int(episodes_per_task),
         "gap": int(gap),

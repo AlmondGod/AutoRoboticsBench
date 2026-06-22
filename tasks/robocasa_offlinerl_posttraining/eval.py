@@ -12,8 +12,8 @@ sys.path.insert(0, str(ROOT))
 from tasks.robocasa_bc5.eval import main as robocasa_bc5_eval_main
 
 
-FROZEN_MANIFEST = "data/autorobobench/robocasa_long_horizon_manifest.json"
-FROZEN_SPLIT = "data/autorobobench/robocasa_long_horizon_splits.json"
+FROZEN_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
+FROZEN_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
 
 
 def main() -> None:
@@ -32,7 +32,7 @@ def main() -> None:
             payload["track"] = "robocasa_offlinerl_posttraining"
             payload["manifest"] = FROZEN_MANIFEST
             payload["split"] = FROZEN_SPLIT
-            payload["target_task"] = "PickPlaceCounterToMicrowave"
+            payload["target_task"] = "PickPlaceCounterToStandMixer"
             payload["offlinerl_final_success"] = float(payload.get("success_rate", 0.0))
             out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 

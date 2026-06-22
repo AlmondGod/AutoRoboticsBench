@@ -4999,7 +4999,6 @@ METADATA_SETUP_COMMANDS = (
     ("video_policy_transfer", ("tasks/video_policy_transfer/setup.py",)),
     ("robocasa_world_model", ("tasks/robocasa_world_model/setup.py",)),
     ("robocasa_faucet_peak", ("tasks/robocasa_faucet_peak/setup.py",)),
-    ("robocasa_stand_mixer_peak", ("tasks/robocasa_stand_mixer_peak/setup.py",)),
     ("robocasa_offlinerl_posttraining", ("tasks/robocasa_offlinerl_posttraining/setup.py",)),
     ("robocasa_world_model_posttraining", ("tasks/robocasa_world_model_posttraining/setup.py",)),
 )

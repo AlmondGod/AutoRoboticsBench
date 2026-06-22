@@ -254,10 +254,9 @@ The active task packages are:
 | RoboCasa World Model | `tasks/robocasa_world_model/` | BC-5 transition and policy-ranking world model |
 | Choose Measuring Cup Language | `tasks/robocasa_choose_measuring_cup_language/` | measuring-cup language variants |
 | Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction |
-| World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToMicrowave` policy improvement |
-| Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToMicrowave` policy improvement |
+| World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
+| Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement |
 | Faucet Peak | `tasks/robocasa_faucet_peak/` | `TurnOnSinkFaucet` |
-| Stand Mixer Peak | `tasks/robocasa_stand_mixer_peak/` | `PickPlaceCounterToStandMixer` |
 
 Each task owns its `setup.py`, `train.py`, `inference.py`, `eval.py`,
 `visualize.py`, `task.json`, and `INSTRUCTIONS.md`. Visualizers write compact
@@ -282,7 +281,7 @@ python tasks/robocasa_bc5/train.py \
   --out-dir runs/autorobobench/robocasa_bc5/baseline \
   --train-episodes-per-task 4 \
   --val-episodes-per-task 2 \
-  --steps 200
+  --max-train-seconds 60
 
 python tasks/robocasa_bc5/eval.py \
   --policy runs/autorobobench/robocasa_bc5/baseline/policy_best.pt \
@@ -294,7 +293,7 @@ Long-horizon wrapper:
 
 ```bash
 python tasks/robocasa_long_horizon/setup.py --verify
-python tasks/robocasa_long_horizon/train.py --steps 200
+python tasks/robocasa_long_horizon/train.py --max-train-seconds 60
 ```
 
 Video-transfer wrapper:

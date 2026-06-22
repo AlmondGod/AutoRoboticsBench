@@ -112,7 +112,7 @@ def main() -> None:
     parser.add_argument("--image-size", type=int, default=64)
     parser.add_argument("--max-train-samples", type=int, default=0)
     parser.add_argument("--max-val-samples", type=int, default=0)
-    parser.add_argument("--steps", type=int, default=2000)
+    parser.add_argument("--max-train-seconds", type=float, default=300.0)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--width", type=int, default=256)
     parser.add_argument("--task-dim", type=int, default=32)
@@ -121,6 +121,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
+    if float(args.max_train_seconds) <= 0:
+        raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
 
     rng = np.random.default_rng(int(args.seed))
     torch.manual_seed(int(args.seed))
@@ -153,7 +155,11 @@ def main() -> None:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     start_time = time.monotonic()
-    for step in range(1, int(args.steps) + 1):
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(args.max_train_seconds):
+            break
+        step += 1
         model.train()
         idx = rng.integers(0, len(train["action"]), size=int(args.batch_size))
         batch = _batch(train, idx, device)
@@ -163,7 +169,7 @@ def main() -> None:
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        if step == 1 or step % max(1, int(args.steps) // 20) == 0:
+        if step == 1 or step % 25 == 0:
             metrics = _eval(model, val, action_mean, action_std, val_action_raw, int(args.batch_size), device)
             row = {"step": int(step), "loss": float(loss.detach().cpu()), "elapsed_seconds": time.monotonic() - start_time, **metrics}
             history.append(row)

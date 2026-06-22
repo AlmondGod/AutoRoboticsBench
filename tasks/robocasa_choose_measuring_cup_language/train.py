@@ -54,7 +54,7 @@ def main() -> None:
     _default("--vlm-encoder-name", "HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
     _default("--chunk-horizon", "16")
     _default("--frame-stride", "2")
-    _default("--steps", "800")
+    _default("--max-train-seconds", "300")
     _default("--batch-size", "64")
     _default("--width", "256")
     _default("--dropout", "0.03")

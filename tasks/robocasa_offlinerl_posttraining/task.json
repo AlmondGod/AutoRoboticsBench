@@ -7,7 +7,7 @@
   "eval": "tasks/robocasa_offlinerl_posttraining/eval.py",
   "id": "robocasa_offlinerl_posttraining",
   "inference": "tasks/robocasa_offlinerl_posttraining/inference.py",
-  "manifest": "data/autorobobench/robocasa_long_horizon_manifest.json",
+  "manifest": "data/autorobobench/robocasa_stand_mixer_peak_manifest.json",
   "metrics": {
     "higher_is_better": true,
     "primary": "offlinerl_final_success",
@@ -23,11 +23,11 @@
   },
   "reference_metric": 0.7,
   "setup": "tasks/robocasa_offlinerl_posttraining/setup.py",
-  "split": "data/autorobobench/robocasa_long_horizon_splits.json",
+  "split": "data/autorobobench/robocasa_stand_mixer_peak_splits.json",
   "starter_metric": 0.1,
   "train": "tasks/robocasa_offlinerl_posttraining/train.py",
   "train_contract": {
-    "base_policy": "robocasa_long_horizon temporal chunk BC",
+    "base_policy": "robocasa_stand_mixer_peak temporal chunk BC",
     "eval_tasks": 1,
     "experience_sources": [
       "demonstrations",
@@ -36,7 +36,7 @@
     ],
     "offline_experience": true,
     "single_model": true,
-    "target_task": "PickPlaceCounterToMicrowave",
+    "target_task": "PickPlaceCounterToStandMixer",
     "test_time_demo_access": false,
     "train_tasks": 1
   },

@@ -39,7 +39,36 @@ def ensure_robocasa_runtime() -> None:
 
 ensure_robocasa_runtime()
 
-from tasks.robocasa_bc5.inference import act, load_policy  # noqa: E402,F401
+from tasks.robocasa_bc5 import inference as _bc5_inference  # noqa: E402
+
+
+FORBIDDEN_POLICY_TYPES = {"robocasa_bc5_trajectory_bank"}
+FORBIDDEN_REPLAY_KEYS = {"actions", "lengths", "episode_ids", "embeddings"}
+
+
+def load_policy(checkpoint: str, device: str = "auto"):
+    """Load a learned Faucet Peak policy.
+
+    Test-time trajectory replay is banned for this track. The checkpoint and
+    inference code may use learned weights/statistics only; they may not carry
+    or read demonstration action trajectories, trajectory banks, manifest/split
+    files, datasets, or video pools during eval.
+    """
+    policy = _bc5_inference.load_policy(checkpoint, device)
+    policy_type = str(policy.checkpoint.get("policy_type", ""))
+    replay_keys = FORBIDDEN_REPLAY_KEYS.intersection(policy.checkpoint)
+    if policy_type in FORBIDDEN_POLICY_TYPES or getattr(policy, "mode", "") == "trajectory_bank" or replay_keys:
+        details = f" policy_type={policy_type!r}"
+        if replay_keys:
+            details += f" replay_keys={sorted(replay_keys)}"
+        raise ValueError(
+            "robocasa_faucet_peak forbids test-time trajectory replay and trajectory-bank checkpoints;"
+            + details
+        )
+    return policy
+
+
+act = _bc5_inference.act
 
 
 __all__ = ["act", "load_policy"]

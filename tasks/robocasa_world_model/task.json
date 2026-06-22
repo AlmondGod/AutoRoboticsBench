@@ -46,12 +46,12 @@
     "frame_stride": 1,
     "inverse_align_weight": 0.0,
     "latent_dim": 0,
-    "steps": 2000,
+    "max_train_seconds": 300,
     "train_episodes_per_task": 20,
     "val_episodes_per_task": 5,
     "video_align_weight": 0.0,
     "video_episodes_per_task": 0,
-    "video_repr_pretrain_steps": 0
+    "video_repr_pretrain_seconds": 0
   },
   "eval": "tasks/robocasa_world_model/eval.py",
   "id": "robocasa_world_model",

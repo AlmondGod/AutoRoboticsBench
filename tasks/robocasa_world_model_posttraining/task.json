@@ -9,8 +9,8 @@
     ],
     "higher_is_better": true,
     "immutable_globs": [
-      "data/autorobobench/robocasa_long_horizon_manifest.json",
-      "data/autorobobench/robocasa_long_horizon_splits.json",
+      "data/autorobobench/robocasa_stand_mixer_peak_manifest.json",
+      "data/autorobobench/robocasa_stand_mixer_peak_splits.json",
       "tasks/robocasa_bc5/eval.py",
       "tasks/robocasa_bc5/inference.py",
       "tasks/robocasa_world_model_posttraining/eval.py",
@@ -31,7 +31,7 @@
     },
     "starter_metric": 0.0
   },
-  "default_policy_checkpoint": "runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt",
+  "default_policy_checkpoint": "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt",
   "default_train": {
     "action_l2_weight": 0.01,
     "batch_size": 64,
@@ -40,7 +40,6 @@
     "frame_stride": 2,
     "init_anchor_weight": 0.25,
     "max_train_seconds": 300,
-    "steps": 500,
     "train_episodes_per_task": 4,
     "val_episodes_per_task": 2,
     "wm_progress_weight": 0.4,
@@ -51,7 +50,7 @@
   "eval_parallel": "tasks/robocasa_world_model_posttraining/eval_parallel.py",
   "id": "robocasa_world_model_posttraining",
   "inference": "tasks/robocasa_world_model_posttraining/inference.py",
-  "manifest": "data/autorobobench/robocasa_long_horizon_manifest.json",
+  "manifest": "data/autorobobench/robocasa_stand_mixer_peak_manifest.json",
   "metrics": {
     "primary": "success_rate",
     "secondary": [
@@ -65,13 +64,13 @@
   "name": "RoboCasa World-Model Posttraining",
   "reference_metric": 0.6,
   "setup": "tasks/robocasa_world_model_posttraining/setup.py",
-  "split": "data/autorobobench/robocasa_long_horizon_splits.json",
+  "split": "data/autorobobench/robocasa_stand_mixer_peak_splits.json",
   "starter_metric": 0.0,
-  "target_task": "PickPlaceCounterToMicrowave",
+  "target_task": "PickPlaceCounterToStandMixer",
   "train": "tasks/robocasa_world_model_posttraining/train.py",
   "train_contract": {
-    "default_input_policy": "runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt",
-    "input_policy": "PickPlaceCounterToMicrowave BC-compatible pretrained policy checkpoint",
+    "default_input_policy": "runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt",
+    "input_policy": "PickPlaceCounterToStandMixer BC-compatible pretrained policy checkpoint",
     "input_world_model": "RoboCasaWorldModel or VisualRoboCasaWorldModel checkpoint predicting next_state, next_progress, success, and optionally next_rgb",
     "output": "BC5-compatible policy.pt and policy_best.pt",
     "policy_warm_start_required": true,

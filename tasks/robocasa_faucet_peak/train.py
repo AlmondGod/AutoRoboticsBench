@@ -54,7 +54,6 @@ def main() -> None:
     _default("--val-episodes-per-task", "10")
     _default("--chunk-horizon", "16")
     _default("--frame-stride", "1")
-    _default("--steps", "800")
     _default("--max-train-seconds", "300")
     _default("--batch-size", "128")
     _default("--width", "256")

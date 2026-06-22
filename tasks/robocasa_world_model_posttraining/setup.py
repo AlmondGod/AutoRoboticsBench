@@ -4,9 +4,9 @@ import importlib.util
 import json
 from pathlib import Path
 
-DEFAULT_MANIFEST = Path("data/autorobobench/robocasa_long_horizon_manifest.json")
-DEFAULT_SPLIT = Path("data/autorobobench/robocasa_long_horizon_splits.json")
-DEFAULT_POLICY_CHECKPOINT = Path("runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt")
+DEFAULT_MANIFEST = Path("data/autorobobench/robocasa_stand_mixer_peak_manifest.json")
+DEFAULT_SPLIT = Path("data/autorobobench/robocasa_stand_mixer_peak_splits.json")
+DEFAULT_POLICY_CHECKPOINT = Path("runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt")
 
 
 def main() -> None:

@@ -13,11 +13,11 @@ files or split files for scored runs.
 - Supported policy modes: temporal chunk BC, temporal chunk flow, sequence flow.
 - Unsupported for v0: trajectory banks, history policies, frozen VLM feature
   cache policies.
-- Default task: `PickPlaceCounterToMicrowave` via
-  `data/autorobobench/robocasa_long_horizon_manifest.json` and
-  `data/autorobobench/robocasa_long_horizon_splits.json`.
+- Default task: `PickPlaceCounterToStandMixer` via
+  `data/autorobobench/robocasa_stand_mixer_peak_manifest.json` and
+  `data/autorobobench/robocasa_stand_mixer_peak_splits.json`.
 - Default input policy path:
-  `runs/autorobobench/robocasa_long_horizon/baseline/policy_best.pt`.
+  `runs/autorobobench/robocasa_stand_mixer_peak/a100_5min_full_seed0/policy_best.pt`.
 
 ## Train
 

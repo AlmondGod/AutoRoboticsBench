@@ -49,7 +49,7 @@
     "inverse_align_weight": 0.0,
     "latent_dim": 64,
     "state_flow_weight": 0.25,
-    "steps": 2000,
+    "max_train_seconds": 300,
     "train_episodes_per_task": 20,
     "val_episodes_per_task": 5,
     "view": "robot0_agentview_right",

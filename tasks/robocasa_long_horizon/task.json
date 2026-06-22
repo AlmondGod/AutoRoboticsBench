@@ -45,7 +45,7 @@
     "eval_commit_steps": 8,
     "frame_stride": 1,
     "progress_scale": 750,
-    "steps": 800,
+    "max_train_seconds": 300,
     "train_episodes_per_task": 80,
     "val_episodes_per_task": 10,
     "width": 256

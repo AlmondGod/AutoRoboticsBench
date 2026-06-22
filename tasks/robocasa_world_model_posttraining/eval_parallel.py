@@ -8,8 +8,8 @@ if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
 
-DEFAULT_MANIFEST = "data/autorobobench/robocasa_long_horizon_manifest.json"
-DEFAULT_SPLIT = "data/autorobobench/robocasa_long_horizon_splits.json"
+DEFAULT_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
+DEFAULT_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
 
 
 def main() -> None:

@@ -9,7 +9,12 @@ split files for scored runs.
 - Optimize one policy for `TurnOnSinkFaucet`.
 - Metric: single-task reliability. Report success out of 100.
 - Data: task-specific trajectories are allowed. Generic video-only pool is
-  allowed. Test-time demo replay is not allowed for learned-policy claims.
+  allowed for training only.
+- Test-time replay is banned. `inference.py` and the submitted checkpoint may
+  not read or carry demonstration trajectories, trajectory banks, manifest/split
+  files, datasets, video pools, or per-episode action arrays during eval. The
+  only eval-time inputs are the checkpoint's learned weights/statistics, `obs`,
+  and `task`.
 - Current learned base: `robocasa_faucet_direct_bc_all_data_5min_seed0`,
   6/10 success, reported as 60/100 normalized.
 
@@ -35,7 +40,7 @@ python3 tasks/robocasa_bc5/train.py \
 python3 tasks/robocasa_bc5/eval_parallel.py \
   --manifest data/autorobobench/robocasa_faucet_peak_manifest.json \
   --split data/autorobobench/robocasa_faucet_peak_splits.json \
-  --inference tasks.robocasa_bc5.inference \
+  --inference tasks.robocasa_faucet_peak.inference \
   --checkpoint runs/autorobobench/robocasa_faucet_peak/<run>/policy_best.pt \
   --out runs/autorobobench/robocasa_faucet_peak/<run>/eval_10.json \
   --eval-episodes-per-task 10 \
