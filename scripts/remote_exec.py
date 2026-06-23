@@ -14,8 +14,8 @@ def load_config(repo_root: Path) -> dict:
     config_path = repo_root / "configs" / "compute.yaml"
     if not config_path.exists():
         raise SystemExit(
-            "configs/compute.yaml not found. Copy configs/compute.yaml.example "
-            "and fill in your remote GPU host settings."
+            "configs/compute.yaml not found. Create it with your remote GPU "
+            "host settings before using REMOTE_GPU=1."
         )
 
     try:

@@ -114,10 +114,6 @@ Evaluate in a clean eval container:
 RUN_ID=<RUN_ID> TASK=robocasa_bc5 ./docker/run_eval_container.sh
 ```
 
-For remote GPU execution, copy `configs/compute.yaml.example` to
-`configs/compute.yaml`, fill in the host settings, and set `REMOTE_GPU=1` when
-using `scripts/run_in_container.sh` or `runs/<RUN_ID>/run.sh`.
-
 ## RunPod Dockerless Mode
 
 RunPod Pods are already containers, so they usually cannot launch nested Docker
