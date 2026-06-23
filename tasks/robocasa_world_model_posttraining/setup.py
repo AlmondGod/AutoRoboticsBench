@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) in sys.path:
+    sys.path.remove(str(ROOT))
+sys.path.insert(0, str(ROOT))
 
 DEFAULT_MANIFEST = Path("data/autorobobench/robocasa_stand_mixer_peak_manifest.json")
 DEFAULT_SPLIT = Path("data/autorobobench/robocasa_stand_mixer_peak_splits.json")
