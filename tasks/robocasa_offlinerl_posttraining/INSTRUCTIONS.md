@@ -35,10 +35,11 @@ python3 tasks/robocasa_offlinerl_posttraining/train.py \
 ## Eval
 
 ```bash
-python3 tasks/robocasa_offlinerl_posttraining/eval.py \
+python3 tasks/robocasa_offlinerl_posttraining/eval_parallel.py \
   --checkpoint runs/autorobobench/robocasa_offlinerl_posttraining/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_offlinerl_posttraining/<run>/eval_10.json \
-  --eval-episodes-per-task 10 \
+  --out runs/autorobobench/robocasa_offlinerl_posttraining/<run>/eval_50.json \
+  --eval-episodes-per-task 50 \
+  --workers 28 \
   --device cuda
 ```
 

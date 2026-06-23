@@ -1,10 +1,11 @@
 {
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 10,
+    "eval_episodes_per_task": 50,
     "max_steps": 750
   },
   "eval": "tasks/robocasa_offlinerl_posttraining/eval.py",
+  "eval_parallel": "tasks/robocasa_offlinerl_posttraining/eval_parallel.py",
   "id": "robocasa_offlinerl_posttraining",
   "inference": "tasks/robocasa_offlinerl_posttraining/inference.py",
   "manifest": "data/autorobobench/robocasa_stand_mixer_peak_manifest.json",

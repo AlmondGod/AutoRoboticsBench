@@ -38,7 +38,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=260)
     parser.add_argument("--commit-steps", type=int, default=16)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=10)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=50)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--render-dir", default="")
     parser.add_argument("--trace-dir", default="")
@@ -269,6 +269,12 @@ def _merge_results(
         "success_rate": successes / max(1, len(details)),
         "commit_steps": int(args.commit_steps),
         "max_steps": int(args.max_steps),
+        "requested_eval_episodes_per_task": int(args.eval_episodes_per_task),
+        "available_eval_episodes_per_task": {
+            str(task["alias"]): len(task.get("eval_episode_ids", []))
+            for task in split.get("tasks", [])
+            if not args.task_alias or str(task["alias"]) in set(args.task_alias)
+        },
         "per_task": per_task,
         "details": details,
         "parallel_eval": {

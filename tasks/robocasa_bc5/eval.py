@@ -62,7 +62,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=260)
     parser.add_argument("--commit-steps", type=int, default=16)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=10)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=50)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--render-dir", default="")
     parser.add_argument("--trace-dir", default="")
@@ -86,6 +86,7 @@ def main() -> None:
 
     details = []
     per_task = {}
+    available_eval_episodes_per_task = {}
     for split_task in split["tasks"]:
         alias = split_task["alias"]
         if task_aliases and alias not in task_aliases:
@@ -93,6 +94,7 @@ def main() -> None:
         manifest_task = manifest_tasks[alias]
         dataset_root = Path(manifest_task["dataset_path"])
         episode_ids = list(split_task["eval_episode_ids"])
+        available_eval_episodes_per_task[alias] = len(episode_ids)
         if args.eval_episodes_per_task > 0:
             episode_ids = episode_ids[: int(args.eval_episodes_per_task)]
         successes = 0
@@ -178,6 +180,8 @@ def main() -> None:
         "success_rate": sum(int(row["success"]) for row in details) / max(1, len(details)),
         "commit_steps": int(args.commit_steps),
         "max_steps": int(args.max_steps),
+        "requested_eval_episodes_per_task": int(args.eval_episodes_per_task),
+        "available_eval_episodes_per_task": available_eval_episodes_per_task,
         "per_task": per_task,
         "details": details,
     }

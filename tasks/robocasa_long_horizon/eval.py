@@ -58,7 +58,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=750)
     parser.add_argument("--commit-steps", type=int, default=8)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=10)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=50)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--render-dir", default="")
     parser.add_argument("--trace-dir", default="")

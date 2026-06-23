@@ -9,7 +9,7 @@ for scored runs.
 - Optimize one policy for `OpenCabinet`, `CloseDrawer`, `CloseFridge`,
   `TurnOffStove`, `PickPlaceCounterToCabinet`.
 - Metric: rollout success rate over the five tasks.
-- Default eval: 10 episodes/task, max 260 steps, commit 16 unless checkpoint
+- Default eval: 50 episodes/task, max 260 steps, commit 16 unless checkpoint
   overrides commit horizon.
 - Data: use `data/robocasa5/manifest.json` and
   `data/autorobobench/robocasa_bc5_splits.json`.
@@ -37,11 +37,11 @@ python3 tasks/robocasa_bc5/eval_parallel.py \
   --split data/autorobobench/robocasa_bc5_splits.json \
   --inference tasks.robocasa_bc5.inference \
   --checkpoint runs/autorobobench/robocasa_bc5/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_bc5/<run>/eval_10_per_task.json \
-  --eval-episodes-per-task 10 \
+  --out runs/autorobobench/robocasa_bc5/<run>/eval_50_per_task.json \
+  --eval-episodes-per-task 50 \
   --max-steps 260 \
   --commit-steps 16 \
-  --workers 10 \
+  --workers 28 \
   --device cuda
 ```
 

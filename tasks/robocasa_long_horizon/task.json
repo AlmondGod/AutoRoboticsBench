@@ -35,7 +35,7 @@
   },
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 10,
+    "eval_episodes_per_task": 50,
     "max_steps": 750
   },
   "default_train": {

@@ -11,6 +11,7 @@ edit eval files or split files for scored runs.
   uses PIDM-style auxiliary pretraining: paired demos supervise inverse
   dynamics while RGB-only clips supervise future visual latent prediction.
 - Metric: rollout success and paired-action efficiency.
+- Default eval: 50 episodes/task, max 260 steps, commit 16.
 - Current smoke evals are 0/100.
 - You do not have to use the whole paired or video-only dataset. It is allowed
   to prioritize particular tasks, subsets, or curricula if that improves total
@@ -31,9 +32,11 @@ python3 tasks/robocasa_bc5_with_video/train.py \
 ## Eval
 
 ```bash
-python3 tasks/robocasa_bc5_with_video/eval.py \
+python3 tasks/robocasa_bc5_with_video/eval_parallel.py \
   --checkpoint runs/autorobobench/robocasa_bc5_with_video/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_bc5_with_video/<run>/eval.json \
+  --out runs/autorobobench/robocasa_bc5_with_video/<run>/eval_50_per_task.json \
+  --eval-episodes-per-task 50 \
+  --workers 28 \
   --device cuda
 ```
 

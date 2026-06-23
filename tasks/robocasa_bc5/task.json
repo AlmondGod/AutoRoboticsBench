@@ -35,10 +35,11 @@
   },
   "default_eval": {
     "commit_steps": 16,
-    "eval_episodes_per_task": 10,
+    "eval_episodes_per_task": 50,
     "max_steps": 260
   },
   "eval": "tasks/robocasa_bc5/eval.py",
+  "eval_parallel": "tasks/robocasa_bc5/eval_parallel.py",
   "id": "robocasa_bc5",
   "inference": "tasks/robocasa_bc5/inference.py",
   "manifest": "data/robocasa5/manifest.json",

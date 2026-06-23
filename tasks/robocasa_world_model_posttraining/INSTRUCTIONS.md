@@ -44,7 +44,7 @@ python3 tasks/robocasa_world_model_posttraining/train.py \
 python3 tasks/robocasa_world_model_posttraining/eval_parallel.py \
   --checkpoint runs/autorobobench/robocasa_world_model_posttraining/<run>/policy_best.pt \
   --out runs/autorobobench/robocasa_world_model_posttraining/<run>/eval.json \
-  --eval-episodes-per-task 10 \
+  --eval-episodes-per-task 50 \
   --device cuda
 ```
 

@@ -40,16 +40,13 @@ python3 tasks/robocasa_bc5/train.py \
 ## Eval
 
 ```bash
-python3 tasks/robocasa_bc5/eval_parallel.py \
-  --manifest data/autorobobench/robocasa_bc1_manifest.json \
-  --split data/autorobobench/robocasa_bc1_splits.json \
-  --inference tasks.robocasa_bc1.inference \
+python3 tasks/robocasa_bc1/eval_parallel.py \
   --checkpoint runs/autorobobench/robocasa_bc1/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_bc1/<run>/eval_10.json \
-  --eval-episodes-per-task 10 \
+  --out runs/autorobobench/robocasa_bc1/<run>/eval_50.json \
+  --eval-episodes-per-task 50 \
   --max-steps 400 \
   --commit-steps 8 \
-  --workers 5 \
+  --workers 28 \
   --device cuda
 ```
 

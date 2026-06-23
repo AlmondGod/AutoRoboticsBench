@@ -7,7 +7,7 @@ edit eval files or split files for scored runs.
 
 - Optimize one policy for `PickPlaceCounterToMicrowave`.
 - Metric: final success plus subgoal progress.
-- Default eval: 10 episodes/task, max 750 steps, commit 8.
+- Default eval: 50 episodes/task, max 750 steps, commit 8.
 
 ## Train
 
@@ -24,7 +24,8 @@ python3 tasks/robocasa_long_horizon/train.py \
 ```bash
 python3 tasks/robocasa_long_horizon/eval.py \
   --checkpoint runs/autorobobench/robocasa_long_horizon/<run>/policy_best.pt \
-  --out runs/autorobobench/robocasa_long_horizon/<run>/eval_10_per_task.json \
+  --out runs/autorobobench/robocasa_long_horizon/<run>/eval_50_per_task.json \
+  --eval-episodes-per-task 50 \
   --device cuda
 ```
 
