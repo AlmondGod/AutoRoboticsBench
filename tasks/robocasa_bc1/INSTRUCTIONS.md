@@ -7,7 +7,10 @@ split files for scored runs.
 ## Task
 
 - Optimize one policy for `TurnOnSinkFaucet`.
-- Metric: single-task reliability. Report success out of 100.
+- Metric: primarily single-task reliability, reported out of 100. Task speed is
+  a secondary factor with much lower weight: faster successful eval episodes
+  help slightly, but an unsuccessful episode is never better than a successful
+  one.
 - Data: task-specific trajectories are allowed. Generic video-only pool is
   allowed for training only.
 - Test-time replay is banned. `inference.py` and the submitted checkpoint may
