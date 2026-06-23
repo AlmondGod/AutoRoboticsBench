@@ -16,6 +16,9 @@ if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
 
+# Benchmark rule: scored training has a fixed 5 minute loop cap. Do not overwrite or raise this.
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
+
 def ensure_robocasa_runtime() -> None:
     import json as _json
     import os as _os
@@ -106,7 +109,7 @@ def main() -> None:
     parser.add_argument("--chunk-horizon", type=int, default=16)
     parser.add_argument("--frame-stride", type=int, default=1)
     parser.add_argument("--eval-commit-steps", type=int, default=8)
-    parser.add_argument("--max-train-seconds", type=float, default=300.0)
+    parser.add_argument("--max-train-seconds", type=float, default=BENCHMARK_TRAIN_SECONDS_CAP)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--width", type=int, default=256)
     parser.add_argument("--dropout", type=float, default=0.03)
@@ -130,6 +133,8 @@ def main() -> None:
     args = parser.parse_args()
     if float(args.max_train_seconds) <= 0:
         raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
+    if float(args.max_train_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
 
     start_time = time.monotonic()
     rng = np.random.default_rng(int(args.seed))

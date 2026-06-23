@@ -22,6 +22,9 @@ if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
 
+# Benchmark rule: scored training has a fixed 5 minute loop cap. Do not overwrite or raise this.
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
+
 def ensure_robocasa_runtime() -> None:
     import json as _json
     import os as _os
@@ -288,7 +291,7 @@ def main() -> None:
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--chunk-horizon", type=int, default=16)
     parser.add_argument("--frame-stride", type=int, default=2)
-    parser.add_argument("--max-train-seconds", type=float, default=300.0)
+    parser.add_argument("--max-train-seconds", type=float, default=BENCHMARK_TRAIN_SECONDS_CAP)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--width", type=int, default=256)
     parser.add_argument("--dropout", type=float, default=0.05)
@@ -370,6 +373,8 @@ def main() -> None:
     args = parser.parse_args()
     if float(args.max_train_seconds) <= 0:
         raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
+    if float(args.max_train_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
 
     manifest = json.loads(Path(args.manifest).read_text())
     split = json.loads(Path(args.split).read_text())
@@ -608,6 +613,7 @@ def main() -> None:
         ).to(device)
     init_info = _load_init_checkpoint(model, str(args.init_checkpoint), device)
     freeze_info = _freeze_non_flow(model) if args.freeze_non_flow else _parameter_trainability(model)
+    training_budget_start = time.monotonic()
     pidm_metrics = _maybe_pidm_pretrain(
         model=model,
         manifest=manifest,
@@ -718,7 +724,7 @@ def main() -> None:
     best_val_loss = math.inf
     best_step = 0
     best_state: dict[str, torch.Tensor] | None = None
-    start_time = time.monotonic()
+    start_time = training_budget_start
 
     step = 0
     while True:

@@ -41,10 +41,31 @@ ensure_robocasa_runtime()
 
 from tasks.robocasa_bc5.train import main  # noqa: E402
 
+# Benchmark rule: scored training has a fixed 5 minute loop cap. Do not overwrite or raise this.
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
+
 
 def _default(flag: str, value: str) -> None:
     if flag not in sys.argv:
         sys.argv.extend([flag, value])
+
+
+def _fixed_train_cap() -> None:
+    value = _arg_value("--max-train-seconds")
+    if value is None:
+        sys.argv.extend(["--max-train-seconds", str(int(BENCHMARK_TRAIN_SECONDS_CAP))])
+        return
+    if float(value) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
+
+
+def _arg_value(flag: str) -> str | None:
+    for idx, arg in enumerate(sys.argv):
+        if arg == flag and idx + 1 < len(sys.argv):
+            return sys.argv[idx + 1]
+        if arg.startswith(f"{flag}="):
+            return arg.split("=", 1)[1]
+    return None
 
 
 if __name__ == "__main__":
@@ -55,7 +76,7 @@ if __name__ == "__main__":
     _default("--val-episodes-per-task", "10")
     _default("--chunk-horizon", "16")
     _default("--frame-stride", "1")
-    _default("--max-train-seconds", "300")
+    _fixed_train_cap()
     _default("--batch-size", "128")
     _default("--width", "256")
     _default("--dropout", "0.05")

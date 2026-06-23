@@ -16,6 +16,9 @@ if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
 
+# Benchmark rule: scored training has a fixed 5 minute loop cap. Do not overwrite or raise this.
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
+
 from tasks.robocasa_world_model.data import (
     DEFAULT_MANIFEST,
     DEFAULT_SPLIT,
@@ -66,7 +69,7 @@ def main() -> None:
     parser.add_argument("--val-episodes-per-task", type=int, default=5)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--frame-stride", type=int, default=1)
-    parser.add_argument("--max-train-seconds", type=float, default=300.0)
+    parser.add_argument("--max-train-seconds", type=float, default=BENCHMARK_TRAIN_SECONDS_CAP)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--width", type=int, default=512)
     parser.add_argument("--depth", type=int, default=4)
@@ -84,6 +87,8 @@ def main() -> None:
     args = parser.parse_args()
     if float(args.max_train_seconds) <= 0:
         raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
+    if float(args.max_train_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
 
     rng = np.random.default_rng(int(args.seed))
     torch.manual_seed(int(args.seed))

@@ -42,6 +42,8 @@ ensure_robocasa_runtime()
 
 FROZEN_MANIFEST = "data/autorobobench/robocasa_language_following_manifest.json"
 FROZEN_SPLIT = "data/autorobobench/robocasa_language_following_splits.json"
+# Benchmark rule: scored training has a fixed 5 minute loop cap. Do not overwrite or raise this.
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
 
 
 def main() -> None:
@@ -54,7 +56,7 @@ def main() -> None:
     _default("--vlm-encoder-name", "HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
     _default("--chunk-horizon", "16")
     _default("--frame-stride", "2")
-    _default("--max-train-seconds", "300")
+    _fixed_train_cap()
     _default("--batch-size", "64")
     _default("--width", "256")
     _default("--dropout", "0.03")
@@ -84,6 +86,24 @@ def _default(flag: str, value: str | None) -> None:
     sys.argv.append(flag)
     if value is not None:
         sys.argv.append(value)
+
+
+def _fixed_train_cap() -> None:
+    value = _arg_value("--max-train-seconds")
+    if value is None:
+        sys.argv.extend(["--max-train-seconds", str(int(BENCHMARK_TRAIN_SECONDS_CAP))])
+        return
+    if float(value) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
+
+
+def _arg_value(flag: str) -> str | None:
+    for idx, arg in enumerate(sys.argv):
+        if arg == flag and idx + 1 < len(sys.argv):
+            return sys.argv[idx + 1]
+        if arg.startswith(f"{flag}="):
+            return arg.split("=", 1)[1]
+    return None
 
 
 if __name__ == "__main__":

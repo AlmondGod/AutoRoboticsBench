@@ -17,6 +17,9 @@ if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
 
+# Benchmark rule: scored training has a fixed 5 minute loop cap. Do not overwrite or raise this.
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
+
 from tasks.robocasa_visual_world_model.model import ImageVAE, SpatialImageAutoencoder
 from tasks.robocasa_world_model.data import (
     DEFAULT_MANIFEST,
@@ -57,7 +60,7 @@ def main() -> None:
     parser.add_argument("--mse-weight", type=float, default=0.25)
     parser.add_argument("--grad-weight", type=float, default=0.5)
     parser.add_argument("--kl-weight", type=float, default=1e-7)
-    parser.add_argument("--max-train-seconds", type=float, default=1200.0)
+    parser.add_argument("--max-train-seconds", type=float, default=BENCHMARK_TRAIN_SECONDS_CAP)
     parser.add_argument("--eval-batches", type=int, default=0, help="0 evaluates the full validation set.")
     parser.add_argument("--lpips-batches", type=int, default=16)
     parser.add_argument("--preview-count", type=int, default=12)
@@ -66,6 +69,8 @@ def main() -> None:
     args = parser.parse_args()
     if float(args.max_train_seconds) <= 0:
         raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
+    if float(args.max_train_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
 
     rng = np.random.default_rng(int(args.seed))
     torch.manual_seed(int(args.seed))
