@@ -1,7 +1,7 @@
 {
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 50,
+    "eval_episodes_per_task": 100,
     "max_steps": 750
   },
   "eval": "tasks/robocasa_offlinerl_posttraining/eval.py",
@@ -12,7 +12,7 @@
   "default_reward_model_checkpoint": "data/autorobobench/pretrained_reward_models/robocasa_stand_mixer_reward_model.pt",
   "metrics": {
     "higher_is_better": true,
-    "primary": "offlinerl_final_success",
+    "primary": "success_rate",
     "secondary": [
       "success_rate"
     ]

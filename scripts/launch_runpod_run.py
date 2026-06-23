@@ -117,8 +117,17 @@ Instructions:
 - Put the final submission in /workspace/output/final_submission.
 - Do not access held-out eval data or modify eval code.
 - This mode is not clean Docker isolation; use it for RunPod development runs.
+- Do not queue up a batch of experiments to run unattended. Think through and run one experiment at a time.
+- For each experiment: state the hypothesis, make the smallest relevant change, train or run the check, inspect loss/eval output, then decide the next experiment from that result.
+- Build experiments cumulatively on this branch. If an experiment succeeds, commit the source changes before starting the next experiment so the next idea starts on top of the best branch state.
+- If an experiment fails or is worse, either discard that change or explicitly supersede it before moving on; do not let failed changes silently accumulate.
+- Every model-training command, including custom training loops and helper pretraining jobs, must be capped at 300 seconds or less. Do not raise or bypass task --max-train-seconds limits.
+- During active work, run an evaluator at least once per wall-clock hour. After each interim eval, append a checkpoint with:
+  python scripts/record_eval_checkpoint.py --run-id {run_id} --eval-json <eval.json> --label hourly
+- Scored/interim policy eval checkpoints should use 100 total rollouts: 100 per task for single-task tracks, 20 per task for BC5 five-task tracks, and 25 per variant for language following.
 - If you make tracked repo source changes that improve eval score, commit them on this branch with:
   python scripts/commit_improvement.py --run-id {run_id} --task {task}
+- If a change is only validated by task-relevant training/validation loss because eval is too expensive, record the evidence in the run log before committing.
 - If token/cost usage is available, write it to runs/{run_id}/run_usage.json with keys:
   input_tokens, output_tokens, reasoning_tokens, total_tokens, estimated_usd
 - Do not manually edit run_summary.json; finalization writes it.

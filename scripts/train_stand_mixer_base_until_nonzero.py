@@ -17,6 +17,7 @@ DEFAULT_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
 DEFAULT_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
 DEFAULT_OUT_ROOT = "runs/autorobobench/robocasa_stand_mixer_base"
 DEFAULT_PROMOTED = "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base"
+BENCHMARK_TRAIN_SECONDS_CAP = 300.0
 
 
 def main() -> int:
@@ -25,8 +26,13 @@ def main() -> int:
     parser.add_argument("--split", default=DEFAULT_SPLIT)
     parser.add_argument("--out-root", default=DEFAULT_OUT_ROOT)
     parser.add_argument("--promoted-dir", default=DEFAULT_PROMOTED)
-    parser.add_argument("--attempt-seconds", type=float, default=600.0)
-    parser.add_argument("--max-total-seconds", type=float, default=0.0, help="0 means keep trying until nonzero or interrupted.")
+    parser.add_argument("--attempt-seconds", type=float, default=BENCHMARK_TRAIN_SECONDS_CAP)
+    parser.add_argument(
+        "--max-total-seconds",
+        type=float,
+        default=BENCHMARK_TRAIN_SECONDS_CAP,
+        help="Total helper budget; capped at 300 seconds for benchmark consistency.",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-attempts", type=int, default=0, help="0 means unlimited attempts.")
     parser.add_argument("--policy-kind", choices=["bc", "flow", "sequence_flow"], default="bc")
@@ -46,13 +52,17 @@ def main() -> int:
     parser.add_argument("--progress-scale", type=float, default=750.0)
     parser.add_argument("--task-action-normalization", action="store_true")
     parser.add_argument("--balanced-sampling", action="store_true")
-    parser.add_argument("--eval-episodes-per-task", type=int, default=10)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=100)
     parser.add_argument("--eval-workers", type=int, default=5)
     parser.add_argument("--max-steps", type=int, default=750)
     parser.add_argument("--commit-steps", type=int, default=8)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    if float(args.attempt_seconds) <= 0 or float(args.attempt_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--attempt-seconds is fixed at 300 for benchmark runs and cannot be overwritten")
+    if float(args.max_total_seconds) <= 0 or float(args.max_total_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--max-total-seconds is fixed at 300 for benchmark runs and cannot be overwritten")
 
     started = time.monotonic()
     attempts = 0

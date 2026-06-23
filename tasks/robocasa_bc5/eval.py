@@ -62,7 +62,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=260)
     parser.add_argument("--commit-steps", type=int, default=16)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=50)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=20)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--render-dir", default="")
     parser.add_argument("--trace-dir", default="")
@@ -93,10 +93,9 @@ def main() -> None:
             continue
         manifest_task = manifest_tasks[alias]
         dataset_root = Path(manifest_task["dataset_path"])
-        episode_ids = list(split_task["eval_episode_ids"])
-        available_eval_episodes_per_task[alias] = len(episode_ids)
-        if args.eval_episodes_per_task > 0:
-            episode_ids = episode_ids[: int(args.eval_episodes_per_task)]
+        raw_episode_ids = list(split_task["eval_episode_ids"])
+        available_eval_episodes_per_task[alias] = len(raw_episode_ids)
+        episode_ids = _select_eval_episode_ids(raw_episode_ids, int(args.eval_episodes_per_task))
         successes = 0
         task_details = []
         task = {
@@ -126,6 +125,7 @@ def main() -> None:
                 "task_alias": alias,
                 "task_id": int(split_task["task_id"]),
                 "episode_id": int(episode_id),
+                "eval_local_idx": int(local_idx),
                 "success": bool(success),
                 "steps": int(steps),
             }
@@ -189,6 +189,16 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def _select_eval_episode_ids(episode_ids: list[int], requested: int) -> list[int]:
+    if requested <= 0:
+        return episode_ids
+    if requested <= len(episode_ids):
+        return episode_ids[:requested]
+    if not episode_ids:
+        return []
+    return [int(episode_ids[idx % len(episode_ids)]) for idx in range(requested)]
 
 
 def _rollout_episode(

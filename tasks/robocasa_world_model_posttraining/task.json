@@ -34,7 +34,7 @@
   "default_policy_checkpoint": "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt",
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 50,
+    "eval_episodes_per_task": 100,
     "max_steps": 750
   },
   "default_world_model_checkpoint": "data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt",

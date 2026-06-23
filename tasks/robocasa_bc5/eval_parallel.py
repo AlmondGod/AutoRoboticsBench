@@ -38,7 +38,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=260)
     parser.add_argument("--commit-steps", type=int, default=16)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=50)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=20)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--render-dir", default="")
     parser.add_argument("--trace-dir", default="")
@@ -194,9 +194,7 @@ def _episode_rows(split: dict, task_aliases: set[str], eval_episodes_per_task: i
         alias = split_task["alias"]
         if task_aliases and alias not in task_aliases:
             continue
-        episode_ids = list(split_task["eval_episode_ids"])
-        if eval_episodes_per_task > 0:
-            episode_ids = episode_ids[:eval_episodes_per_task]
+        episode_ids = _select_eval_episode_ids(list(split_task["eval_episode_ids"]), eval_episodes_per_task)
         for local_idx, episode_id in enumerate(episode_ids):
             row = {
                 "task_idx": int(task_idx),
@@ -206,7 +204,7 @@ def _episode_rows(split: dict, task_aliases: set[str], eval_episodes_per_task: i
                 "local_idx": int(local_idx),
             }
             rows.append(row)
-            order[(int(split_task["task_id"]), int(episode_id))] = ordinal
+            order[(int(split_task["task_id"]), int(episode_id), int(local_idx))] = ordinal
             ordinal += 1
     return rows, order
 
@@ -244,7 +242,12 @@ def _merge_results(
             }
         )
         details.extend(payload.get("details", []))
-    details.sort(key=lambda row: order.get((int(row["task_id"]), int(row["episode_id"])), 10**12))
+    details.sort(
+        key=lambda row: order.get(
+            (int(row["task_id"]), int(row["episode_id"]), int(row.get("eval_local_idx", 0))),
+            10**12,
+        )
+    )
 
     per_task = {}
     by_alias: dict[str, list[dict]] = defaultdict(list)
@@ -285,6 +288,16 @@ def _merge_results(
         "split_track": split.get("track"),
         "manifest_track": manifest.get("track"),
     }
+
+
+def _select_eval_episode_ids(episode_ids: list[int], requested: int) -> list[int]:
+    if requested <= 0:
+        return episode_ids
+    if requested <= len(episode_ids):
+        return episode_ids[:requested]
+    if not episode_ids:
+        return []
+    return [int(episode_ids[idx % len(episode_ids)]) for idx in range(requested)]
 
 
 if __name__ == "__main__":

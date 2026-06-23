@@ -72,6 +72,9 @@ from tasks.robocasa_bc5.model import (  # noqa: E402
     RoboCasaTemporalChunkBC,
 )
 
+FORBIDDEN_POLICY_TYPES = {"robocasa_bc5_trajectory_bank"}
+FORBIDDEN_REPLAY_KEYS = {"actions", "lengths", "task_ids", "episode_ids", "embeddings"}
+
 
 @dataclass
 class Policy:
@@ -100,20 +103,14 @@ def load_policy(checkpoint: str, device: str = "auto") -> Policy:
     """Load exactly one policy checkpoint for use across all BC-5 tasks."""
     torch_device = device_from_arg(device)
     payload = torch.load(Path(checkpoint), map_location=torch_device, weights_only=False)
-    if payload.get("policy_type") == "robocasa_bc5_trajectory_bank":
-        for key in ("actions", "lengths", "task_ids", "episode_ids", "embeddings"):
-            if key in payload:
-                payload[key] = _cpu_numpy(payload[key])
-        action_dim = int(np.asarray(payload["actions"]).shape[-1])
-        return Policy(
-            model=None,
-            checkpoint=payload,
-            device=torch_device,
-            action_mean=torch.zeros(action_dim, dtype=torch.float32, device=torch_device),
-            action_std=torch.ones(action_dim, dtype=torch.float32, device=torch_device),
-            proprio_mean=torch.zeros(1, dtype=torch.float32, device=torch_device),
-            proprio_std=torch.ones(1, dtype=torch.float32, device=torch_device),
-            mode="trajectory_bank",
+    policy_type = str(payload.get("policy_type", ""))
+    replay_keys = sorted(FORBIDDEN_REPLAY_KEYS.intersection(payload))
+    if policy_type in FORBIDDEN_POLICY_TYPES or replay_keys:
+        detail = f"policy_type={policy_type!r}, replay_keys={replay_keys}"
+        raise ValueError(
+            "BC5 inference forbids trajectory replay or stored per-episode "
+            f"action/data banks at eval time ({detail}). Submit learned model "
+            "weights/statistics only."
         )
     if payload.get("policy_type") == "autorobobench_robocasa_bc5_sequence_flow":
         model = RoboCasaSequenceFlowPolicy(
@@ -436,8 +433,6 @@ def act(policy: Policy, obs: dict, task: dict) -> np.ndarray:
     """
     device = policy.device
     task_id = int(task["task_id"])
-    if policy.mode == "trajectory_bank":
-        return _act_trajectory_bank(policy, obs, task_id)
     if task_id < 0 or task_id >= int(policy.checkpoint["task_count"]):
         raise ValueError(f"task_id={task_id} outside loaded policy task_count={policy.checkpoint['task_count']}")
     if policy.mode in {
@@ -653,70 +648,6 @@ def _tensor(checkpoint: dict, key: str, device: torch.device) -> torch.Tensor:
     if not isinstance(value, torch.Tensor):
         value = torch.as_tensor(value)
     return value.to(device=device, dtype=torch.float32)
-
-
-def _cpu_numpy(value: Any) -> np.ndarray:
-    if isinstance(value, torch.Tensor):
-        return value.detach().cpu().numpy()
-    return np.asarray(value)
-
-
-def _act_trajectory_bank(policy: Policy, obs: dict, task_id: int) -> np.ndarray:
-    episode_id = _current_eval_episode_id()
-    reset = (
-        policy.selected_bank is None
-        or policy.selected_task_id != task_id
-        or policy.cursor >= int(np.asarray(policy.checkpoint["actions"]).shape[1])
-        or (episode_id is not None and policy.selected_episode_id != int(episode_id))
-    )
-    if reset:
-        policy.selected_bank = _select_bank_trajectory(policy.checkpoint, obs, task_id)
-        policy.selected_task_id = task_id
-        policy.selected_episode_id = int(episode_id) if episode_id is not None else None
-        policy.cursor = 0
-    actions = np.asarray(policy.checkpoint["actions"], dtype=np.float32)
-    start = int(policy.cursor)
-    horizon = int(policy.checkpoint.get("eval_chunk", 16))
-    end = min(start + horizon, int(actions.shape[1]))
-    policy.cursor = end
-    return actions[int(policy.selected_bank), start:end].astype(np.float32)
-
-
-def _select_bank_trajectory(checkpoint: dict, obs: dict, task_id: int) -> int:
-    task_ids = np.asarray(checkpoint["task_ids"], dtype=np.int64)
-    candidates = np.flatnonzero(task_ids == task_id)
-    if len(candidates) == 0:
-        raise ValueError(f"trajectory bank has no candidates for task_id={task_id}")
-    if checkpoint.get("select_by_episode_id"):
-        episode_id = _current_eval_episode_id()
-        if episode_id is not None:
-            episode_ids = np.asarray(checkpoint["episode_ids"], dtype=np.int64)
-            exact = candidates[episode_ids[candidates] == int(episode_id)]
-            if len(exact):
-                return int(exact[0])
-
-    query = _obs_embedding(obs, str(checkpoint.get("embedding", "rgb16")))
-    embeddings = np.asarray(checkpoint["embeddings"], dtype=np.float32)
-    diff = embeddings[candidates] - query[None]
-    scores = np.mean(diff * diff, axis=1)
-    return int(candidates[int(np.argmin(scores))])
-
-
-def _obs_embedding(obs: dict, embedding: str) -> np.ndarray:
-    agent = np.asarray(obs["agent"], dtype=np.float32)
-    wrist = np.asarray(obs["wrist"], dtype=np.float32)
-    if embedding == "rgb8":
-        size = 8
-    else:
-        size = 16
-    from PIL import Image
-
-    parts = []
-    for image in (agent, wrist):
-        small = Image.fromarray(image.astype(np.uint8)).resize((size, size), Image.Resampling.BILINEAR)
-        arr = np.asarray(small, dtype=np.float32).reshape(-1) / 255.0
-        parts.append(arr)
-    return np.concatenate(parts).astype(np.float32)
 
 
 def _current_eval_episode_id() -> int | None:

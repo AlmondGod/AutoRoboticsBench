@@ -375,6 +375,10 @@ def main() -> None:
         raise ValueError("--max-train-seconds must be > 0; training is time-budgeted only")
     if float(args.max_train_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
         raise ValueError("--max-train-seconds is fixed at 300 for scored runs and cannot be overwritten")
+    if float(args.pidm_pretrain_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--pidm-pretrain-seconds is fixed at 300 for scored runs and cannot be overwritten")
+    if float(args.video_pretrain_seconds) > BENCHMARK_TRAIN_SECONDS_CAP:
+        raise ValueError("--video-pretrain-seconds is fixed at 300 for scored runs and cannot be overwritten")
 
     manifest = json.loads(Path(args.manifest).read_text())
     split = json.loads(Path(args.split).read_text())

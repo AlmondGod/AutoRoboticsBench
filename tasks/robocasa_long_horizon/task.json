@@ -17,25 +17,21 @@
     ],
     "notes": "Single-task long-horizon RoboCasa manipulation track for PickPlaceCounterToMicrowave.",
     "phase": 1,
-    "primary_metric": "hidden_final_success",
+    "primary_metric": "success_rate",
     "reference_metric": 0.55,
     "required_result_keys": [
-      "hidden_final_success",
-      "subgoal_progress",
-      "improvement_auc_over_budget",
-      "reproducibility_integrity"
+      "success_rate",
+      "episodes",
+      "successes"
     ],
     "score_weights": {
-      "hidden_final_success": 0.55,
-      "improvement_auc_over_budget": 0.1,
-      "reproducibility_integrity": 0.1,
-      "subgoal_progress": 0.25
+      "success_rate": 1.0
     },
     "starter_metric": 0.05
   },
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 50,
+    "eval_episodes_per_task": 100,
     "max_steps": 750
   },
   "default_train": {
@@ -55,7 +51,7 @@
   "inference": "tasks/robocasa_long_horizon/inference.py",
   "manifest": "data/autorobobench/robocasa_long_horizon_manifest.json",
   "metrics": {
-    "primary": "hidden_final_success",
+    "primary": "success_rate",
     "secondary": [
       "subgoal_progress",
       "improvement_auc_over_budget",

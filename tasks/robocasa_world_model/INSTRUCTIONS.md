@@ -3,6 +3,20 @@
 Write outputs under `runs/autorobobench/robocasa_reward_model/<run>/`. Do not
 edit eval files or split files for scored runs.
 
+## Iterative Research Protocol
+
+- Do not queue up a batch of experiments to run unattended.
+- Think of experiments one by one: state one hypothesis, make the smallest
+  relevant change, train or run the check, inspect loss/eval output, then choose
+  the next experiment from that result.
+- Build experiments cumulatively on the current per-run branch. When a source
+  change improves eval score or a task-relevant validation/loss signal, record
+  the evidence and commit it before starting the next experiment.
+- The next successful experiment should start on top of the previous successful
+  committed change. If a change fails or is worse, discard it or explicitly
+  supersede it before moving on.
+- Never merge an agent run branch to `main`.
+
 ## Task
 
 - Train a state/action reward model on BC5 transitions.
@@ -16,6 +30,23 @@ edit eval files or split files for scored runs.
 - This is not a policy rollout score. By default eval scores existing policy
   traces only; pass `--generate-missing-traces` for simulator/offline trace
   materialization.
+- Test-time inference may not read train/eval manifests, split files, datasets,
+  or video pools. `inference.py` may use only checkpoint weights/statistics plus
+  the current state/action inputs supplied by eval.
+
+## Things To Try
+
+- Scale width, depth, latent size, and regularization up or down.
+- Calibrate success probabilities and tune BCE versus progress loss weights.
+- Add hard negatives, failed rollouts, and out-of-distribution policy traces.
+- Use ensembles or uncertainty penalties for policy ranking.
+- Try contrastive or ranking losses to improve correlation with real eval
+  success.
+- Try transformer or residual dynamics heads, different activations, optimizers,
+  and schedules.
+- Tune training throughput and stability: batch size, gradient accumulation,
+  mixed precision (`bf16`, `fp16`, or `fp32`), `torch.compile`, dataloader
+  workers, caching/precompute, and checkpoint/eval cadence.
 
 ## Train
 
@@ -24,6 +55,7 @@ python3 tasks/robocasa_world_model/train.py \
   --manifest data/robocasa5/manifest.json \
   --split data/autorobobench/robocasa_bc5_splits.json \
   --out-dir runs/autorobobench/robocasa_reward_model/<run> \
+  --max-train-seconds 300 \
   --device cuda
 ```
 

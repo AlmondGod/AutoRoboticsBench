@@ -12,15 +12,15 @@ from pathlib import Path
 PRIMARY_SCORE_KEYS = (
     "score",
     "bc1_reliability_speed_score",
+    "visual_world_model_score",
+    "reward_model_benchmark_score",
+    "world_model_benchmark_score",
     "success_rate",
     "peak_final_success",
     "hidden_final_success",
     "video_transfer_success",
     "language_success_rate",
     "offlinerl_final_success",
-    "visual_world_model_score",
-    "reward_model_benchmark_score",
-    "world_model_benchmark_score",
 )
 
 

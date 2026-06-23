@@ -17,25 +17,21 @@
     ],
     "notes": "Language-conditioned ChooseMeasuringCup track over four prompt variants: left/right drawer and larger/smaller cup.",
     "phase": 1,
-    "primary_metric": "language_success_rate",
+    "primary_metric": "success_rate",
     "reference_metric": 0.75,
     "required_result_keys": [
-      "language_success_rate",
-      "conditioning_gap",
-      "language_variant_balance",
-      "reproducibility_integrity"
+      "success_rate",
+      "episodes",
+      "successes"
     ],
     "score_weights": {
-      "conditioning_gap": 0.3,
-      "language_success_rate": 0.55,
-      "language_variant_balance": 0.1,
-      "reproducibility_integrity": 0.05
+      "success_rate": 1.0
     },
     "starter_metric": 0.0
   },
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 3,
+    "eval_episodes_per_task": 25,
     "max_steps": 900
   },
   "eval": "tasks/robocasa_language_following/eval.py",
@@ -43,7 +39,7 @@
   "inference": "tasks/robocasa_language_following/inference.py",
   "manifest": "data/autorobobench/robocasa_language_following_manifest.json",
   "metrics": {
-    "primary": "language_success_rate",
+    "primary": "success_rate",
     "secondary": [
       "success_rate",
       "wrong_language_success_rate",
@@ -65,7 +61,7 @@
   "train": "tasks/robocasa_language_following/train.py",
   "train_contract": {
     "action_dim": 12,
-    "eval_demos_per_variant": 3,
+    "eval_demos_per_variant": 25,
     "language_backbone": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
     "policy_family": "frozen SmolVLM + flow action head",
     "robocasa_task": "ChooseMeasuringCup",

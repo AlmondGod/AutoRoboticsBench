@@ -18,6 +18,7 @@ def main() -> None:
     _default("--inference", "tasks.robocasa_world_model_posttraining.inference")
     _default("--max-steps", "750")
     _default("--commit-steps", "8")
+    _default("--eval-episodes-per-task", "100")
 
     from tasks.robocasa_bc5.eval_parallel import main as robocasa_eval_parallel_main
 

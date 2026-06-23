@@ -22,6 +22,7 @@ def main() -> None:
     _default("--split", FROZEN_SPLIT)
     _default("--max-steps", "750")
     _default("--commit-steps", "8")
+    _default("--eval-episodes-per-task", "100")
     if not any(arg == "--inference" or arg.startswith("--inference=") for arg in sys.argv):
         sys.argv.extend(["--inference", "tasks.robocasa_offlinerl_posttraining.inference"])
     robocasa_bc5_eval_main()

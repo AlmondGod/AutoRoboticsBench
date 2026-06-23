@@ -66,7 +66,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=900)
     parser.add_argument("--commit-steps", type=int, default=8)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=3)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=25)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--skip-conditioning-gap", action="store_true")
     parser.add_argument("--render-dir", default="")
@@ -106,9 +106,10 @@ def main() -> None:
             continue
         manifest_task = manifest_tasks[alias]
         dataset_root = Path(manifest_task["dataset_path"])
-        episode_ids = list(split_task["eval_episode_ids"])
-        if args.eval_episodes_per_task > 0:
-            episode_ids = episode_ids[: int(args.eval_episodes_per_task)]
+        episode_ids = _select_eval_episode_ids(
+            list(split_task["eval_episode_ids"]),
+            int(args.eval_episodes_per_task),
+        )
 
         correct_rows = _eval_condition(
             condition_name="correct_language",
@@ -254,6 +255,7 @@ def _eval_condition(
             "conditioning_task_id": int(conditioning_task["task_id"]),
             "condition": condition_name,
             "episode_id": int(episode_id),
+            "eval_local_idx": int(local_idx),
             "success": bool(success),
             "steps": int(steps),
         }
@@ -295,6 +297,16 @@ def _summarize_rows(rows: list[dict]) -> dict:
 
 def _success_rate(rows: list[dict]) -> float:
     return sum(int(row["success"]) for row in rows) / max(1, len(rows))
+
+
+def _select_eval_episode_ids(episode_ids: list[int], requested: int) -> list[int]:
+    if requested <= 0:
+        return episode_ids
+    if requested <= len(episode_ids):
+        return episode_ids[:requested]
+    if not episode_ids:
+        return []
+    return [int(episode_ids[idx % len(episode_ids)]) for idx in range(requested)]
 
 
 if __name__ == "__main__":

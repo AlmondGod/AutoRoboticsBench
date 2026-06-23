@@ -202,6 +202,30 @@ available, write it before finalization to `runs/<RUN_ID>/run_usage.json`:
 }
 ```
 
+Agents must not queue up a batch of experiments to run unattended. The intended
+research loop is one experiment at a time: state one hypothesis, make the
+smallest relevant change, train or run the check, inspect loss/eval output, and
+then choose the next experiment from that result. Experiments are cumulative on
+the per-run branch. When a source change improves eval score or a task-relevant
+validation/loss signal, record the evidence and commit it before starting the
+next experiment so the next idea starts on top of the best branch state. If a
+change fails or is worse, discard it or explicitly supersede it before moving
+on.
+
+Every model-training command, including custom training loops and helper
+pretraining jobs, must remain capped at 300 seconds or less. During active
+work, run an evaluator at least once per wall-clock hour and append the result
+to `runs/<RUN_ID>/timing.jsonl`. Policy eval checkpoints use 100 total rollouts:
+100 for single-task tracks, 20 per task for BC5 five-task tracks, and 25 per
+variant for language following.
+
+```bash
+python scripts/record_eval_checkpoint.py \
+  --run-id <RUN_ID> \
+  --eval-json runs/<RUN_ID>/path/to/interim_eval.json \
+  --label hourly
+```
+
 Each agent run branch contains only source changes; `runs/` is ignored and
 stays local to the worktree or pod. For a local multi-run comparison, return to
 a clean `main` checkout before preparing the next run, but keep the `runs/`
@@ -244,7 +268,7 @@ The counted `autorobobench_v0` task packages are:
 
 | Track | Package | Main RoboCasa task/data | Evaluation metric |
 | --- | --- | --- | --- |
-| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` | `bc1_reliability_speed_score`: eval success plus a small speed bonus on successful episodes only |
+| RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnFaucet` (`TurnOnSinkFaucet`) | `bc1_reliability_speed_score`: eval success plus a small speed bonus on successful episodes only |
 | Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction | `visual_world_model_score`: fixed-policy eval correlation plus pixel/state/progress/reward prediction |
 | World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | Eval rollout success rate |
 
@@ -256,8 +280,8 @@ Optional extra task packages are:
 | Long-Horizon Microwave | `tasks/robocasa_long_horizon/` | `PickPlaceCounterToMicrowave` | Eval success on the long-horizon task |
 | RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool | Mean eval success across BC-5 tasks |
 | RoboCasa Reward Model | `tasks/robocasa_world_model/` | BC-5/StandMixer transition reward and policy-ranking model | `reward_model_benchmark_score`: policy ranking/calibration plus reward/progress prediction |
-| RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants | Language-conditioned eval success |
-| Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | `offlinerl_final_success`: eval rollout success after posttraining |
+| RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants | `success_rate`: eval success under the correct language prompt |
+| Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | `success_rate`: eval rollout success after posttraining |
 
 Each task owns its `setup.py`, `train.py`, `inference.py`, `eval.py`,
 `visualize.py`, `task.json`, and `INSTRUCTIONS.md`. Visualizers write compact
@@ -307,7 +331,7 @@ python tasks/robocasa_bc5_with_video/train.py --max-train-seconds 300
 StandMixer base policy for posttraining tasks:
 
 ```bash
-python scripts/train_stand_mixer_base_until_nonzero.py --attempt-seconds 3600 --device cuda
+python scripts/train_stand_mixer_base_until_nonzero.py --attempt-seconds 300 --device cuda
 ```
 
 The shared default path for the two StandMixer posttraining tasks is

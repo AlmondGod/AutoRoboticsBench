@@ -19,25 +19,21 @@
     ],
     "notes": "Scarce-action transfer track using five paired demos per task plus an RGB-only RoboCasa video pool.",
     "phase": 1,
-    "primary_metric": "video_transfer_success",
+    "primary_metric": "success_rate",
     "reference_metric": 0.35,
     "required_result_keys": [
-      "video_transfer_success",
-      "paired_action_efficiency",
-      "data_budget_integrity",
-      "reproducibility_integrity"
+      "success_rate",
+      "episodes",
+      "successes"
     ],
     "score_weights": {
-      "data_budget_integrity": 0.15,
-      "normalized_primary_progress": 0.55,
-      "paired_action_efficiency": 0.2,
-      "reproducibility_integrity": 0.1
+      "success_rate": 1.0
     },
     "starter_metric": 0.05
   },
   "default_eval": {
     "commit_steps": 16,
-    "eval_episodes_per_task": 50,
+    "eval_episodes_per_task": 20,
     "max_steps": 260
   },
   "eval": "tasks/robocasa_bc5_with_video/eval.py",
@@ -46,7 +42,7 @@
   "inference": "tasks/robocasa_bc5_with_video/inference.py",
   "manifest": "data/robocasa5/manifest.json",
   "metrics": {
-    "primary": "video_transfer_success",
+    "primary": "success_rate",
     "secondary": [
       "success_rate",
       "paired_action_efficiency",

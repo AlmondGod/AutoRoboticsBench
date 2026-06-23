@@ -64,6 +64,12 @@
     "visual_weight": 1.0,
     "image_augment": 0.15
   },
+  "input_contract": {
+    "condition_on_current_progress": false,
+    "condition_on_task_id": false,
+    "current_progress_is_label_only": true,
+    "task_id_is_metadata_only": true
+  },
   "eval": "tasks/robocasa_visual_world_model/eval.py",
   "id": "robocasa_visual_world_model",
   "inference": "tasks/robocasa_visual_world_model/inference.py",

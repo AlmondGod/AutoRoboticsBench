@@ -58,7 +58,7 @@ def main() -> None:
     parser.add_argument("--camera", default="robot0_agentview_center")
     parser.add_argument("--max-steps", type=int, default=750)
     parser.add_argument("--commit-steps", type=int, default=8)
-    parser.add_argument("--eval-episodes-per-task", type=int, default=50)
+    parser.add_argument("--eval-episodes-per-task", type=int, default=100)
     parser.add_argument("--task-alias", action="append", default=[])
     parser.add_argument("--render-dir", default="")
     parser.add_argument("--trace-dir", default="")
@@ -89,9 +89,10 @@ def main() -> None:
             continue
         manifest_task = manifest_tasks[alias]
         dataset_root = Path(manifest_task["dataset_path"])
-        episode_ids = list(split_task["eval_episode_ids"])
-        if args.eval_episodes_per_task > 0:
-            episode_ids = episode_ids[: int(args.eval_episodes_per_task)]
+        episode_ids = _select_eval_episode_ids(
+            list(split_task["eval_episode_ids"]),
+            int(args.eval_episodes_per_task),
+        )
         successes = 0
         subgoal_progress = 0.0
         task_details = []
@@ -123,6 +124,7 @@ def main() -> None:
                 "task_alias": alias,
                 "task_id": int(split_task["task_id"]),
                 "episode_id": int(episode_id),
+                "eval_local_idx": int(local_idx),
                 "success": bool(success),
                 "steps": int(steps),
                 "subgoal_progress": float(progress),
@@ -194,6 +196,16 @@ def _episode_progress(*, success: bool, steps: int, max_steps: int) -> float:
     # Without public per-task subgoal predicates, expose a bounded partial-credit
     # proxy so result JSONs carry the suite's expected metric key.
     return 0.25 * max(0.0, 1.0 - float(steps) / max(1.0, float(max_steps)))
+
+
+def _select_eval_episode_ids(episode_ids: list[int], requested: int) -> list[int]:
+    if requested <= 0:
+        return episode_ids
+    if requested <= len(episode_ids):
+        return episode_ids[:requested]
+    if not episode_ids:
+        return []
+    return [int(episode_ids[idx % len(episode_ids)]) for idx in range(requested)]
 
 
 if __name__ == "__main__":

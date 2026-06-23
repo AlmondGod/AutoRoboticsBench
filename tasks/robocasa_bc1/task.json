@@ -1,7 +1,7 @@
 {
   "default_eval": {
     "commit_steps": 8,
-    "eval_episodes_per_task": 50,
+    "eval_episodes_per_task": 100,
     "max_steps": 750
   },
   "eval": "tasks/robocasa_bc1/eval.py",
@@ -34,18 +34,19 @@
   "reference_metric": 0.98,
   "setup": "tasks/robocasa_bc1/setup.py",
   "split": "data/autorobobench/robocasa_bc1_splits.json",
-  "starter_metric": 0.25,
+  "starter_metric": 0.6,
   "train": "tasks/robocasa_bc1/train.py",
   "train_contract": {
     "all_target_trajectory_data_available": true,
-    "base_policy": "current_robocasa_bc5_base",
+    "base_policy": "robocasa_faucet_direct_bc_all_data_5min_seed0",
     "default_train_time_limit_seconds": 300,
     "eval_code_mutable": false,
     "eval_tasks": 1,
     "generic_video_only_tasks": 9,
     "generic_video_pool_contains_target_task": false,
     "single_model": true,
-    "target_task": "TurnOnSinkFaucet",
+    "target_task": "TurnOnFaucet",
+    "robocasa_task_alias": "TurnOnSinkFaucet",
     "task_specific_action_demos": 107,
     "test_time_demo_access": false,
     "train_tasks": 1,
