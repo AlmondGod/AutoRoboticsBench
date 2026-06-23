@@ -30,7 +30,7 @@ docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 docker run --rm \
   --name "${CONTAINER_NAME}" \
   --network none \
-  -v "${REPO_ROOT}/read_only:/workspace/read_only:ro" \
+  -v "${REPO_ROOT}/benchmark_harness:/workspace/read_only:ro" \
   -v "${SUBMISSION_DIR}:/workspace/final_submission:ro" \
   -v "${EVAL_DIR}:/workspace/eval" \
   "${IMAGE_NAME}" \

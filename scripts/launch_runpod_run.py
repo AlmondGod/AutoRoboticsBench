@@ -177,7 +177,7 @@ def main() -> int:
     link_workspace_path(workspace_root / "task", task_dir)
     link_workspace_path(workspace_root / "output", output_dir)
     link_workspace_path(workspace_root / "logs", logs_dir)
-    link_workspace_path(workspace_root / "read_only", repo_root / "read_only")
+    link_workspace_path(workspace_root / "read_only", repo_root / "benchmark_harness")
 
     prompt = build_prompt(
         run_id,

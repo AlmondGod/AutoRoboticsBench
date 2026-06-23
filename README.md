@@ -8,7 +8,7 @@ The source tree is intentionally small:
 - `setup.py`: universal installer/verifier, generated metadata writer, scorer, and hasher
 - `tasks/`: task-owned setup, train, inference, eval, visualize, model, and instruction files
 - `data/`: local generated benchmark metadata plus shipped pretrained policy artifacts
-- `docs/`: task descriptions and baseline notes
+- `benchmark_harness/`: read-only eval harness mounted for agents as `/workspace/read_only`
 
 `configs/`, `examples/`, repo-level `models/`, repo-level `train/`, and the
 `autorobobench` Python package were removed. Task implementations own their

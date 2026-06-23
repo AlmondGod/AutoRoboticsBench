@@ -22,7 +22,7 @@ def main() -> int:
 
     cmd = [
         sys.executable,
-        str(repo_root / "read_only" / "eval" / "evaluate_submission.py"),
+        str(repo_root / "benchmark_harness" / "eval" / "evaluate_submission.py"),
         "--task",
         args.task,
         "--submission",
