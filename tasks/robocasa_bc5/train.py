@@ -355,6 +355,13 @@ def main() -> None:
         default="temporal_infonce",
     )
     parser.add_argument("--video-latent-dynamics-weight", type=float, default=1.0)
+    parser.add_argument("--pidm-pretrain-seconds", type=float, default=0.0)
+    parser.add_argument("--pidm-video-episodes-per-task", type=int, default=0)
+    parser.add_argument("--pidm-batch-size", type=int, default=128)
+    parser.add_argument("--pidm-lr", type=float, default=3e-4)
+    parser.add_argument("--pidm-gap", type=int, default=4)
+    parser.add_argument("--pidm-action-weight", type=float, default=1.0)
+    parser.add_argument("--pidm-latent-weight", type=float, default=1.0)
     parser.add_argument("--vpt-idm-seconds", type=float, default=0.0)
     parser.add_argument("--vpt-pseudo-episodes-per-task", type=int, default=0)
     parser.add_argument("--vpt-idm-batch-size", type=int, default=128)
@@ -601,6 +608,22 @@ def main() -> None:
         ).to(device)
     init_info = _load_init_checkpoint(model, str(args.init_checkpoint), device)
     freeze_info = _freeze_non_flow(model) if args.freeze_non_flow else _parameter_trainability(model)
+    pidm_metrics = _maybe_pidm_pretrain(
+        model=model,
+        manifest=manifest,
+        split=split,
+        video_pool_path=Path(args.video_pool) if args.video_pool else None,
+        task_aliases=task_aliases,
+        max_train_seconds=float(args.pidm_pretrain_seconds),
+        video_episodes_per_task=int(args.pidm_video_episodes_per_task),
+        batch_size=int(args.pidm_batch_size),
+        gap=int(args.pidm_gap),
+        lr=float(args.pidm_lr),
+        action_weight=float(args.pidm_action_weight),
+        latent_weight=float(args.pidm_latent_weight),
+        seed=int(args.seed),
+        device=device,
+    )
     video_pretrain_metrics = _maybe_video_pretrain(
         model=model,
         manifest=manifest,
@@ -933,6 +956,7 @@ def main() -> None:
         "init_info": init_info,
         "freeze_non_flow": bool(args.freeze_non_flow),
         "freeze_info": freeze_info,
+        "pidm_pretrain": pidm_metrics,
         "video_pretrain_objective": str(args.video_pretrain_objective),
         "video_latent_dynamics_weight": float(args.video_latent_dynamics_weight),
         "video_pretrain": video_pretrain_metrics,
@@ -1001,6 +1025,7 @@ def main() -> None:
         "init_info": init_info,
         "freeze_non_flow": bool(args.freeze_non_flow),
         "freeze_info": freeze_info,
+        "pidm_pretrain": pidm_metrics,
         "video_pretrain_objective": str(args.video_pretrain_objective),
         "video_latent_dynamics_weight": float(args.video_latent_dynamics_weight),
         "video_pretrain": video_pretrain_metrics,
@@ -1137,6 +1162,166 @@ def _maybe_add_vpt_pseudo_labels(
         "pseudo_samples": int(len(pseudo)),
         "pseudo_weight": float(pseudo_weight),
         "pseudo_summary": pseudo_summary,
+        "seconds": float(time.monotonic() - start_time),
+    }
+
+
+def _maybe_pidm_pretrain(
+    *,
+    model: nn.Module,
+    manifest: dict,
+    split: dict,
+    video_pool_path: Path | None,
+    task_aliases: set[str],
+    max_train_seconds: float,
+    video_episodes_per_task: int,
+    batch_size: int,
+    gap: int,
+    lr: float,
+    action_weight: float,
+    latent_weight: float,
+    seed: int,
+    device: torch.device,
+) -> dict:
+    if max_train_seconds <= 0:
+        return {"enabled": False, "steps_completed": 0}
+    if not hasattr(model, "vision") and not hasattr(model, "image"):
+        return {"enabled": False, "steps_completed": 0, "reason": "model has no image encoder"}
+    in_channels = _first_conv_in_channels(_image_encoder(model))
+    if in_channels != 6:
+        return {
+            "enabled": False,
+            "steps_completed": 0,
+            "reason": f"PIDM pretrain expects 6-channel encoder, got {in_channels}",
+        }
+
+    idm_data, idm_summary = _load_idm_supervised_samples(manifest, split, task_aliases=task_aliases)
+    if len(idm_data["actions"]) == 0:
+        return {"enabled": False, "steps_completed": 0, "reason": "no paired inverse-dynamics samples"}
+    video_samples, video_summary = _load_video_transition_samples(
+        manifest,
+        split,
+        video_pool_path=video_pool_path,
+        task_aliases=task_aliases,
+        episodes_per_task=video_episodes_per_task,
+        gap=max(1, gap),
+    )
+    if len(video_samples["agent_t"]) == 0:
+        return {"enabled": False, "steps_completed": 0, "reason": "no video transitions"}
+
+    width = _encoder_width(model)
+    action_dim = int(idm_data["actions"].shape[-1])
+    task_count = max(
+        1,
+        int(
+            max(
+                idm_data["task_id"].max(initial=0),
+                video_samples["task_id"].max(initial=0),
+                max(int(task["task_id"]) for task in split["tasks"]),
+            )
+            + 1
+        ),
+    )
+    task_emb = nn.Embedding(task_count, 32).to(device)
+    action_head = nn.Sequential(
+        nn.Linear(2 * width + 32, 2 * width),
+        nn.SiLU(),
+        nn.Linear(2 * width, action_dim),
+    ).to(device)
+    latent_predictor = nn.Sequential(
+        nn.Linear(width + 32, width),
+        nn.SiLU(),
+        nn.Linear(width, width),
+    ).to(device)
+    params = (
+        list(_image_encoder(model).parameters())
+        + list(task_emb.parameters())
+        + list(action_head.parameters())
+        + list(latent_predictor.parameters())
+    )
+    opt = torch.optim.AdamW(params, lr=lr, weight_decay=1e-4)
+    rng = np.random.default_rng(seed + 43)
+    history: list[dict] = []
+    start_time = time.monotonic()
+    step = 0
+    while True:
+        if time.monotonic() - start_time >= float(max_train_seconds):
+            break
+        step += 1
+        idm_idx = rng.integers(0, len(idm_data["actions"]), size=batch_size)
+        idm_batch = _idm_batch(idm_data, idm_idx, device)
+        z_t = _encode_video_pair(
+            model,
+            idm_batch["agent_t"] / 255.0,
+            idm_batch["wrist_t"] / 255.0,
+        )
+        z_tp1 = _encode_video_pair(
+            model,
+            idm_batch["agent_tp1"] / 255.0,
+            idm_batch["wrist_tp1"] / 255.0,
+        )
+        task = task_emb(idm_batch["task_id"].clamp_max(task_count - 1))
+        pred_action = action_head(torch.cat([z_t, z_tp1, task], dim=-1))
+        action_loss = F.mse_loss(pred_action, idm_batch["actions"])
+
+        video_idx = rng.integers(0, len(video_samples["agent_t"]), size=batch_size)
+        agent_t = torch.as_tensor(video_samples["agent_t"][video_idx], dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
+        wrist_t = torch.as_tensor(video_samples["wrist_t"][video_idx], dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
+        agent_tp1 = torch.as_tensor(video_samples["agent_tp1"][video_idx], dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
+        wrist_tp1 = torch.as_tensor(video_samples["wrist_tp1"][video_idx], dtype=torch.float32, device=device).permute(0, 3, 1, 2) / 255.0
+        z_video_t = _encode_video_pair(model, agent_t, wrist_t)
+        with torch.no_grad():
+            z_video_tp1 = F.normalize(_encode_video_pair(model, agent_tp1, wrist_tp1), dim=-1)
+        video_task_id = torch.as_tensor(
+            video_samples["task_id"][video_idx],
+            dtype=torch.long,
+            device=device,
+        ).clamp_max(task_count - 1)
+        pred_latent = F.normalize(
+            latent_predictor(torch.cat([z_video_t, task_emb(video_task_id)], dim=-1)),
+            dim=-1,
+        )
+        latent_loss = F.mse_loss(pred_latent, z_video_tp1)
+        loss = float(action_weight) * action_loss + float(latent_weight) * latent_loss
+
+        opt.zero_grad()
+        loss.backward()
+        nn.utils.clip_grad_norm_(params, 1.0)
+        opt.step()
+        if step == 1 or step % 25 == 0:
+            row = {
+                "step": int(step),
+                "pidm_loss": float(loss.detach().cpu()),
+                "pidm_action_mse": float(action_loss.detach().cpu()),
+                "pidm_latent_mse": float(latent_loss.detach().cpu()),
+                "elapsed_seconds": float(time.monotonic() - start_time),
+            }
+            history.append(row)
+            print(
+                "pidm step={step} loss={loss:.6f} action={action:.6f} latent={latent:.6f}".format(
+                    step=step,
+                    loss=row["pidm_loss"],
+                    action=row["pidm_action_mse"],
+                    latent=row["pidm_latent_mse"],
+                ),
+                flush=True,
+            )
+    return {
+        "enabled": True,
+        "method": "future_visual_latent_plus_inverse_dynamics",
+        "max_train_seconds": float(max_train_seconds),
+        "steps_completed": int(step),
+        "paired_samples": int(len(idm_data["actions"])),
+        "video_samples": int(len(video_samples["agent_t"])),
+        "video_episodes_per_task": int(video_episodes_per_task),
+        "batch_size": int(batch_size),
+        "gap": int(gap),
+        "lr": float(lr),
+        "action_weight": float(action_weight),
+        "latent_weight": float(latent_weight),
+        "idm_summary": idm_summary,
+        "video_summary": video_summary,
+        "history": history,
         "seconds": float(time.monotonic() - start_time),
     }
 
@@ -1510,6 +1695,7 @@ def _load_video_transition_samples(
         "wrist_t": [],
         "agent_tp1": [],
         "wrist_tp1": [],
+        "task_id": [],
     }
     summary: list[dict] = []
     for split_task in split["tasks"]:
@@ -1537,6 +1723,7 @@ def _load_video_transition_samples(
             parts["wrist_t"].append(wrist[starts])
             parts["agent_tp1"].append(agent[starts + gap])
             parts["wrist_tp1"].append(wrist[starts + gap])
+            parts["task_id"].append(np.full((len(starts),), int(split_task["task_id"]), dtype=np.int64))
             transition_count += len(starts)
         summary.append(
             {
@@ -1570,6 +1757,7 @@ def _load_video_transition_samples(
                 parts["wrist_t"].append(wrist[starts])
                 parts["agent_tp1"].append(agent[starts + gap])
                 parts["wrist_tp1"].append(wrist[starts + gap])
+                parts["task_id"].append(np.full((len(starts),), int(task.get("task_id", 0)), dtype=np.int64))
                 transition_count += len(starts)
             summary.append(
                 {
@@ -1581,10 +1769,14 @@ def _load_video_transition_samples(
                 }
             )
             print(f"loaded video-only {alias}: episodes={video_ids} transitions={transition_count}", flush=True)
-    out = {
-        key: np.concatenate(value, axis=0) if value else np.zeros((0, 64, 64, 3), dtype=np.uint8)
-        for key, value in parts.items()
-    }
+    out = {}
+    for key, value in parts.items():
+        if value:
+            out[key] = np.concatenate(value, axis=0)
+        elif key == "task_id":
+            out[key] = np.zeros((0,), dtype=np.int64)
+        else:
+            out[key] = np.zeros((0, 64, 64, 3), dtype=np.uint8)
     return out, summary
 
 
