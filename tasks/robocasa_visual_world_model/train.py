@@ -40,6 +40,32 @@ def device_from_arg(name: str):
     return torch.device(name)
 
 
+def _load_pretrained_autoencoder_payload(path: str) -> dict | None:
+    if not path:
+        return None
+    payload = torch.load(Path(path), map_location="cpu", weights_only=False)
+    if "image_vae" not in payload or "config" not in payload:
+        raise ValueError(f"{path} is not a frame autoencoder checkpoint")
+    return payload
+
+
+def _apply_pretrained_autoencoder_config(args: argparse.Namespace, payload: dict) -> None:
+    cfg = payload["config"]
+    args.visual_architecture = str(cfg.get("architecture", args.visual_architecture))
+    args.image_size = int(cfg.get("image_size", args.image_size))
+    args.visual_latent_dim = int(cfg.get("visual_latent_dim", args.visual_latent_dim))
+    args.visual_encoder_pool_size = int(cfg.get("visual_encoder_pool_size", args.visual_encoder_pool_size))
+    args.visual_decoder_width = int(cfg.get("visual_decoder_width", args.visual_decoder_width))
+    args.visual_decoder_depth = int(cfg.get("visual_decoder_depth", args.visual_decoder_depth))
+    args.spatial_latent_channels = int(cfg.get("spatial_latent_channels", args.spatial_latent_channels))
+    args.spatial_width = int(cfg.get("spatial_width", args.spatial_width))
+    args.spatial_depth = int(cfg.get("spatial_depth", args.spatial_depth))
+    args.spatial_downsample_blocks = int(cfg.get("spatial_downsample_blocks", args.spatial_downsample_blocks))
+    if args.visual_architecture == "spatial":
+        spatial_hw = int(args.image_size) // (2 ** int(args.spatial_downsample_blocks))
+        args.visual_latent_dim = int(args.spatial_latent_channels) * spatial_hw * spatial_hw
+
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train a visually grounded RoboCasa world model.")
@@ -59,8 +85,20 @@ def main() -> None:
     parser.add_argument("--task-dim", type=int, default=64)
     parser.add_argument("--latent-dim", type=int, default=64)
     parser.add_argument("--visual-latent-dim", type=int, default=128)
+    parser.add_argument("--visual-encoder-pool-size", type=int, default=1)
     parser.add_argument("--visual-decoder-width", type=int, default=512)
     parser.add_argument("--visual-decoder-depth", type=int, default=3)
+    parser.add_argument("--visual-architecture", choices=["vae", "spatial"], default="vae")
+    parser.add_argument("--spatial-latent-channels", type=int, default=128)
+    parser.add_argument("--spatial-width", type=int, default=128)
+    parser.add_argument("--spatial-depth", type=int, default=2)
+    parser.add_argument("--spatial-downsample-blocks", type=int, default=2)
+    parser.add_argument("--spatial-dynamics-type", choices=["mlp", "conv"], default="conv")
+    parser.add_argument("--spatial-dynamics-depth", type=int, default=4)
+    parser.add_argument("--spatial-dynamics-hidden-channels", type=int, default=0)
+    parser.add_argument("--pretrained-image-autoencoder", default="")
+    parser.add_argument("--freeze-image-autoencoder", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--visual-delta-prediction", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--dropout", type=float, default=0.05)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--visual-lr-scale", type=float, default=0.5)
@@ -71,6 +109,11 @@ def main() -> None:
     parser.add_argument("--visual-weight", type=float, default=1.0)
     parser.add_argument("--image-vae-weight", type=float, default=0.25)
     parser.add_argument("--visual-latent-weight", type=float, default=0.5)
+    parser.add_argument("--visual-l1-weight", type=float, default=0.25)
+    parser.add_argument("--visual-grad-weight", type=float, default=0.10)
+    parser.add_argument("--image-vae-l1-weight", type=float, default=1.0)
+    parser.add_argument("--image-vae-mse-weight", type=float, default=0.25)
+    parser.add_argument("--image-vae-grad-weight", type=float, default=0.25)
     parser.add_argument("--image-augment", type=float, default=0.15)
     parser.add_argument("--rollout-horizon", type=int, default=4)
     parser.add_argument("--rollout-batch-size", type=int, default=128)
@@ -91,6 +134,11 @@ def main() -> None:
     rng = np.random.default_rng(int(args.seed))
     torch.manual_seed(int(args.seed))
     device = device_from_arg(str(args.device))
+    autoencoder_payload = _load_pretrained_autoencoder_payload(str(args.pretrained_image_autoencoder))
+    if autoencoder_payload is not None:
+        _apply_pretrained_autoencoder_config(args, autoencoder_payload)
+    if args.freeze_image_autoencoder is None:
+        args.freeze_image_autoencoder = autoencoder_payload is not None
     train_raw, val_raw, summary = load_transition_data(
         manifest_path=args.manifest,
         split_path=args.split,
@@ -115,12 +163,39 @@ def main() -> None:
         task_dim=int(args.task_dim),
         latent_dim=int(args.latent_dim),
         visual_latent_dim=int(args.visual_latent_dim),
+        visual_encoder_pool_size=int(args.visual_encoder_pool_size),
         visual_decoder_width=int(args.visual_decoder_width) if int(args.visual_decoder_width) > 0 else None,
         visual_decoder_depth=int(args.visual_decoder_depth),
         visual_decoder_type="conv",
+        visual_architecture=str(args.visual_architecture),
+        spatial_latent_channels=int(args.spatial_latent_channels),
+        spatial_width=int(args.spatial_width),
+        spatial_depth=int(args.spatial_depth),
+        spatial_downsample_blocks=int(args.spatial_downsample_blocks),
+        spatial_dynamics_type=str(args.spatial_dynamics_type),
+        spatial_dynamics_depth=int(args.spatial_dynamics_depth),
+        spatial_dynamics_hidden_channels=int(args.spatial_dynamics_hidden_channels),
         current_rgb_conditioned=True,
+        visual_delta_prediction=bool(args.visual_delta_prediction),
         dropout=float(args.dropout),
     ).to(device)
+    if autoencoder_payload is not None:
+        model.image_vae.load_state_dict(autoencoder_payload["image_vae"])
+        print(
+            json.dumps(
+                {
+                    "loaded_pretrained_image_autoencoder": str(args.pretrained_image_autoencoder),
+                    "architecture": str(args.visual_architecture),
+                    "frozen": bool(args.freeze_image_autoencoder),
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+    if bool(args.freeze_image_autoencoder):
+        for param in model.image_vae.parameters():
+            param.requires_grad_(False)
+        model.image_vae.eval()
 
     print("precomputing_rgb_targets", flush=True)
     train_rgb, train_next_rgb = _precompute_rgb_targets(train, summary, str(args.view), int(args.image_size))
@@ -149,6 +224,8 @@ def main() -> None:
             break
         step += 1
         model.train()
+        if bool(args.freeze_image_autoencoder):
+            model.image_vae.eval()
         idx = rng.integers(0, len(train), size=int(args.batch_size))
         batch = _batch(train, train_rgb, train_next_rgb, idx, device)
         if float(args.image_augment) > 0:
@@ -161,6 +238,11 @@ def main() -> None:
             visual_weight=float(args.visual_weight),
             image_vae_weight=float(args.image_vae_weight),
             visual_latent_weight=float(args.visual_latent_weight),
+            visual_l1_weight=float(args.visual_l1_weight),
+            visual_grad_weight=float(args.visual_grad_weight),
+            image_vae_l1_weight=float(args.image_vae_l1_weight),
+            image_vae_mse_weight=float(args.image_vae_mse_weight),
+            image_vae_grad_weight=float(args.image_vae_grad_weight),
             kl_weight=float(args.kl_weight),
             visual_kl_weight=float(args.visual_kl_weight),
         )
@@ -358,6 +440,8 @@ def _rollout_loss(
         out = model(
             state,
             batch["action"][:, offset],
+            task_id=batch["task_id"][:, offset],
+            progress=batch["progress"][:, offset],
             current_rgb=current_rgb,
             sample_latent=False,
         )
@@ -496,6 +580,8 @@ def _inverse_alignment_loss(
     hidden, _, _, _ = model.transition_hidden(
         batch["state"],
         batch["action"],
+        task_id=batch.get("task_id"),
+        progress=batch.get("progress"),
         sample_latent=False,
     )
     pred = F.normalize(inverse_align["head"](hidden), dim=-1)
@@ -554,13 +640,30 @@ def _save_checkpoint(
         "depth": int(args.depth),
         "task_dim": int(args.task_dim),
         "latent_dim": int(args.latent_dim),
-        "visual_latent_dim": int(args.visual_latent_dim),
+        "visual_latent_dim": int(model.visual_latent_dim),
+        "visual_encoder_pool_size": int(args.visual_encoder_pool_size),
         "visual_decoder_width": int(args.visual_decoder_width),
         "visual_decoder_depth": int(args.visual_decoder_depth),
         "visual_decoder_type": "conv",
+        "visual_architecture": str(args.visual_architecture),
+        "spatial_latent_channels": int(args.spatial_latent_channels),
+        "spatial_width": int(args.spatial_width),
+        "spatial_depth": int(args.spatial_depth),
+        "spatial_downsample_blocks": int(args.spatial_downsample_blocks),
+        "spatial_dynamics_type": str(args.spatial_dynamics_type),
+        "spatial_dynamics_depth": int(args.spatial_dynamics_depth),
+        "spatial_dynamics_hidden_channels": int(args.spatial_dynamics_hidden_channels),
+        "pretrained_image_autoencoder": str(args.pretrained_image_autoencoder),
+        "freeze_image_autoencoder": bool(args.freeze_image_autoencoder),
         "current_rgb_conditioned": True,
+        "visual_delta_prediction": bool(args.visual_delta_prediction),
         "dropout": float(args.dropout),
         "visual_lr_scale": float(args.visual_lr_scale),
+        "visual_l1_weight": float(args.visual_l1_weight),
+        "visual_grad_weight": float(args.visual_grad_weight),
+        "image_vae_l1_weight": float(args.image_vae_l1_weight),
+        "image_vae_mse_weight": float(args.image_vae_mse_weight),
+        "image_vae_grad_weight": float(args.image_vae_grad_weight),
         "view": str(args.view),
     }
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -596,11 +699,31 @@ def _inverse_alignment_summary(args: argparse.Namespace, inverse_align: dict | N
 def _visual_latent_summary(args: argparse.Namespace) -> dict:
     return {
         "image_vae_enabled": True,
+        "architecture": str(args.visual_architecture),
         "visual_latent_dim": int(args.visual_latent_dim),
+        "spatial_latent_channels": int(args.spatial_latent_channels),
+        "spatial_downsample_blocks": int(args.spatial_downsample_blocks),
+        "spatial_latent_hw": int(args.image_size) // (2 ** int(args.spatial_downsample_blocks)),
+        "spatial_dynamics_type": str(args.spatial_dynamics_type),
+        "spatial_dynamics_depth": int(args.spatial_dynamics_depth),
+        "spatial_dynamics_hidden_channels": int(args.spatial_dynamics_hidden_channels),
+        "pretrained_image_autoencoder": str(args.pretrained_image_autoencoder),
+        "freeze_image_autoencoder": bool(args.freeze_image_autoencoder),
         "image_vae_weight": float(args.image_vae_weight),
         "visual_latent_weight": float(args.visual_latent_weight),
         "visual_kl_weight": float(args.visual_kl_weight),
-        "target": "next_visual_latent",
+        "visual_delta_prediction": bool(args.visual_delta_prediction),
+        "target": "next_visual_delta" if bool(args.visual_delta_prediction) else "next_visual_latent",
+        "prediction_rgb_loss": {
+            "mse_weight": 1.0,
+            "l1_weight": float(args.visual_l1_weight),
+            "gradient_weight": float(args.visual_grad_weight),
+        },
+        "image_vae_reconstruction_loss": {
+            "l1_weight": float(args.image_vae_l1_weight),
+            "mse_weight": float(args.image_vae_mse_weight),
+            "gradient_weight": float(args.image_vae_grad_weight),
+        },
     }
 
 

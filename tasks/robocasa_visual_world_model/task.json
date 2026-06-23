@@ -20,26 +20,24 @@
       "tasks/robocasa_visual_world_model/setup.py",
       "tasks/robocasa_visual_world_model/task.json"
     ],
-    "notes": "Learned RoboCasa world-model track scored mainly by held-out LPIPS next-frame visual accuracy from real RoboCasa videos, plus pixel/state/progress/success consistency.",
+    "notes": "Learned RoboCasa world-model track scored by closed-loop generated-visual policy-score correlation against stored real simulator evals, plus pixel/state/progress/success consistency.",
     "phase": 1,
     "primary_metric": "visual_world_model_score",
     "reference_metric": 0.8,
     "required_result_keys": [
       "visual_world_model_score",
-      "visual_perceptual_score",
+      "eval_correlation_score",
       "visual_reconstruction_score",
-      "generated_visual_policy_score",
       "next_state_score",
       "progress_score",
       "success_score",
       "reproducibility_integrity"
     ],
     "score_weights": {
-      "generated_visual_policy_score": 0.25,
+      "eval_correlation_score": 0.5,
       "next_state_score": 0.1,
-      "progress_score": 0.05,
-      "success_score": 0.05,
-      "visual_perceptual_score": 0.35,
+      "progress_score": 0.1,
+      "success_score": 0.1,
       "visual_reconstruction_score": 0.2
     },
     "starter_metric": 0.0
@@ -73,20 +71,23 @@
   "metrics": {
     "primary": "visual_world_model_score",
     "score_weights": {
-      "generated_visual_policy_score": 0.25,
+      "eval_correlation_score": 0.5,
       "next_state_score": 0.1,
-      "progress_score": 0.05,
-      "success_score": 0.05,
-      "visual_perceptual_score": 0.35,
+      "progress_score": 0.1,
+      "success_score": 0.1,
       "visual_reconstruction_score": 0.2
     },
     "secondary": [
+      "eval_correlation_score",
       "visual_perceptual_score",
       "visual_reconstruction_score",
-      "generated_visual_policy_score",
       "next_state_score",
       "progress_score",
       "success_score",
+      "policy_score_pearson",
+      "policy_score_spearman",
+      "ood_policy_score_pearson",
+      "ood_policy_score_spearman",
       "next_rgb_lpips",
       "next_rgb_mse",
       "next_rgb_psnr",
@@ -110,8 +111,8 @@
     "input": "state_t, action_t, current RGB frame_t",
     "inverse_dynamics_auxiliary_allowed": true,
     "latent_prediction_allowed": true,
-    "primary_eval": "heldout_next_frame_visual_accuracy_plus_generated_visual_policy_conditioning",
-    "primary_visual_metric": "LPIPS alex next-frame distance",
+    "primary_eval": "closed_loop_visual_policy_score_correlation_with_stored_real_sim_success",
+    "primary_visual_metric": "pixel MSE score; LPIPS is reported as a secondary diagnostic",
     "rgb_reconstruction_allowed": true,
     "targets": [
       "next_rgb_frame conditioned on current RGB",

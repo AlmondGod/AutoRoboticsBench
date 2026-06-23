@@ -86,7 +86,14 @@ def main() -> None:
             state_in = state
             progress_in = progress
             rgb_in = current_rgb_model
-        pred = predict_next(world, state_in, action, current_rgb=rgb_in)
+        pred = predict_next(
+            world,
+            state_in,
+            action,
+            task_id=int(task_id),
+            progress=float(progress_in),
+            current_rgb=rgb_in,
+        )
         predicted = _rgb_chw_to_uint8(pred["next_rgb"])
         panels.append(
             _make_panel(

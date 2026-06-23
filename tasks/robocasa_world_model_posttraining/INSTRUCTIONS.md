@@ -18,6 +18,12 @@ files or split files for scored runs.
   `data/autorobobench/robocasa_stand_mixer_peak_splits.json`.
 - Default input policy path:
   `runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
+- Default frozen world-model path:
+  `data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt`.
+- Current promoted world model: VisualRoboCasaWorldModel with spatial VAE
+  latents and a conv residual latent-map dynamics head. It was trained on the
+  11-task transition suite and reached best validation visual score loss
+  `0.0062508`.
 - Current promoted A100 base: learned temporal chunk BC, 2/10 eval success on
   `PickPlaceCounterToStandMixer`. It was trained with an eval-included
   diagnostic split to provide a nonzero warm start; do not report it as a fair
@@ -27,7 +33,6 @@ files or split files for scored runs.
 
 ```bash
 python3 tasks/robocasa_world_model_posttraining/train.py \
-  --world-model-checkpoint <world_model.pt> \
   --out-dir runs/autorobobench/robocasa_world_model_posttraining/<run> \
   --max-train-seconds 300 \
   --device cuda

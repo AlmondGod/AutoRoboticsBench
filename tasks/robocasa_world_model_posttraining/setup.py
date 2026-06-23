@@ -7,6 +7,9 @@ from pathlib import Path
 DEFAULT_MANIFEST = Path("data/autorobobench/robocasa_stand_mixer_peak_manifest.json")
 DEFAULT_SPLIT = Path("data/autorobobench/robocasa_stand_mixer_peak_splits.json")
 DEFAULT_POLICY_CHECKPOINT = Path("runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt")
+DEFAULT_WORLD_MODEL_CHECKPOINT = Path(
+    "data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt"
+)
 
 
 def main() -> None:
@@ -19,6 +22,7 @@ def main() -> None:
         "manifest_exists": DEFAULT_MANIFEST.exists(),
         "split_exists": DEFAULT_SPLIT.exists(),
         "default_policy_checkpoint_exists": DEFAULT_POLICY_CHECKPOINT.exists(),
+        "default_world_model_checkpoint_exists": DEFAULT_WORLD_MODEL_CHECKPOINT.exists(),
     }
     print(json.dumps(checks, indent=2, sort_keys=True))
     optional = {"default_policy_checkpoint_exists"}

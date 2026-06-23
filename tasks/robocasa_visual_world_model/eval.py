@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT))
 from tasks.robocasa_visual_world_model.inference import load_world_model, predict_next
 from tasks.robocasa_world_model.data import (
     DEFAULT_MANIFEST,
+    DEFAULT_POLICY_SET,
     DEFAULT_SPLIT,
     TransitionData,
     load_transition_data,
@@ -42,7 +43,8 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=1024)
     parser.add_argument("--lpips-net", choices=["alex", "vgg", "squeeze"], default="alex")
     parser.add_argument("--lpips-size", type=int, default=64)
-    parser.add_argument("--policy-checkpoint", default="", help="Optional policy checkpoint for generated-visual closed-loop scoring.")
+    parser.add_argument("--policy-set", default=str(DEFAULT_POLICY_SET), help="JSON with fixed policies and stored real simulator eval success rates.")
+    parser.add_argument("--policy-checkpoint", default="", help=argparse.SUPPRESS)
     parser.add_argument("--policy-inference", default="tasks.robocasa_bc5.inference")
     parser.add_argument("--policy-eval-episodes-per-task", type=int, default=1)
     parser.add_argument("--policy-rollout-steps", type=int, default=64)
@@ -72,11 +74,12 @@ def main() -> None:
     )
     lpips_model = _load_lpips_model(str(args.lpips_net), world["device"])
     metrics = _visual_transition_eval(world, val, rgb, next_rgb, int(args.batch_size), lpips_model, int(args.lpips_size))
-    generated_policy = _generated_visual_policy_eval(
+    policy_correlation = _visual_policy_correlation_eval(
         world,
         val_raw,
         rgb,
         summary,
+        policy_set_path=str(args.policy_set),
         policy_checkpoint=str(args.policy_checkpoint),
         policy_inference=str(args.policy_inference),
         episodes_per_task=int(args.policy_eval_episodes_per_task),
@@ -85,7 +88,7 @@ def main() -> None:
         policy_image_size=int(args.policy_image_size),
         view=str(cfg.get("view", "robot0_agentview_right")),
     )
-    benchmark = _benchmark_score(metrics, generated_policy)
+    benchmark = _benchmark_score(metrics, policy_correlation)
     payload = {
         "task": "robocasa_visual_world_model",
         "checkpoint": str(args.checkpoint),
@@ -93,7 +96,7 @@ def main() -> None:
         **benchmark,
         "reproducibility_integrity": 1.0,
         "visual_transition_metrics": metrics,
-        "generated_visual_policy_eval": generated_policy,
+        "visual_policy_correlation": policy_correlation,
         "summary": summary,
         "eval_seconds": time.monotonic() - start,
     }
@@ -157,12 +160,13 @@ def _visual_transition_eval(
     return metrics
 
 
-def _generated_visual_policy_eval(
+def _visual_policy_correlation_eval(
     world: dict,
     data: TransitionData,
     rgb: np.ndarray,
     summary: list[dict],
     *,
+    policy_set_path: str,
     policy_checkpoint: str,
     policy_inference: str,
     episodes_per_task: int,
@@ -171,71 +175,103 @@ def _generated_visual_policy_eval(
     policy_image_size: int,
     view: str,
 ) -> dict:
-    if not policy_checkpoint:
+    policies = _load_policy_set(policy_set_path, policy_checkpoint=policy_checkpoint, policy_inference=policy_inference)
+    if not policies:
         return {
             "enabled": False,
-            "reason": "--policy-checkpoint not provided",
-            "generated_visual_policy_score": 0.0,
-            "episodes": 0,
+            "reason": "no policies provided",
+            "eval_correlation_score": 0.0,
+            "valid_policy_count": 0,
         }
     if int(episodes_per_task) <= 0 or int(rollout_steps) <= 0:
         return {
             "enabled": False,
             "reason": "policy eval episodes/rollout steps disabled",
-            "generated_visual_policy_score": 0.0,
-            "episodes": 0,
+            "eval_correlation_score": 0.0,
+            "valid_policy_count": 0,
         }
-    inference = importlib.import_module(policy_inference)
-    policy = inference.load_policy(policy_checkpoint, device=str(world["device"]))
     task_rows = {int(row["task_id"]): row for row in summary}
     first_index: dict[tuple[int, int], int] = {}
     for index, (task_id, episode_id) in enumerate(zip(data.task_id, data.episode_id)):
         first_index.setdefault((int(task_id), int(episode_id)), int(index))
 
-    details = []
-    for task_id, row in sorted(task_rows.items()):
-        episode_ids = sorted({episode for tid, episode in first_index if tid == int(task_id)})[: int(episodes_per_task)]
-        task = {
-            "task_id": int(task_id),
-            "alias": str(row["alias"]),
-            "description": str(row.get("alias", "")),
-            "robocasa_task": str(row.get("alias", "")),
-        }
-        for episode_idx in episode_ids:
-            index = first_index[(int(task_id), int(episode_idx))]
-            score = _rollout_policy_on_generated_visuals(
-                world,
-                policy,
-                inference,
-                task,
-                episode_idx=int(episode_idx),
-                initial_state=np.asarray(data.state[index], dtype=np.float32),
-                initial_progress=float(data.progress[index]),
-                initial_rgb=np.asarray(rgb[index], dtype=np.float32),
-                rollout_steps=int(rollout_steps),
-                commit_steps=int(commit_steps),
-                policy_image_size=int(policy_image_size),
-            )
-            details.append(
-                {
-                    "task_alias": task["alias"],
-                    "task_id": int(task_id),
-                    "episode_id": int(episode_idx),
-                    **score,
-                }
-            )
-    episode_scores = [float(row["predicted_success"]) for row in details]
+    rows = []
+    skipped = []
+    for policy_spec in policies:
+        checkpoint = str(policy_spec.get("checkpoint", ""))
+        if not checkpoint or not Path(checkpoint).exists():
+            skipped.append({**policy_spec, "skip_reason": "checkpoint_missing"})
+            rows.append(_policy_result_row(policy_spec, predicted_success=None, details=[]))
+            continue
+        try:
+            inference = importlib.import_module(str(policy_spec.get("inference", policy_inference)))
+            policy = inference.load_policy(checkpoint, device=str(world["device"]))
+        except Exception as exc:
+            skipped.append({**policy_spec, "skip_reason": f"policy_load_failed: {type(exc).__name__}: {exc}"})
+            rows.append(_policy_result_row(policy_spec, predicted_success=None, details=[]))
+            continue
+        details = []
+        for task_id, row in sorted(task_rows.items()):
+            episode_ids = sorted({episode for tid, episode in first_index if tid == int(task_id)})[: int(episodes_per_task)]
+            task = {
+                "task_id": int(task_id),
+                "alias": str(row["alias"]),
+                "description": str(row.get("alias", "")),
+                "robocasa_task": str(row.get("alias", "")),
+            }
+            for episode_idx in episode_ids:
+                index = first_index[(int(task_id), int(episode_idx))]
+                score = _rollout_policy_on_generated_visuals(
+                    world,
+                    policy,
+                    inference,
+                    task,
+                    episode_idx=int(episode_idx),
+                    initial_state=np.asarray(data.state[index], dtype=np.float32),
+                    initial_rgb=np.asarray(rgb[index], dtype=np.float32),
+                    rollout_steps=int(rollout_steps),
+                    commit_steps=int(commit_steps),
+                    policy_image_size=int(policy_image_size),
+                )
+                details.append(
+                    {
+                        "task_alias": task["alias"],
+                        "task_id": int(task_id),
+                        "episode_id": int(episode_idx),
+                        **score,
+                    }
+                )
+        episode_scores = [float(row["predicted_success"]) for row in details]
+        rows.append(_policy_result_row(policy_spec, predicted_success=float(np.mean(episode_scores)) if episode_scores else None, details=details))
+    valid = [row for row in rows if row.get("real_success_rate") is not None and row.get("predicted_success") is not None]
+    real = np.asarray([row["real_success_rate"] for row in valid], dtype=np.float64)
+    pred = np.asarray([row["predicted_success"] for row in valid], dtype=np.float64)
+    pearson = _pearson(real, pred)
+    spearman = _spearman(real, pred)
+    ood_pearson = _ood_corr(rows, method="pearson")
+    ood_spearman = _ood_corr(rows, method="spearman")
+    corr_score = _mean_present([
+        _corr_score(pearson),
+        _corr_score(spearman),
+        _corr_score(ood_pearson),
+        _corr_score(ood_spearman),
+    ])
     return {
         "enabled": True,
-        "policy_checkpoint": str(policy_checkpoint),
-        "policy_inference": str(policy_inference),
-        "conditioning": "policy observes visual world-model generated RGB; the single generated view is supplied to both agent and wrist inputs",
+        "policy_set": str(policy_set_path),
+        "conditioning": "Each policy observes world-model generated RGB and proprio/state rolled forward by the world model; real simulator success rates are loaded from stored metadata.",
         "generated_view": str(view),
-        "episodes": int(len(details)),
+        "policy_count": int(len(rows)),
+        "valid_policy_count": int(len(valid)),
         "rollout_steps": int(rollout_steps),
         "commit_steps": int(commit_steps),
-        "generated_visual_policy_score": float(np.mean(episode_scores)) if episode_scores else 0.0,
-        "details": details,
+        "pearson": pearson,
+        "spearman": spearman,
+        "ood_pearson": ood_pearson,
+        "ood_spearman": ood_spearman,
+        "eval_correlation_score": float(corr_score),
+        "policies": rows,
+        "skipped_policies": skipped,
     }
 
 
@@ -247,14 +283,12 @@ def _rollout_policy_on_generated_visuals(
     *,
     episode_idx: int,
     initial_state: np.ndarray,
-    initial_progress: float,
     initial_rgb: np.ndarray,
     rollout_steps: int,
     commit_steps: int,
     policy_image_size: int,
 ) -> dict[str, float | int]:
     state = np.asarray(initial_state, dtype=np.float32)
-    progress = float(initial_progress)
     current_rgb = np.asarray(initial_rgb, dtype=np.float32)
     success_probs: list[float] = []
     steps = 0
@@ -270,9 +304,13 @@ def _rollout_policy_on_generated_visuals(
             horizon = int(commit_steps)
         horizon = max(1, min(horizon, int(commit_steps), int(action_chunk.shape[0]), int(rollout_steps) - steps))
         for action in np.clip(action_chunk[:horizon], -1.0, 1.0).astype(np.float32):
-            step = predict_next(world, state, action, current_rgb=current_rgb)
+            step = predict_next(
+                world,
+                state,
+                action,
+                current_rgb=current_rgb,
+            )
             state = np.asarray(step["next_state"], dtype=np.float32)
-            progress = float(np.clip(step["next_progress"], 0.0, 1.0))
             current_rgb = np.asarray(step["next_rgb"], dtype=np.float32)
             success_probs.append(float(step["success_prob"]))
             steps += 1
@@ -282,7 +320,6 @@ def _rollout_policy_on_generated_visuals(
         "steps": int(steps),
         "predicted_success": float(max(success_probs) if success_probs else 0.0),
         "final_success_prob": float(success_probs[-1] if success_probs else 0.0),
-        "final_progress": float(progress),
     }
 
 
@@ -363,34 +400,36 @@ def _lpips_input(image: torch.Tensor, lpips_size: int) -> torch.Tensor:
     return image * 2.0 - 1.0
 
 
-def _benchmark_score(metrics: dict[str, float], generated_policy: dict | None = None) -> dict[str, float | dict[str, float]]:
+def _benchmark_score(metrics: dict[str, float], policy_correlation: dict | None = None) -> dict[str, float | dict[str, float]]:
     visual_perceptual = _mse_like_score(metrics.get("next_rgb_lpips"), scale=0.5)
     visual_reconstruction = _mse_like_score(metrics.get("next_rgb_mse"), scale=0.08)
     next_state = _mse_like_score(metrics.get("next_state_mse_norm"), scale=0.05)
     progress = _mse_like_score(metrics.get("next_progress_mse"), scale=0.05)
     success = _mse_like_score(metrics.get("success_bce"), scale=0.1)
-    generated_policy_score = float((generated_policy or {}).get("generated_visual_policy_score", 0.0))
+    eval_correlation = float((policy_correlation or {}).get("eval_correlation_score", 0.0))
     weights = {
-        "visual_perceptual_score": 0.35,
+        "eval_correlation_score": 0.50,
         "visual_reconstruction_score": 0.20,
-        "generated_visual_policy_score": 0.25,
         "next_state_score": 0.10,
-        "progress_score": 0.05,
-        "success_score": 0.05,
+        "progress_score": 0.10,
+        "success_score": 0.10,
     }
     score = (
-        weights["visual_perceptual_score"] * visual_perceptual
+        weights["eval_correlation_score"] * eval_correlation
         + weights["visual_reconstruction_score"] * visual_reconstruction
-        + weights["generated_visual_policy_score"] * generated_policy_score
         + weights["next_state_score"] * next_state
         + weights["progress_score"] * progress
         + weights["success_score"] * success
     )
     return {
         "visual_world_model_score": float(max(0.0, min(1.0, score))),
+        "eval_correlation_score": float(max(0.0, min(1.0, eval_correlation))),
+        "policy_score_pearson": None if policy_correlation is None else policy_correlation.get("pearson"),
+        "policy_score_spearman": None if policy_correlation is None else policy_correlation.get("spearman"),
+        "ood_policy_score_pearson": None if policy_correlation is None else policy_correlation.get("ood_pearson"),
+        "ood_policy_score_spearman": None if policy_correlation is None else policy_correlation.get("ood_spearman"),
         "visual_perceptual_score": float(visual_perceptual),
         "visual_reconstruction_score": float(visual_reconstruction),
-        "generated_visual_policy_score": float(max(0.0, min(1.0, generated_policy_score))),
         "next_state_score": float(next_state),
         "progress_score": float(progress),
         "success_score": float(success),
@@ -402,6 +441,106 @@ def _mse_like_score(value: float | None, *, scale: float) -> float:
     if value is None:
         return 0.0
     return float(max(0.0, min(1.0, 1.0 - float(value) / max(float(scale), 1e-12))))
+
+
+def _load_policy_set(policy_set_path: str, *, policy_checkpoint: str, policy_inference: str) -> list[dict]:
+    if policy_set_path and Path(policy_set_path).exists():
+        payload = json.loads(Path(policy_set_path).read_text(encoding="utf-8"))
+        policies = list(payload.get("policies", []))
+        if policies:
+            return policies
+    if policy_checkpoint:
+        return [
+            {
+                "name": Path(policy_checkpoint).stem,
+                "checkpoint": str(policy_checkpoint),
+                "inference": str(policy_inference),
+                "ood": False,
+            }
+        ]
+    return []
+
+
+def _policy_result_row(policy: dict, *, predicted_success: float | None, details: list[dict]) -> dict:
+    return {
+        "name": str(policy.get("name", "")),
+        "checkpoint": str(policy.get("checkpoint", "")),
+        "inference": str(policy.get("inference", "")),
+        "ood": bool(policy.get("ood", False)),
+        "real_eval_json": str(policy.get("real_eval_json", "")),
+        "real_success_rate": _policy_real_success(policy),
+        "predicted_success": None if predicted_success is None else float(predicted_success),
+        "episode_count": int(len(details)),
+        "details": details,
+    }
+
+
+def _policy_real_success(policy: dict) -> float | None:
+    if "real_success_rate" in policy:
+        try:
+            return float(policy["real_success_rate"])
+        except (TypeError, ValueError):
+            pass
+    return _real_success(str(policy.get("real_eval_json", "")))
+
+
+def _real_success(path: str) -> float | None:
+    if not path or not Path(path).exists():
+        return None
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    for key in ("success_rate", "hidden_final_success", "peak_final_success", "offlinerl_final_success"):
+        if key in payload:
+            return float(payload[key])
+    if "tracks" in payload:
+        for value in payload["tracks"].values():
+            if isinstance(value, dict):
+                for key in ("success_rate", "hidden_final_success", "peak_final_success", "offlinerl_final_success"):
+                    if key in value:
+                        return float(value[key])
+    return None
+
+
+def _pearson(x: np.ndarray, y: np.ndarray) -> float | None:
+    if len(x) < 2:
+        return None
+    if float(np.std(x)) <= 1e-12 or float(np.std(y)) <= 1e-12:
+        return None
+    return float(np.corrcoef(x, y)[0, 1])
+
+
+def _spearman(x: np.ndarray, y: np.ndarray) -> float | None:
+    if len(x) < 2:
+        return None
+    return _pearson(_rank(x), _rank(y))
+
+
+def _rank(x: np.ndarray) -> np.ndarray:
+    order = np.argsort(x)
+    ranks = np.empty_like(order, dtype=np.float64)
+    ranks[order] = np.arange(len(x), dtype=np.float64)
+    return ranks
+
+
+def _ood_corr(rows: list[dict], *, method: str) -> float | None:
+    valid = [row for row in rows if bool(row.get("ood", False)) and row.get("real_success_rate") is not None and row.get("predicted_success") is not None]
+    if len(valid) < 2:
+        return None
+    real = np.asarray([row["real_success_rate"] for row in valid], dtype=np.float64)
+    pred = np.asarray([row["predicted_success"] for row in valid], dtype=np.float64)
+    return _spearman(real, pred) if method == "spearman" else _pearson(real, pred)
+
+
+def _corr_score(value: float | None) -> float | None:
+    if value is None:
+        return None
+    return float(max(0.0, min(1.0, 0.5 * (float(value) + 1.0))))
+
+
+def _mean_present(values: list[float | None]) -> float:
+    present = [float(value) for value in values if value is not None and np.isfinite(float(value))]
+    if not present:
+        return 0.0
+    return float(np.mean(present))
 
 
 if __name__ == "__main__":

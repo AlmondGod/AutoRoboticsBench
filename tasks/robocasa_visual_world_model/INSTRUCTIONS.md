@@ -10,8 +10,10 @@ Do not edit eval files or split files for scored runs.
 - Targets: next RGB, next state, next progress, success.
 - `task_id` and current task progress are split metadata / labels only; they
   must not be passed to the world model as conditioning inputs.
-- Metric: visual world-model score. LPIPS next-frame quality is the main term,
-  with a generated-visual policy probe when a policy checkpoint is supplied.
+- Metric: visual world-model score. The main term is correlation between
+  closed-loop world-model policy scores and stored real simulator eval success
+  for a fixed policy set. Pixel/state/progress/success prediction terms are
+  secondary; LPIPS is reported as a diagnostic only.
 - This is not a policy rollout score.
 
 ## Train
@@ -29,8 +31,8 @@ python3 tasks/robocasa_visual_world_model/train.py \
 ```bash
 python3 tasks/robocasa_visual_world_model/eval.py \
   --checkpoint runs/autorobobench/robocasa_visual_world_model/<run>/policy_best.pt \
-  --policy-checkpoint <bc5_policy.pt> \
-  --out runs/autorobobench/robocasa_visual_world_model/<run>/eval_lpips.json \
+  --policy-set data/autorobobench/robocasa_world_model_policy_set.json \
+  --out runs/autorobobench/robocasa_visual_world_model/<run>/eval_correlation.json \
   --device cuda
 ```
 

@@ -1,0 +1,47 @@
+{
+  "artifact": "robocasa_visual_world_model_spatial_conv_11task_20min.pt",
+  "best_val_visual_score_loss": 0.006250798299191677,
+  "checkpoint": "runs/autorobobench/robocasa_visual_world_model/spatial_conv_latent_wm_11task_20min/policy_best.pt",
+  "final_val": {
+    "progress_mse": 0.006506549009038389,
+    "rgb_mse": 0.0016709274998702526,
+    "state_mse": 0.020246883380736658,
+    "success_bce": 0.016342331827539462,
+    "visual_score_loss": 0.006732648364976727
+  },
+  "image_size": 64,
+  "seconds": 1250.7273400314152,
+  "source_run": "runs/autorobobench/robocasa_visual_world_model/spatial_conv_latent_wm_11task_20min",
+  "task": "robocasa_visual_world_model",
+  "train_transitions": 231459,
+  "val_transitions": 15380,
+  "view": "robot0_agentview_right",
+  "visual_latent_prediction": {
+    "architecture": "spatial",
+    "freeze_image_autoencoder": true,
+    "image_vae_enabled": true,
+    "image_vae_reconstruction_loss": {
+      "gradient_weight": 0.25,
+      "l1_weight": 1.0,
+      "mse_weight": 0.25
+    },
+    "image_vae_weight": 0.0,
+    "prediction_rgb_loss": {
+      "gradient_weight": 0.25,
+      "l1_weight": 0.5,
+      "mse_weight": 1.0
+    },
+    "pretrained_image_autoencoder": "runs/autorobobench/robocasa_visual_world_model/frame_ae_11task_64px_spatial128x16_20min/frame_vae_best.pt",
+    "spatial_downsample_blocks": 2,
+    "spatial_dynamics_depth": 4,
+    "spatial_dynamics_hidden_channels": 128,
+    "spatial_dynamics_type": "conv",
+    "spatial_latent_channels": 128,
+    "spatial_latent_hw": 16,
+    "target": "next_visual_delta",
+    "visual_delta_prediction": true,
+    "visual_kl_weight": 1e-05,
+    "visual_latent_dim": 32768,
+    "visual_latent_weight": 1.0
+  }
+}

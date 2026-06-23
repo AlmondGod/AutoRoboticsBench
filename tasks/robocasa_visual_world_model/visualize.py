@@ -77,6 +77,9 @@ def _summary(
         "eval_json": "" if eval_path is None else str(eval_path),
         "train_metrics": "" if train_path is None else str(train_path),
         "visual_world_model_score": eval_payload.get("visual_world_model_score"),
+        "eval_correlation_score": eval_payload.get("eval_correlation_score"),
+        "policy_score_pearson": eval_payload.get("policy_score_pearson"),
+        "policy_score_spearman": eval_payload.get("policy_score_spearman"),
         "visual_perceptual_score": eval_payload.get("visual_perceptual_score"),
         "visual_reconstruction_score": eval_payload.get("visual_reconstruction_score"),
         "next_state_score": eval_payload.get("next_state_score"),
@@ -92,8 +95,8 @@ def _summary(
 def _summary_svg(summary: dict[str, Any]) -> str:
     bars = [
         ("visual score", summary.get("visual_world_model_score")),
-        ("perceptual", summary.get("visual_perceptual_score")),
-        ("reconstruction", summary.get("visual_reconstruction_score")),
+        ("eval corr", summary.get("eval_correlation_score")),
+        ("pixel mse", summary.get("visual_reconstruction_score")),
         ("next state", summary.get("next_state_score")),
         ("progress", summary.get("progress_score")),
         ("success", summary.get("success_score")),

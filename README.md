@@ -249,7 +249,7 @@ The counted `autorobobench_v0` task packages are:
 | Track | Package | Main RoboCasa task/data | Evaluation metric |
 | --- | --- | --- | --- |
 | RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnSinkFaucet` | `bc1_reliability_speed_score`: eval success plus a small speed bonus on successful episodes only |
-| Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction | `visual_world_model_score`: next-frame perceptual/pixel quality plus state, progress, and reward prediction |
+| Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction | `visual_world_model_score`: fixed-policy eval correlation plus pixel/state/progress/reward prediction |
 | World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | Eval rollout success rate |
 
 Optional extra task packages are:
@@ -320,3 +320,12 @@ The current promoted A100 artifact is a learned BC checkpoint that scored 2/10
 on `PickPlaceCounterToStandMixer`; it was trained with an eval-included
 diagnostic split and should be treated as a posttraining base artifact, not as a
 fair standalone benchmark submission.
+
+The world-model posttraining task also ships a default frozen visual world
+model at
+`data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt`.
+It is a spatial-latent VisualRoboCasaWorldModel with a conv residual latent-map
+dynamics head, trained on the 11-task transition suite. The promoted checkpoint
+reached best validation visual score loss `0.0062508`, so
+`tasks/robocasa_world_model_posttraining/train.py` can be run without manually
+passing `--world-model-checkpoint`.

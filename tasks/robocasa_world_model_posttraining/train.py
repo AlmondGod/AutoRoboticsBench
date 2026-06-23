@@ -46,6 +46,9 @@ SUPPORTED_KINDS = {"bc", "flow", "sequence_flow"}
 DEFAULT_MANIFEST = "data/autorobobench/robocasa_stand_mixer_peak_manifest.json"
 DEFAULT_SPLIT = "data/autorobobench/robocasa_stand_mixer_peak_splits.json"
 DEFAULT_POLICY_CHECKPOINT = "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt"
+DEFAULT_WORLD_MODEL_CHECKPOINT = (
+    "data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt"
+)
 
 
 def main() -> None:
@@ -53,7 +56,7 @@ def main() -> None:
     parser.add_argument("--manifest", default=DEFAULT_MANIFEST)
     parser.add_argument("--split", default=DEFAULT_SPLIT)
     parser.add_argument("--policy-checkpoint", default=DEFAULT_POLICY_CHECKPOINT)
-    parser.add_argument("--world-model-checkpoint", required=True)
+    parser.add_argument("--world-model-checkpoint", default=DEFAULT_WORLD_MODEL_CHECKPOINT)
     parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_world_model_posttraining/default")
     parser.add_argument("--train-episodes-per-task", type=int, default=4)
     parser.add_argument("--val-episodes-per-task", type=int, default=2)
@@ -324,6 +327,13 @@ def main() -> None:
 def _load_world_model(checkpoint: str, device: torch.device) -> dict:
     payload = torch.load(Path(checkpoint), map_location=device, weights_only=False)
     cfg = payload["config"]
+    state = payload["model"]
+    task_dim = int(cfg.get("task_dim", 0))
+    has_task_condition = "dynamics.task.weight" in state and task_dim > 0
+    trunk_in = int(state["dynamics.trunk.0.weight"].shape[1])
+    latent_width = int(cfg["latent_dim"]) if int(cfg.get("latent_dim", 0)) > 0 else int(cfg["state_dim"])
+    expected_without_progress = latent_width + int(cfg["action_dim"]) + (task_dim if has_task_condition else 0)
+    has_progress_condition = trunk_in == expected_without_progress + 1
     if "image_size" in cfg or payload.get("task") == "robocasa_visual_world_model":
         model = VisualRoboCasaWorldModel(
             state_dim=int(cfg["state_dim"]),
@@ -332,13 +342,25 @@ def _load_world_model(checkpoint: str, device: torch.device) -> dict:
             image_size=int(cfg.get("image_size", 32)),
             width=int(cfg["width"]),
             depth=int(cfg["depth"]),
-            task_dim=int(cfg.get("task_dim", 0)),
+            task_dim=task_dim,
             latent_dim=int(cfg["latent_dim"]),
             visual_latent_dim=int(cfg.get("visual_latent_dim", 64)),
+            visual_encoder_pool_size=int(cfg.get("visual_encoder_pool_size", 1)),
             visual_decoder_width=int(cfg.get("visual_decoder_width", 0)) or None,
             visual_decoder_depth=int(cfg.get("visual_decoder_depth", 3)),
             visual_decoder_type=str(cfg.get("visual_decoder_type", "mlp")),
+            visual_architecture=str(cfg.get("visual_architecture", "vae")),
+            spatial_latent_channels=int(cfg.get("spatial_latent_channels", 128)),
+            spatial_width=int(cfg.get("spatial_width", 128)),
+            spatial_depth=int(cfg.get("spatial_depth", 2)),
+            spatial_downsample_blocks=int(cfg.get("spatial_downsample_blocks", 2)),
+            spatial_dynamics_type=str(cfg.get("spatial_dynamics_type", "mlp")),
+            spatial_dynamics_depth=int(cfg.get("spatial_dynamics_depth", 4)),
+            spatial_dynamics_hidden_channels=int(cfg.get("spatial_dynamics_hidden_channels", 0)),
             current_rgb_conditioned=bool(cfg.get("current_rgb_conditioned", False)),
+            visual_delta_prediction=bool(cfg.get("visual_delta_prediction", False)),
+            condition_on_task=has_task_condition,
+            condition_on_progress=has_progress_condition,
             dropout=float(cfg["dropout"]),
         ).to(device)
         wm_type = "visual"
@@ -350,13 +372,15 @@ def _load_world_model(checkpoint: str, device: torch.device) -> dict:
             task_count=int(cfg["task_count"]),
             width=int(cfg["width"]),
             depth=int(cfg["depth"]),
-            task_dim=int(cfg.get("task_dim", 0)),
+            task_dim=task_dim,
             latent_dim=int(cfg["latent_dim"]),
+            condition_on_task=has_task_condition,
+            condition_on_progress=has_progress_condition,
             dropout=float(cfg["dropout"]),
         ).to(device)
         wm_type = "state"
         has_visual = False
-    model.load_state_dict(payload["model"])
+    model.load_state_dict(state, strict=False)
     stats = {key: torch.as_tensor(value, dtype=torch.float32, device=device) for key, value in payload["stats"].items()}
     return {
         "model": model,
@@ -449,7 +473,7 @@ def _wm_rollout_objective(
     steps = max(1, min(int(horizon), int(actions_raw.shape[1])))
     for step in range(steps):
         action = (actions_raw[:, step] - stats["action_mean"]) / stats["action_std"].clamp_min(1e-6)
-        out = model(state, action)
+        out = model(state, action, task_id=task_id, progress=progress)
         success_prob = torch.sigmoid(out["success_logit"])
         next_progress = out["next_progress"].clamp(0.0, 1.0)
         objective = objective + (

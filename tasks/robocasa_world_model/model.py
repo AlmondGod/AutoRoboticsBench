@@ -18,14 +18,17 @@ class RoboCasaWorldModel(nn.Module):
         depth: int = 4,
         task_dim: int = 64,
         latent_dim: int = 0,
+        condition_on_task: bool = False,
+        condition_on_progress: bool = False,
         dropout: float = 0.05,
     ) -> None:
         super().__init__()
         self.state_dim = int(state_dim)
         self.action_dim = int(action_dim)
         self.task_count = int(task_count)
-        self.task_dim = int(task_dim)
+        self.task_dim = int(task_dim) if bool(condition_on_task) else 0
         self.latent_dim = int(latent_dim)
+        self.condition_on_progress = bool(condition_on_progress)
         state_width = self.latent_dim if self.latent_dim > 0 else self.state_dim
 
         if self.latent_dim > 0:
@@ -35,7 +38,12 @@ class RoboCasaWorldModel(nn.Module):
             self.encoder = None
             self.decoder = None
 
-        inp = state_width + self.action_dim
+        if self.task_dim > 0:
+            self.task = nn.Embedding(max(1, self.task_count), self.task_dim)
+        else:
+            self.task = None
+
+        inp = state_width + self.action_dim + self.task_dim + (1 if self.condition_on_progress else 0)
         self.trunk = _mlp(inp, width, width, depth, dropout, final_norm=True)
         self.delta = nn.Linear(width, state_width)
         self.progress = nn.Linear(width, 1)
@@ -59,16 +67,39 @@ class RoboCasaWorldModel(nn.Module):
             return latent
         return self.decoder(latent)
 
+    def conditioned_input(
+        self,
+        latent: torch.Tensor,
+        action: torch.Tensor,
+        *,
+        task_id: torch.Tensor | None = None,
+        progress: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        parts = [latent, action]
+        if self.task is not None:
+            if task_id is None:
+                task_id = torch.zeros((latent.shape[0],), dtype=torch.long, device=latent.device)
+            task_id = task_id.reshape(-1).long().clamp(0, max(0, self.task_count - 1))
+            parts.append(self.task(task_id))
+        if self.condition_on_progress:
+            if progress is None:
+                progress = torch.zeros((latent.shape[0], 1), dtype=latent.dtype, device=latent.device)
+            else:
+                progress = progress.reshape(latent.shape[0], -1)[:, :1].to(dtype=latent.dtype, device=latent.device)
+            parts.append(progress)
+        return torch.cat(parts, dim=-1)
+
     def forward(
         self,
         state: torch.Tensor,
         action: torch.Tensor,
         *,
+        task_id: torch.Tensor | None = None,
+        progress: torch.Tensor | None = None,
         sample_latent: bool = False,
     ) -> dict[str, torch.Tensor]:
         z, mu, logvar = self.encode_state(state, sample=sample_latent)
-        h = torch.cat([z, action], dim=-1)
-        h = self.trunk(h)
+        h = self.trunk(self.conditioned_input(z, action, task_id=task_id, progress=progress))
         next_z = z + self.delta(h)
         next_state = self.decode_state(next_z)
         return {
@@ -92,6 +123,8 @@ class RoboCasaWorldModel(nn.Module):
         out = self(
             batch["state"],
             batch["action"],
+            task_id=batch.get("task_id"),
+            progress=batch.get("progress"),
             sample_latent=True,
         )
         state_loss = F.mse_loss(out["next_state"], batch["next_state"])

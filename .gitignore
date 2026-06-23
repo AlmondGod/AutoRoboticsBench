@@ -5,6 +5,8 @@ data/**
 !data/autorobobench/
 !data/autorobobench/pretrained_policies/
 !data/autorobobench/pretrained_policies/**
+!data/autorobobench/pretrained_world_models/
+!data/autorobobench/pretrained_world_models/**
 runs/*
 !runs/.gitignore
 configs/compute.yaml

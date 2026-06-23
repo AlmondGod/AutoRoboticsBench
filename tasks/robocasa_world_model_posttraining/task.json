@@ -32,6 +32,7 @@
     "starter_metric": 0.0
   },
   "default_policy_checkpoint": "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt",
+  "default_world_model_checkpoint": "data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt",
   "default_train": {
     "action_l2_weight": 0.01,
     "batch_size": 64,
@@ -71,6 +72,8 @@
   "train_contract": {
     "default_input_policy": "runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt",
     "default_input_policy_note": "Current promoted A100 artifact scored 2/10 and was trained with an eval-included diagnostic split; use as a posttraining warm start, not as a fair standalone submission.",
+    "default_input_world_model": "data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt",
+    "default_input_world_model_note": "Promoted frozen VisualRoboCasaWorldModel artifact: spatial latent autoencoder plus conv latent-map dynamics, best validation visual score loss 0.0062508 on the 11-task transition suite.",
     "input_policy": "PickPlaceCounterToStandMixer nonzero learned temporal chunk BC warm-start checkpoint",
     "input_world_model": "RoboCasaWorldModel or VisualRoboCasaWorldModel checkpoint predicting next_state, next_progress, success, and optionally next_rgb",
     "output": "BC5-compatible policy.pt and policy_best.pt",
