@@ -63,11 +63,11 @@ def _rewrite_result(out: Path) -> dict | None:
     payload["data_budget_integrity"] = 1.0
     payload["reproducibility_integrity"] = 1.0
     payload["data_contract"] = {
-        "paired_action_demos_per_task": 2,
-        "in_task_video_only_demos_per_task": 78,
-        "total_video_only_demos": 924,
-        "video_to_paired_demo_ratio": 92.4,
-        "video_to_paired_frame_ratio": 103.75103391232423,
+        "paired_action_demos_per_task": 5,
+        "in_task_video_only_demos_per_task": 75,
+        "total_video_only_demos": 909,
+        "video_to_paired_demo_ratio": 36.36,
+        "video_to_paired_frame_ratio": 38.781372702999846,
         "video_pool_contains_actions": False,
         "video_pool_contains_proprio": False,
         "test_time_demo_access": False

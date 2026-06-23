@@ -15,9 +15,9 @@
   "source": "RoboCasa v1.0 pretrain atomic task videos",
   "tasks": [
     {
-      "alias": "OpenCabinet",
-      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenCabinet/20250819/lerobot",
-      "description": "Open a kitchen cabinet.",
+      "alias": "OpenDrawer",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenDrawer/20250819/lerobot",
+      "description": "Open a kitchen drawer.",
       "task_id": 0,
       "video_episode_range": [
         5,
