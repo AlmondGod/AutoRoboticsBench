@@ -44,6 +44,7 @@ def main() -> None:
     parser.add_argument("--lpips-net", choices=["alex", "vgg", "squeeze"], default="alex")
     parser.add_argument("--lpips-size", type=int, default=64)
     parser.add_argument("--policy-set", default=str(DEFAULT_POLICY_SET), help="JSON with fixed policies and stored real simulator eval success rates.")
+    parser.add_argument("--policy-probe-set", default="", help="Cached policy probe JSON from scripts/collect_policy_probes.py.")
     parser.add_argument("--policy-checkpoint", default="", help=argparse.SUPPRESS)
     parser.add_argument("--policy-inference", default="tasks.robocasa_bc5.inference")
     parser.add_argument("--policy-eval-episodes-per-task", type=int, default=1)
@@ -74,20 +75,31 @@ def main() -> None:
     )
     lpips_model = _load_lpips_model(str(args.lpips_net), world["device"])
     metrics = _visual_transition_eval(world, val, rgb, next_rgb, int(args.batch_size), lpips_model, int(args.lpips_size))
-    policy_correlation = _visual_policy_correlation_eval(
-        world,
-        val_raw,
-        rgb,
-        summary,
-        policy_set_path=str(args.policy_set),
-        policy_checkpoint=str(args.policy_checkpoint),
-        policy_inference=str(args.policy_inference),
-        episodes_per_task=int(args.policy_eval_episodes_per_task),
-        rollout_steps=int(args.policy_rollout_steps),
-        commit_steps=int(args.policy_commit_steps),
-        policy_image_size=int(args.policy_image_size),
-        view=str(cfg.get("view", "robot0_agentview_right")),
-    )
+    if args.policy_probe_set:
+        policy_correlation = _visual_policy_probe_correlation_eval(
+            world,
+            probe_set_path=str(args.policy_probe_set),
+            policy_inference=str(args.policy_inference),
+            rollout_steps=int(args.policy_rollout_steps),
+            commit_steps=int(args.policy_commit_steps),
+            policy_image_size=int(args.policy_image_size),
+            view=str(cfg.get("view", "robot0_agentview_right")),
+        )
+    else:
+        policy_correlation = _visual_policy_correlation_eval(
+            world,
+            val_raw,
+            rgb,
+            summary,
+            policy_set_path=str(args.policy_set),
+            policy_checkpoint=str(args.policy_checkpoint),
+            policy_inference=str(args.policy_inference),
+            episodes_per_task=int(args.policy_eval_episodes_per_task),
+            rollout_steps=int(args.policy_rollout_steps),
+            commit_steps=int(args.policy_commit_steps),
+            policy_image_size=int(args.policy_image_size),
+            view=str(cfg.get("view", "robot0_agentview_right")),
+        )
     benchmark = _benchmark_score(metrics, policy_correlation)
     payload = {
         "task": "robocasa_visual_world_model",
@@ -272,6 +284,153 @@ def _visual_policy_correlation_eval(
         "eval_correlation_score": float(corr_score),
         "policies": rows,
         "skipped_policies": skipped,
+    }
+
+
+def _visual_policy_probe_correlation_eval(
+    world: dict,
+    *,
+    probe_set_path: str,
+    policy_inference: str,
+    rollout_steps: int,
+    commit_steps: int,
+    policy_image_size: int,
+    view: str,
+) -> dict:
+    path = Path(probe_set_path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    array_path = _resolve_probe_path(path.parent, str(payload.get("array_path", "")))
+    arrays = np.load(array_path)
+    initial_state = np.asarray(arrays["initial_state"], dtype=np.float32)
+    initial_rgb = _probe_rgb_chw(arrays["initial_rgb"])
+    probes = list(payload.get("probes", []))
+    policies = list(payload.get("policies", []))
+    if not probes or not policies:
+        return {
+            "enabled": False,
+            "reason": "probe set has no probes or policies",
+            "eval_correlation_score": 0.0,
+            "valid_policy_count": 0,
+            "valid_probe_count": 0,
+        }
+
+    loaded: dict[int, tuple[dict, object, object]] = {}
+    skipped: list[dict] = []
+    probe_rows: list[dict] = []
+    for probe_index, probe in enumerate(probes):
+        if probe_index >= len(initial_state) or probe_index >= len(initial_rgb):
+            skipped.append({**probe, "skip_reason": "probe_array_missing"})
+            continue
+        policy_index = int(probe.get("policy_index", -1))
+        if policy_index < 0 or policy_index >= len(policies):
+            skipped.append({**probe, "skip_reason": "policy_index_out_of_range"})
+            continue
+        policy_spec = dict(policies[policy_index])
+        try:
+            if policy_index not in loaded:
+                checkpoint = _resolve_existing_path(path.parent, str(policy_spec.get("checkpoint", "")))
+                if not checkpoint.exists():
+                    raise FileNotFoundError(str(checkpoint))
+                inference = importlib.import_module(str(policy_spec.get("inference", policy_inference)))
+                policy = inference.load_policy(str(checkpoint), device=str(world["device"]))
+                loaded[policy_index] = (policy_spec, inference, policy)
+            policy_spec, inference, policy = loaded[policy_index]
+            task = {
+                "task_id": int(probe["task_id"]),
+                "alias": str(probe["task_alias"]),
+                "description": str(probe.get("task_alias", "")),
+                "robocasa_task": str(probe.get("task_alias", "")),
+            }
+            score = _rollout_policy_on_generated_visuals(
+                world,
+                policy,
+                inference,
+                task,
+                episode_idx=int(probe.get("episode_id", -1)),
+                initial_state=np.asarray(initial_state[probe_index], dtype=np.float32),
+                initial_rgb=np.asarray(initial_rgb[probe_index], dtype=np.float32),
+                rollout_steps=int(rollout_steps),
+                commit_steps=int(probe.get("commit_steps", commit_steps)),
+                policy_image_size=int(policy_image_size),
+            )
+        except Exception as exc:
+            skipped.append({**probe, "skip_reason": f"probe_rollout_failed: {type(exc).__name__}: {exc}"})
+            continue
+        probe_rows.append(
+            {
+                "probe_id": str(probe.get("probe_id", probe_index)),
+                "policy_index": int(policy_index),
+                "policy_name": str(policy_spec.get("name", "")),
+                "task_alias": str(probe["task_alias"]),
+                "task_id": int(probe["task_id"]),
+                "episode_id": int(probe.get("episode_id", -1)),
+                "real_success": float(probe.get("real_success", 0.0)),
+                "real_steps": int(probe.get("real_steps", 0)),
+                **score,
+            }
+        )
+
+    policy_rows = []
+    for policy_index, policy_spec in enumerate(policies):
+        rows = [row for row in probe_rows if int(row["policy_index"]) == int(policy_index)]
+        real = [float(row["real_success"]) for row in rows]
+        pred = [float(row["predicted_success"]) for row in rows]
+        policy_rows.append(
+            {
+                "name": str(policy_spec.get("name", "")),
+                "checkpoint": str(policy_spec.get("checkpoint", "")),
+                "inference": str(policy_spec.get("inference", policy_inference)),
+                "ood": bool(policy_spec.get("ood", False)),
+                "real_success_rate": float(np.mean(real)) if real else None,
+                "predicted_success": float(np.mean(pred)) if pred else None,
+                "probe_count": int(len(rows)),
+                "details": rows,
+            }
+        )
+
+    valid_probes = [row for row in probe_rows if row.get("predicted_success") is not None]
+    probe_real = np.asarray([row["real_success"] for row in valid_probes], dtype=np.float64)
+    probe_pred = np.asarray([row["predicted_success"] for row in valid_probes], dtype=np.float64)
+    probe_pearson = _pearson(probe_real, probe_pred)
+    probe_spearman = _spearman(probe_real, probe_pred)
+    valid_policies = [row for row in policy_rows if row.get("real_success_rate") is not None and row.get("predicted_success") is not None]
+    policy_real = np.asarray([row["real_success_rate"] for row in valid_policies], dtype=np.float64)
+    policy_pred = np.asarray([row["predicted_success"] for row in valid_policies], dtype=np.float64)
+    pearson = _pearson(policy_real, policy_pred)
+    spearman = _spearman(policy_real, policy_pred)
+    ood_pearson = _ood_corr(policy_rows, method="pearson")
+    ood_spearman = _ood_corr(policy_rows, method="spearman")
+    corr_score = _mean_present([
+        _corr_score(probe_pearson),
+        _corr_score(probe_spearman),
+        _corr_score(pearson),
+        _corr_score(spearman),
+        _corr_score(ood_pearson),
+        _corr_score(ood_spearman),
+    ])
+    return {
+        "enabled": True,
+        "mode": "cached_policy_probe_set",
+        "policy_probe_set": str(probe_set_path),
+        "array_path": str(array_path),
+        "conditioning": "Each cached probe reuses a stored RoboCasa initial state/RGB and real success label; future evals roll the same policy from that state inside the learned world model.",
+        "generated_view": str(view),
+        "policy_count": int(len(policy_rows)),
+        "valid_policy_count": int(len(valid_policies)),
+        "probe_count": int(len(probes)),
+        "valid_probe_count": int(len(valid_probes)),
+        "rollout_steps": int(rollout_steps),
+        "commit_steps": int(commit_steps),
+        "probe_pearson": probe_pearson,
+        "probe_spearman": probe_spearman,
+        "pearson": pearson,
+        "spearman": spearman,
+        "ood_pearson": ood_pearson,
+        "ood_spearman": ood_spearman,
+        "eval_correlation_score": float(corr_score),
+        "policies": policy_rows,
+        "probes": probe_rows,
+        "skipped_probes": skipped,
     }
 
 
@@ -484,6 +643,40 @@ def _policy_real_success(policy: dict) -> float | None:
     return _real_success(str(policy.get("real_eval_json", "")))
 
 
+def _resolve_probe_path(base: Path, value: str) -> Path:
+    if not value:
+        raise ValueError("probe set is missing array_path")
+    path = Path(value)
+    return path if path.is_absolute() else base / path
+
+
+def _resolve_existing_path(base: Path, value: str) -> Path:
+    path = Path(value)
+    if path.exists() or path.is_absolute():
+        return path
+    candidate = base / path
+    if candidate.exists():
+        return candidate
+    return path
+
+
+def _probe_rgb_chw(rgb: np.ndarray) -> np.ndarray:
+    arr = np.asarray(rgb)
+    if arr.ndim != 4:
+        raise ValueError(f"expected probe RGB array with 4 dims, got {arr.shape}")
+    if arr.shape[1] == 3:
+        out = arr.astype(np.float32)
+        if out.max(initial=0.0) > 1.0:
+            out = out / 255.0
+        return out
+    if arr.shape[-1] == 3:
+        out = np.transpose(arr, (0, 3, 1, 2)).astype(np.float32)
+        if out.max(initial=0.0) > 1.0:
+            out = out / 255.0
+        return out
+    raise ValueError(f"expected RGB CHW or HWC array, got {arr.shape}")
+
+
 def _real_success(path: str) -> float | None:
     if not path or not Path(path).exists():
         return None
@@ -510,6 +703,8 @@ def _pearson(x: np.ndarray, y: np.ndarray) -> float | None:
 
 def _spearman(x: np.ndarray, y: np.ndarray) -> float | None:
     if len(x) < 2:
+        return None
+    if float(np.std(x)) <= 1e-12 or float(np.std(y)) <= 1e-12:
         return None
     return _pearson(_rank(x), _rank(y))
 
