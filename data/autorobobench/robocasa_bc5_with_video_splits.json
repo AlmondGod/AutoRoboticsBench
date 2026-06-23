@@ -12,7 +12,7 @@
   "seed": 20260619,
   "tasks": [
     {
-      "alias": "OpenDrawer",
+      "alias": "OpenCabinet",
       "eval_episode_ids": [
         90,
         91,
