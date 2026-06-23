@@ -17,7 +17,7 @@
       "tasks/robocasa_bc5_with_video/setup.py",
       "tasks/robocasa_bc5_with_video/task.json"
     ],
-    "notes": "Scarce-action transfer track using two paired demos per task plus an RGB-only RoboCasa video pool.",
+    "notes": "Scarce-action transfer track using five paired demos per task plus an RGB-only RoboCasa video pool.",
     "phase": 1,
     "primary_metric": "video_transfer_success",
     "reference_metric": 0.35,
@@ -66,17 +66,17 @@
   "train_contract": {
     "eval_code_mutable": false,
     "eval_tasks": 5,
-    "in_task_video_only_demos_per_task": 78,
+    "in_task_video_only_demos_per_task": 75,
     "max_train_seconds": 300,
-    "paired_action_demos_per_task": 2,
+    "paired_action_demos_per_task": 5,
     "single_model": true,
     "test_time_demo_access": false,
-    "total_video_only_demos": 924,
+    "total_video_only_demos": 909,
     "train_tasks": 5,
-    "unique_video_to_paired_demo_ratio": 92.4,
+    "unique_video_to_paired_demo_ratio": 36.36,
     "video_pool_contains_actions": false,
     "video_pool_contains_proprio": false,
-    "video_to_paired_frame_ratio": 103.75103391232423
+    "video_to_paired_frame_ratio": 38.781372702999846
   },
   "version": "v0",
   "video_pool": "data/autorobobench/robocasa_bc5_with_video_video_pool.json",

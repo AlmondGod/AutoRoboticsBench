@@ -349,6 +349,12 @@ def main() -> None:
     parser.add_argument("--video-pretrain-gap", type=int, default=8)
     parser.add_argument("--video-pretrain-lr", type=float, default=3e-4)
     parser.add_argument("--video-pretrain-temperature", type=float, default=0.1)
+    parser.add_argument(
+        "--video-pretrain-objective",
+        choices=["temporal_infonce", "latent_dynamics", "hybrid"],
+        default="temporal_infonce",
+    )
+    parser.add_argument("--video-latent-dynamics-weight", type=float, default=1.0)
     parser.add_argument("--vpt-idm-seconds", type=float, default=0.0)
     parser.add_argument("--vpt-pseudo-episodes-per-task", type=int, default=0)
     parser.add_argument("--vpt-idm-batch-size", type=int, default=128)
@@ -607,6 +613,8 @@ def main() -> None:
         gap=int(args.video_pretrain_gap),
         lr=float(args.video_pretrain_lr),
         temperature=float(args.video_pretrain_temperature),
+        objective=str(args.video_pretrain_objective),
+        latent_dynamics_weight=float(args.video_latent_dynamics_weight),
         seed=int(args.seed),
         device=device,
     )
@@ -925,6 +933,8 @@ def main() -> None:
         "init_info": init_info,
         "freeze_non_flow": bool(args.freeze_non_flow),
         "freeze_info": freeze_info,
+        "video_pretrain_objective": str(args.video_pretrain_objective),
+        "video_latent_dynamics_weight": float(args.video_latent_dynamics_weight),
         "video_pretrain": video_pretrain_metrics,
         "clip_feature_cache": clip_cache_metrics,
         "vpt_pseudo_labels": vpt_metrics,
@@ -991,6 +1001,8 @@ def main() -> None:
         "init_info": init_info,
         "freeze_non_flow": bool(args.freeze_non_flow),
         "freeze_info": freeze_info,
+        "video_pretrain_objective": str(args.video_pretrain_objective),
+        "video_latent_dynamics_weight": float(args.video_latent_dynamics_weight),
         "video_pretrain": video_pretrain_metrics,
         "vpt_pseudo_labels": vpt_metrics,
     }
@@ -1359,6 +1371,8 @@ def _maybe_video_pretrain(
     gap: int,
     lr: float,
     temperature: float,
+    objective: str,
+    latent_dynamics_weight: float,
     seed: int,
     device: torch.device,
 ) -> dict:
@@ -1416,7 +1430,16 @@ def _maybe_video_pretrain(
         labels = torch.arange(q_t.shape[0], dtype=torch.long, device=device)
         logits_fwd = q_t @ k_tp1.T / max(temperature, 1e-6)
         logits_bwd = q_tp1 @ k_t.T / max(temperature, 1e-6)
-        loss = 0.5 * (F.cross_entropy(logits_fwd, labels) + F.cross_entropy(logits_bwd, labels))
+        nce_loss = 0.5 * (F.cross_entropy(logits_fwd, labels) + F.cross_entropy(logits_bwd, labels))
+        dynamics_loss = 0.5 * (
+            F.mse_loss(q_t, k_tp1.detach()) + F.mse_loss(q_tp1, k_t.detach())
+        )
+        if objective == "latent_dynamics":
+            loss = float(latent_dynamics_weight) * dynamics_loss
+        elif objective == "hybrid":
+            loss = nce_loss + float(latent_dynamics_weight) * dynamics_loss
+        else:
+            loss = nce_loss
         opt.zero_grad()
         loss.backward()
         nn.utils.clip_grad_norm_(params, 1.0)
@@ -1428,18 +1451,28 @@ def _maybe_video_pretrain(
             )
             row = {
                 "step": step,
-                "video_nce_loss": float(loss.detach().cpu()),
+                "video_loss": float(loss.detach().cpu()),
+                "video_nce_loss": float(nce_loss.detach().cpu()),
+                "video_latent_dynamics_loss": float(dynamics_loss.detach().cpu()),
                 "video_nce_acc": float(acc.detach().cpu()),
                 "elapsed_seconds": time.monotonic() - start_time,
             }
             history.append(row)
             print(
-                f"video_pretrain step={step} loss={row['video_nce_loss']:.6f} acc={row['video_nce_acc']:.3f}",
+                "video_pretrain step={step} loss={loss:.6f} nce={nce:.6f} "
+                "latent={latent:.6f} acc={acc:.3f}".format(
+                    step=step,
+                    loss=row["video_loss"],
+                    nce=row["video_nce_loss"],
+                    latent=row["video_latent_dynamics_loss"],
+                    acc=row["video_nce_acc"],
+                ),
                 flush=True,
             )
     return {
         "enabled": True,
-        "objective": "temporal_infonce",
+        "objective": str(objective),
+        "latent_dynamics_weight": float(latent_dynamics_weight),
         "max_train_seconds": float(max_train_seconds),
         "steps_completed": int(step),
         "samples": int(len(samples["agent_t"])),
