@@ -1,0 +1,76 @@
+{
+  "description": "Tracked BC5 policy checkpoints for visual world-model correlation measurement. These artifacts are stored under data/autorobobench/pretrained_policies so fresh RunPod checkouts do not skip policy-correlation eval due missing checkpoints.",
+  "policies": [
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "all_bc5_bc",
+      "ood": false,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "focus_OpenCabinet",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "focus_CloseDrawer",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseFridge/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "focus_CloseFridge",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseFridge/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_TurnOffStove/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "focus_TurnOffStove",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_TurnOffStove/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_PickPlaceCounterToCabinet/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "focus_PickPlaceCounterToCabinet",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_PickPlaceCounterToCabinet/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/policy_best.pt",
+      "episodes": 10,
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "bc5_with_video_pidm",
+      "ood": false,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0,
+      "successes": 0
+    }
+  ],
+  "task": "robocasa_world_model_policy_set"
+}

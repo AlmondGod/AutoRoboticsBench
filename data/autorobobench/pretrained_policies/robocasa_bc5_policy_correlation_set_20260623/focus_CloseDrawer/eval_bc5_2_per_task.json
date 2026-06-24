@@ -1,0 +1,187 @@
+{
+  "available_eval_episodes_per_task": {
+    "CloseDrawer": 10,
+    "CloseFridge": 10,
+    "OpenCabinet": 10,
+    "PickPlaceCounterToCabinet": 10,
+    "TurnOffStove": 10
+  },
+  "checkpoint": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/policy_best.pt",
+  "commit_steps": 8,
+  "details": [
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenCabinet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenCabinet",
+      "task_id": 0
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseFridge",
+      "task_id": 2
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseFridge",
+      "task_id": 2
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    }
+  ],
+  "episodes": 10,
+  "inference": "tasks.robocasa_bc5.inference",
+  "manifest": "data/robocasa5/manifest.json",
+  "manifest_track": null,
+  "max_steps": 260,
+  "parallel_eval": {
+    "elapsed_seconds": 84.586500255391,
+    "worker_results": [
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_000.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_001.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_002.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_003.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_004.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_005.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_006.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_007.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_008.json",
+        "success_rate": 0.0,
+        "successes": 0
+      },
+      {
+        "episodes": 1,
+        "path": "runs/autorobobench/robocasa_bc5/policy_correlation_set_20260623_104340/focus_CloseDrawer/eval_bc5_2_per_task_parallel/result_worker_009.json",
+        "success_rate": 0.0,
+        "successes": 0
+      }
+    ],
+    "workers": 10
+  },
+  "per_task": {
+    "CloseDrawer": {
+      "episodes": 2,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "CloseFridge": {
+      "episodes": 2,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "OpenCabinet": {
+      "episodes": 2,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "PickPlaceCounterToCabinet": {
+      "episodes": 2,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "TurnOffStove": {
+      "episodes": 2,
+      "success_rate": 0.0,
+      "successes": 0
+    }
+  },
+  "requested_eval_episodes_per_task": 2,
+  "split": "data/autorobobench/robocasa_bc5_splits.json",
+  "split_track": "robocasa_bc5",
+  "success_rate": 0.0,
+  "successes": 0,
+  "track": "robocasa_bc5"
+}
