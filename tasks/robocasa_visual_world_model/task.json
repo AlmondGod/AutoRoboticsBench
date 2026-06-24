@@ -4,12 +4,10 @@
       "program_autorobobench.md",
       "tasks/robocasa_visual_world_model/**",
       "tasks/robocasa_visual_world_model/inference.py",
-      "tasks/robocasa_visual_world_model/model.py",
       "tasks/robocasa_visual_world_model/train.py",
       "tasks/robocasa_visual_world_model/visualize_rollout.py",
       "tasks/robocasa_world_model/data.py",
       "tasks/robocasa_world_model/inverse_dynamics.py",
-      "tasks/robocasa_world_model/model.py",
       "tasks/robocasa_world_model/video_repr.py"
     ],
     "higher_is_better": true,

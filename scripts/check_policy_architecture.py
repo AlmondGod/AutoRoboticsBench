@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that RoboCasa BC wrapper tasks share the intended policy architecture."""
+"""Check that RoboCasa BC wrapper tasks keep the intended policy architecture."""
 
 from __future__ import annotations
 
@@ -95,15 +95,17 @@ def main() -> int:
         inference_path = repo_root / "tasks" / task / "inference.py"
         defaults = parse_wrapper_defaults(train_path)
         arch = architecture_defaults(defaults)
+        imports_bc5_train = source_contains(train_path, "tasks.robocasa_bc5.train")
+        imports_bc5_policy = imports_bc5_inference(inference_path)
         report[task] = {
-            "uses_bc5_train": source_contains(train_path, "tasks.robocasa_bc5.train"),
-            "uses_bc5_inference": imports_bc5_inference(inference_path),
+            "self_contained_train": not imports_bc5_train,
+            "self_contained_inference": not imports_bc5_policy,
             "architecture": arch,
         }
-        if not report[task]["uses_bc5_train"]:
-            failures.append(f"{task} does not import tasks.robocasa_bc5.train")
-        if not report[task]["uses_bc5_inference"]:
-            failures.append(f"{task} does not import tasks.robocasa_bc5.inference")
+        if imports_bc5_train:
+            failures.append(f"{task} imports tasks.robocasa_bc5.train")
+        if imports_bc5_policy:
+            failures.append(f"{task} imports tasks.robocasa_bc5.inference")
         if reference is None:
             reference = arch
         elif arch != reference:

@@ -6,7 +6,6 @@
       "tasks/robocasa_world_model/data.py",
       "tasks/robocasa_world_model/inference.py",
       "tasks/robocasa_world_model/inverse_dynamics.py",
-      "tasks/robocasa_world_model/model.py",
       "tasks/robocasa_world_model/plot_eval.py",
       "tasks/robocasa_world_model/policy_set.py",
       "tasks/robocasa_world_model/trace.py",
