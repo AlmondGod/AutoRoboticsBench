@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__import__("os").environ.get("ROBOAUTORESEARCH_REPO_ROOT", Path(__file__).resolve().parents[2])).resolve()
 if str(ROOT) in sys.path:
     sys.path.remove(str(ROOT))
 sys.path.insert(0, str(ROOT))
