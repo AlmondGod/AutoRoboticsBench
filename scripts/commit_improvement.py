@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -52,6 +53,27 @@ def read_score(results_path: Path) -> float:
     raise SystemExit(f"Eval results do not contain a known numeric primary score: {results_path}")
 
 
+def sync_workspace_template(repo_root: Path, run_dir: Path, task: str) -> list[str]:
+    """Copy editable run sandbox files back into the tracked task template."""
+    task_dir = run_dir / "task"
+    template_dir = repo_root / "tasks" / task / "workspace_template"
+    if not task_dir.exists() or not template_dir.exists():
+        return []
+
+    synced: list[str] = []
+    for name in ("task.md", "train.py", "inference.py"):
+        src = task_dir / name
+        if not src.exists() and name == "inference.py":
+            src = task_dir / "Inference.py"
+        if not src.exists():
+            continue
+        dst = template_dir / name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        synced.append(str(dst.relative_to(repo_root)))
+    return synced
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", required=True)
@@ -81,6 +103,12 @@ def main() -> int:
     if not improved:
         print(f"No commit: score {score:.6f} did not improve previous {previous:.6f}.")
         return 0
+
+    synced = sync_workspace_template(repo_root, run_dir, args.task)
+    if synced:
+        print("Synced workspace edits:")
+        for path in synced:
+            print(f"  {path}")
 
     status_before = git(repo_root, ["status", "--porcelain"]).stdout.strip()
     if not status_before:
