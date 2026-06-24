@@ -54,14 +54,14 @@ def read_score(results_path: Path) -> float:
 
 
 def sync_workspace_template(repo_root: Path, run_dir: Path, task: str) -> list[str]:
-    """Copy editable run sandbox files back into the tracked task template."""
+    """Copy editable run sandbox source files back into the tracked task template."""
     task_dir = run_dir / "task"
     template_dir = repo_root / "tasks" / task / "workspace_template"
     if not task_dir.exists() or not template_dir.exists():
         return []
 
     synced: list[str] = []
-    for name in ("task.md", "train.py", "inference.py"):
+    for name in ("train.py", "inference.py"):
         src = task_dir / name
         if not src.exists() and name == "inference.py":
             src = task_dir / "Inference.py"

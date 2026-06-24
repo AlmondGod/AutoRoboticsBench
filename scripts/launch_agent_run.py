@@ -90,6 +90,7 @@ You are operating inside a Docker training container through the generated wrapp
 
 Instructions:
 - Read /workspace/task/task.md before making changes.
+- Treat /workspace/task/task.md as read-only task guidance.
 - Run all commands through runs/{run_id}/run.sh "<command>" from the repo root.
 - Modify only /workspace/task and /workspace/output.
 - You may read /workspace/read_only, but do not modify it.
@@ -106,7 +107,7 @@ Instructions:
 - Scored/interim policy eval checkpoints should use 100 total rollouts: 100 per task for single-task tracks, 20 per task for BC5 five-task tracks, and 25 per variant for language following.
 - If you make tracked repo source changes that improve eval score, commit them on this branch with:
   python scripts/commit_improvement.py --run-id {run_id} --task {task}
-- If you edit /workspace/task/task.md, /workspace/task/train.py, or /workspace/task/inference.py, the commit helper syncs those files back into tasks/{task}/workspace_template/ before committing.
+- If you edit /workspace/task/train.py or /workspace/task/inference.py, the commit helper syncs those files back into tasks/{task}/workspace_template/ before committing.
 - If a change is only validated by task-relevant training/validation loss because eval is too expensive, record the evidence in the run log before committing.
 - If token/cost usage is available, write it to runs/{run_id}/run_usage.json with keys:
   input_tokens, output_tokens, reasoning_tokens, total_tokens, estimated_usd

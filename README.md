@@ -140,19 +140,19 @@ The prepare command bootstraps Python dependencies, checks GPU visibility,
 creates a run directory, writes `runs/<RUN_ID>/prompt.txt`, and prints the exact
 commands to use next. If setup is already done, pass `--skip-setup`.
 
-Each task provides a minimal writable sandbox template at
-`tasks/<TASK>/workspace_template/`. The launcher copies exactly these editable
-files into `runs/<RUN_ID>/task/`, which is exposed to the agent as
-`/workspace/task`:
+Each task provides a minimal sandbox template at
+`tasks/<TASK>/workspace_template/`. The launcher copies exactly these files into
+`runs/<RUN_ID>/task/`, which is exposed to the agent as `/workspace/task`:
 
-- `task.md`
-- `train.py`
-- `inference.py`
+- `task.md`: read-only task guidance
+- `train.py`: editable training entrypoint
+- `inference.py`: editable inference/submission entrypoint
 
 Eval/scoring files, split files, datasets, and read-only benchmark helpers stay
-outside the writable task sandbox. If an agent edits the three sandbox files and
-the change improves score, `scripts/commit_improvement.py` syncs them back into
-`tasks/<TASK>/workspace_template/` before committing.
+outside the writable task sandbox. If an agent edits `train.py` or
+`inference.py` and the change improves score, `scripts/commit_improvement.py`
+syncs those source files back into `tasks/<TASK>/workspace_template/` before
+committing. It does not sync edits to `task.md`.
 
 RoboCasa eval dependencies can also be installed directly with:
 
