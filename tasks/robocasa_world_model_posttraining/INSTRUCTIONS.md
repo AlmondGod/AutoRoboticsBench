@@ -34,6 +34,8 @@ files or split files for scored runs.
   `runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
 - Default frozen world-model path:
   `data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt`.
+- The large world-model `.pt` artifact is external and intentionally not
+  committed; provide it at that path or pass `--world-model-checkpoint`.
 - Current promoted world model: VisualRoboCasaWorldModel with spatial VAE
   latents and a conv residual latent-map dynamics head. It was trained on the
   11-task transition suite and reached best validation visual score loss

@@ -114,6 +114,12 @@ Evaluate in a clean eval container:
 RUN_ID=<RUN_ID> TASK=robocasa_bc5 ./docker/run_eval_container.sh
 ```
 
+The Docker eval path mounts the repo read-only and runs the same real task
+evaluator used by RunPod finalization. It expects
+`runs/<RUN_ID>/output/final_submission/` to contain a checkpoint such as
+`policy_best.pt`, plus `inference.py` if the submission overrides the default
+task inference.
+
 ## RunPod Dockerless Mode
 
 RunPod Pods are already containers, so they usually cannot launch nested Docker
@@ -384,11 +390,11 @@ on `PickPlaceCounterToStandMixer`; it was trained with an eval-included
 diagnostic split and should be treated as a posttraining base artifact, not as a
 fair standalone benchmark submission.
 
-The world-model posttraining task also ships a default frozen visual world
-model at
+The world-model posttraining task records metadata for a default frozen visual
+world model at
 `data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt`.
-It is a spatial-latent VisualRoboCasaWorldModel with a conv residual latent-map
-dynamics head, trained on the 11-task transition suite. The promoted checkpoint
-reached best validation visual score loss `0.0062508`, so
-`tasks/robocasa_world_model_posttraining/train.py` can be run without manually
-passing `--world-model-checkpoint`.
+The large `.pt` artifact is intentionally not committed; supply it externally at
+that path or pass `--world-model-checkpoint`. It is a spatial-latent
+VisualRoboCasaWorldModel with a conv residual latent-map dynamics head, trained
+on the 11-task transition suite. The promoted checkpoint reached best validation
+visual score loss `0.0062508`.

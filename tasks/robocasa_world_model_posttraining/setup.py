@@ -31,7 +31,7 @@ def main() -> None:
         "default_world_model_checkpoint_exists": DEFAULT_WORLD_MODEL_CHECKPOINT.exists(),
     }
     print(json.dumps(checks, indent=2, sort_keys=True))
-    optional = {"default_policy_checkpoint_exists"}
+    optional = {"default_policy_checkpoint_exists", "default_world_model_checkpoint_exists"}
     missing = [key for key, ok in checks.items() if key != "task" and key not in optional and not ok]
     if missing:
         raise SystemExit(f"missing requirements: {', '.join(missing)}")

@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /workspace
 
 RUN python -m pip install --upgrade pip && \
-    python -m pip install pyyaml numpy
+    python -m pip install pyyaml numpy scipy pillow imageio imageio-ffmpeg h5py
 
 COPY docker/entrypoint.sh /usr/local/bin/robo_entrypoint.sh
 RUN chmod +x /usr/local/bin/robo_entrypoint.sh

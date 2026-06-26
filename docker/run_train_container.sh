@@ -42,6 +42,9 @@ fi
 docker run -d \
   --name "${CONTAINER_NAME}" \
   "${GPU_ARGS[@]}" \
+  -e ROBOAUTORESEARCH_REPO_ROOT=/workspace/repo \
+  -e PYTHONPATH=/workspace/task:/workspace/repo:/workspace/read_only \
+  -v "${REPO_ROOT}:/workspace/repo:ro" \
   -v "${REPO_ROOT}/benchmark_harness:/workspace/read_only:ro" \
   -v "${RUN_DIR}/task:/workspace/task" \
   -v "${RUN_DIR}/output:/workspace/output" \

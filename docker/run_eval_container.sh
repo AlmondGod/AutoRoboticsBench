@@ -27,14 +27,22 @@ fi
 mkdir -p "${EVAL_DIR}"
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
 
+GPU_ARGS=()
+if command -v nvidia-smi >/dev/null 2>&1; then
+  GPU_ARGS=(--gpus all)
+fi
+
 docker run --rm \
   --name "${CONTAINER_NAME}" \
+  "${GPU_ARGS[@]}" \
   --network none \
-  -v "${REPO_ROOT}/benchmark_harness:/workspace/read_only:ro" \
+  -v "${REPO_ROOT}:/workspace/repo:ro" \
   -v "${SUBMISSION_DIR}:/workspace/final_submission:ro" \
   -v "${EVAL_DIR}:/workspace/eval" \
+  -w /workspace/repo \
   "${IMAGE_NAME}" \
-  python /workspace/read_only/eval/evaluate_submission.py \
+  python /workspace/repo/scripts/run_eval_submission.py \
     --task "${TASK}" \
     --submission /workspace/final_submission \
-    --out /workspace/eval/results.json
+    --out /workspace/eval/results.json \
+    --repo-root /workspace/repo

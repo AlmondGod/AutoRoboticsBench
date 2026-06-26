@@ -83,6 +83,8 @@ def main() -> int:
     valid, flags = validate_submission(submission)
     flags.extend(detect_replay(submission))
     flags.extend(check_privileged_state_use(submission))
+    if flags:
+        valid = False
 
     score = 0.0
     success_rate = 0.0
