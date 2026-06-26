@@ -56,9 +56,13 @@ def _rewrite_result(out: Path) -> dict | None:
         return None
     payload = json.loads(out.read_text())
     success_rate = float(payload.get("success_rate", 0.0))
+    val_score = float(payload.get("val_action_mse_score", 0.0) or 0.0)
+    val_weight = float(payload.get("val_imitation_score_weight", 0.05) or 0.05)
     payload["track"] = "robocasa_bc5_with_video"
     payload["split"] = FROZEN_SPLIT
     payload["video_transfer_success"] = success_rate
+    payload["video_transfer_val_mse_score"] = max(0.0, min(1.0, (1.0 - val_weight) * success_rate + val_weight * val_score))
+    payload["metric"] = "video_transfer_val_mse_score"
     payload["paired_action_efficiency"] = success_rate
     payload["data_budget_integrity"] = 1.0
     payload["reproducibility_integrity"] = 1.0

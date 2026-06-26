@@ -23,8 +23,11 @@ eval files or split files for scored runs.
 - Optimize one language-conditioned policy over four variants:
   `ChooseMeasuringCupLeftLarger`, `ChooseMeasuringCupLeftSmaller`,
   `ChooseMeasuringCupRightLarger`, `ChooseMeasuringCupRightSmaller`.
-- Metric: rollout success rate under the correct language prompt. Also report
-  wrong-language success and conditioning gap as diagnostics.
+- Metric: rollout success rate under the correct language prompt plus a small
+  held-out imitation term. Final score is
+  `0.95 * language_success_rate + 0.05 * val_action_mse_score`, where
+  `val_action_mse_score = clamp(1 - MSE, 0, 1)` on frozen validation
+  trajectories. Wrong-language success and conditioning gap are diagnostics.
 - Default eval: 100 total correct-language rollouts, 25 per language variant.
 - Do not collapse variants into one unlabeled task.
 - Test-time inference may not read manifests, splits, datasets, video pools, or

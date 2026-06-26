@@ -1,75 +1,45 @@
 {
-  "description": "Tracked BC5 policy checkpoints for visual world-model correlation measurement. These artifacts are stored under data/autorobobench/pretrained_policies so fresh RunPod checkouts do not skip policy-correlation eval due missing checkpoints.",
+  "description": "Auto-discovered real RoboCasa BC-5 policies with real simulator eval JSONs. Trace paths are materialized by tasks/robocasa_world_model/eval.py when run in a RoboCasa runtime.",
   "policies": [
     {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/policy_best.pt",
-      "episodes": 10,
+      "checkpoint": "runs/autorobobench/robocasa_bc5/autoresearch_clip_recede4_open_only/policy_best.pt",
       "inference": "tasks.robocasa_bc5.inference",
-      "name": "all_bc5_bc",
+      "name": "autoresearch_clip_recede4_open_only",
+      "ood": true,
+      "real_eval_json": "runs/autorobobench/robocasa_bc5/autoresearch_clip_recede4_open_only/eval_10_per_task_local.json",
+      "real_success_rate": 0.14
+    },
+    {
+      "checkpoint": "runs/autorobobench/robocasa_bc5/autoresearch_ensemble_clip_smol/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "autoresearch_ensemble_clip_smol",
+      "ood": true,
+      "real_eval_json": "runs/autorobobench/robocasa_bc5/autoresearch_ensemble_clip_smol/eval_10_per_task_local.json",
+      "real_success_rate": 0.12
+    },
+    {
+      "checkpoint": "runs/autorobobench/robocasa_bc5/autoresearch_full_history_act_seed0/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "autoresearch_full_history_act_seed0",
+      "ood": true,
+      "real_eval_json": "runs/autorobobench/robocasa_bc5/autoresearch_full_history_act_seed0/eval_10_per_task_local.json",
+      "real_success_rate": 0.08
+    },
+    {
+      "checkpoint": "runs/autorobobench/robocasa_bc5/clip_5min_seed0/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "clip_5min_seed0",
       "ood": false,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
+      "real_eval_json": "runs/autorobobench/robocasa_bc5/clip_5min_seed0/eval_10_per_task_local.json",
+      "real_success_rate": 0.12
     },
     {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/policy_best.pt",
-      "episodes": 10,
+      "checkpoint": "runs/autorobobench/robocasa_bc5/smolvlm2_5min_seed0/policy_best.pt",
       "inference": "tasks.robocasa_bc5.inference",
-      "name": "focus_OpenCabinet",
-      "ood": true,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
-    },
-    {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/policy_best.pt",
-      "episodes": 10,
-      "inference": "tasks.robocasa_bc5.inference",
-      "name": "focus_CloseDrawer",
-      "ood": true,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
-    },
-    {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseFridge/policy_best.pt",
-      "episodes": 10,
-      "inference": "tasks.robocasa_bc5.inference",
-      "name": "focus_CloseFridge",
-      "ood": true,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseFridge/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
-    },
-    {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_TurnOffStove/policy_best.pt",
-      "episodes": 10,
-      "inference": "tasks.robocasa_bc5.inference",
-      "name": "focus_TurnOffStove",
-      "ood": true,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_TurnOffStove/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
-    },
-    {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_PickPlaceCounterToCabinet/policy_best.pt",
-      "episodes": 10,
-      "inference": "tasks.robocasa_bc5.inference",
-      "name": "focus_PickPlaceCounterToCabinet",
-      "ood": true,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_PickPlaceCounterToCabinet/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
-    },
-    {
-      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/policy_best.pt",
-      "episodes": 10,
-      "inference": "tasks.robocasa_bc5.inference",
-      "name": "bc5_with_video_pidm",
+      "name": "smolvlm2_5min_seed0",
       "ood": false,
-      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/eval_bc5_2_per_task.json",
-      "real_success_rate": 0.0,
-      "successes": 0
+      "real_eval_json": "runs/autorobobench/robocasa_bc5/smolvlm2_5min_seed0/eval_10_per_task_local.json",
+      "real_success_rate": 0.12
     }
   ],
   "task": "robocasa_world_model_policy_set"

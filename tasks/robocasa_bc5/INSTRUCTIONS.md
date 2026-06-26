@@ -22,7 +22,11 @@ for scored runs.
 
 - Optimize one policy for `OpenCabinet`, `CloseDrawer`, `CloseFridge`,
   `TurnOffStove`, `PickPlaceCounterToCabinet`.
-- Metric: rollout success rate over the five tasks.
+- Metric: rollout success rate over the five tasks plus a small held-out
+  imitation term. Final score is
+  `0.95 * success_rate + 0.05 * val_action_mse_score`, where
+  `val_action_mse_score = clamp(1 - MSE, 0, 1)` on frozen validation
+  trajectories. Rollout success remains the dominant score component.
 - Default eval: 100 total rollouts: 20 episodes/task over five tasks, max 260
   steps, commit 16 unless checkpoint overrides commit horizon.
 - Data: use `data/robocasa5/manifest.json` and

@@ -17,31 +17,39 @@
     ],
     "notes": "Language-conditioned ChooseMeasuringCup track over four prompt variants: left/right drawer and larger/smaller cup.",
     "phase": 1,
-    "primary_metric": "success_rate",
-    "reference_metric": 0.75,
+    "primary_metric": "language_success_val_mse_score",
+    "reference_metric": 0.7625,
     "required_result_keys": [
       "success_rate",
+      "val_action_mse_score",
+      "language_success_val_mse_score",
       "episodes",
       "successes"
     ],
     "score_weights": {
-      "success_rate": 1.0
+      "language_success_val_mse_score": 1.0
     },
     "starter_metric": 0.0
   },
   "default_eval": {
     "commit_steps": 8,
     "eval_episodes_per_task": 25,
-    "max_steps": 900
+    "max_steps": 900,
+    "val_imitation_episodes_per_task": 2,
+    "val_imitation_frames_per_episode": 8,
+    "val_imitation_score_weight": 0.05
   },
   "eval": "tasks/robocasa_language_following/eval.py",
   "id": "robocasa_language_following",
   "inference": "tasks/robocasa_language_following/inference.py",
   "manifest": "data/autorobobench/robocasa_language_following_manifest.json",
   "metrics": {
-    "primary": "success_rate",
+    "primary": "language_success_val_mse_score",
     "secondary": [
+      "language_success_rate",
       "success_rate",
+      "val_action_mse",
+      "val_action_mse_score",
       "wrong_language_success_rate",
       "conditioning_gap",
       "language_variant_balance",
@@ -54,7 +62,7 @@
     "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
     "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
   },
-  "reference_metric": 0.75,
+  "reference_metric": 0.7625,
   "setup": "tasks/robocasa_language_following/setup.py",
   "split": "data/autorobobench/robocasa_language_following_splits.json",
   "starter_metric": 0.0,

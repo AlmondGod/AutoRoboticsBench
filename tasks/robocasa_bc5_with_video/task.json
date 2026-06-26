@@ -19,22 +19,27 @@
     ],
     "notes": "Scarce-action transfer track using five paired demos per task plus an RGB-only RoboCasa video pool.",
     "phase": 1,
-    "primary_metric": "success_rate",
-    "reference_metric": 0.35,
+    "primary_metric": "video_transfer_val_mse_score",
+    "reference_metric": 0.3825,
     "required_result_keys": [
       "success_rate",
+      "val_action_mse_score",
+      "video_transfer_val_mse_score",
       "episodes",
       "successes"
     ],
     "score_weights": {
-      "success_rate": 1.0
+      "video_transfer_val_mse_score": 1.0
     },
     "starter_metric": 0.05
   },
   "default_eval": {
     "commit_steps": 16,
     "eval_episodes_per_task": 20,
-    "max_steps": 260
+    "max_steps": 260,
+    "val_imitation_episodes_per_task": 2,
+    "val_imitation_frames_per_episode": 8,
+    "val_imitation_score_weight": 0.05
   },
   "eval": "tasks/robocasa_bc5_with_video/eval.py",
   "eval_parallel": "tasks/robocasa_bc5_with_video/eval_parallel.py",
@@ -42,9 +47,12 @@
   "inference": "tasks/robocasa_bc5_with_video/inference.py",
   "manifest": "data/robocasa5/manifest.json",
   "metrics": {
-    "primary": "success_rate",
+    "primary": "video_transfer_val_mse_score",
     "secondary": [
+      "video_transfer_val_mse_score",
       "success_rate",
+      "val_action_mse",
+      "val_action_mse_score",
       "paired_action_efficiency",
       "data_budget_integrity"
     ]
@@ -55,7 +63,7 @@
     "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
     "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
   },
-  "reference_metric": 0.35,
+  "reference_metric": 0.3825,
   "setup": "tasks/robocasa_bc5_with_video/setup.py",
   "split": "data/autorobobench/robocasa_bc5_with_video_splits.json",
   "starter_metric": 0.05,

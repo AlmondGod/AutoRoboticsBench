@@ -10,10 +10,13 @@
   "inference": "tasks/robocasa_bc1/inference.py",
   "manifest": "data/autorobobench/robocasa_bc1_manifest.json",
   "metrics": {
-    "primary": "bc1_reliability_speed_score",
+    "primary": "bc1_reliability_speed_val_mse_score",
     "secondary": [
+      "bc1_reliability_speed_score",
       "peak_final_success",
       "success_rate",
+      "val_action_mse",
+      "val_action_mse_score",
       "successful_eval_speed",
       "successful_eval_steps_mean",
       "reliability_stability",

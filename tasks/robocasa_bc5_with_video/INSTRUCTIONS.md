@@ -24,9 +24,12 @@ edit eval files or split files for scored runs.
 - Data: five paired action demos/task plus video-only pool. The default trainer
   uses PIDM-style auxiliary pretraining: paired demos supervise inverse
   dynamics while RGB-only clips supervise future visual latent prediction.
-- Metric: rollout success rate over the five tasks. Paired-action efficiency
-  and data-budget integrity are reported as diagnostics/constraints, not score
-  terms.
+- Metric: rollout success rate over the five tasks plus a small held-out
+  imitation term. Final score is
+  `0.95 * success_rate + 0.05 * val_action_mse_score`, where
+  `val_action_mse_score = clamp(1 - MSE, 0, 1)` on frozen validation
+  trajectories. Paired-action efficiency and data-budget integrity are reported
+  as diagnostics/constraints, not score terms.
 - Default eval: 100 total rollouts: 20 episodes/task over five tasks, max 260
   steps, commit 16.
 - Current smoke evals are 0/100.

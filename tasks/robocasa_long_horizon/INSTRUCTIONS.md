@@ -20,7 +20,10 @@ edit eval files or split files for scored runs.
 ## Task
 
 - Optimize one policy for `PickPlaceCounterToMicrowave`.
-- Metric: rollout success rate.
+- Metric: rollout success rate plus a small held-out imitation term. Final
+  score is `0.95 * success_rate + 0.05 * val_action_mse_score`, where
+  `val_action_mse_score = clamp(1 - MSE, 0, 1)` on frozen validation
+  trajectories. Rollout success remains the dominant score component.
 - Default eval: 100 rollouts, max 750 steps, commit 8.
 - Test-time inference may not read manifests, splits, datasets, video pools, or
   replay stored trajectories. `inference.py` may use only checkpoint

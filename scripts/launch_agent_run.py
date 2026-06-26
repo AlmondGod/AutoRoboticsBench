@@ -99,6 +99,7 @@ Instructions:
 - Do not attempt to bypass validators, replay checks, or privileged-state checks.
 - Do not queue up a batch of experiments to run unattended. Think through and run one experiment at a time.
 - For each experiment: state the hypothesis, make the smallest relevant change, train or run the check, inspect loss/eval output, then decide the next experiment from that result.
+- Keep working until the run deadline unless you are blocked by missing credentials, missing data, or an unrecoverable environment failure.
 - Build experiments cumulatively on this branch. If an experiment succeeds, commit the source changes before starting the next experiment so the next idea starts on top of the best branch state.
 - If an experiment fails or is worse, either discard that change or explicitly supersede it before moving on; do not let failed changes silently accumulate.
 - Every model-training command, including custom training loops and helper pretraining jobs, must be capped at 300 seconds or less. Do not raise or bypass task --max-train-seconds limits.

@@ -256,6 +256,30 @@ same `--timeout-hours`, resource class, and seed protocol. This is easier to
 compare across agents and prevents a run from spending the whole benchmark
 budget on one task.
 
+Run the full counted RunPod suite with a 2 hour hard max per task:
+
+```bash
+python scripts/runpod_run_suite.py \
+  --suite autorobobench_v0 \
+  --agent codex \
+  --model gpt-5-codex \
+  --scaffold manual \
+  --base dummy \
+  --seed 0 \
+  --timeout-hours 2 \
+  --start-branch main \
+  --skip-setup \
+  --repeat-agent-command-until-timeout \
+  --agent-command 'codex exec --full-auto "$(cat {prompt})"'
+```
+
+If `--agent-command` is omitted, the script prepares one branch/run per suite
+task and writes a suite manifest under `runs/suites/`, but it does not run an
+agent or finalize the runs. With `--agent-command`, the command is run once per
+task and is killed after `--timeout-hours`; with
+`--repeat-agent-command-until-timeout`, the command is re-run until the per-task
+budget expires. Finalization and aggregation run after each task.
+
 A separate portfolio track can allow one total suite budget where agents choose
 how to allocate time across tasks. Report it separately because it measures both
 task performance and scheduling strategy.
@@ -285,6 +309,7 @@ The counted `autorobobench_v0` task packages are:
 | RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnFaucet` (`TurnOnSinkFaucet`) | `bc1_reliability_speed_score`: eval success plus a small speed bonus on successful episodes only |
 | Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction | `visual_world_model_score`: fixed-policy eval correlation plus pixel/state/progress/reward prediction |
 | World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | Eval rollout success rate |
+| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool | Mean eval success across BC-5 tasks |
 
 Optional extra task packages are:
 
@@ -292,7 +317,6 @@ Optional extra task packages are:
 | --- | --- | --- | --- |
 | RoboCasa BC-5 | `tasks/robocasa_bc5/` | `OpenCabinet`, `CloseDrawer`, `CloseFridge`, `TurnOffStove`, `PickPlaceCounterToCabinet` | Mean eval success across the five tasks |
 | Long-Horizon Microwave | `tasks/robocasa_long_horizon/` | `PickPlaceCounterToMicrowave` | Eval success on the long-horizon task |
-| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool | Mean eval success across BC-5 tasks |
 | RoboCasa Reward Model | `tasks/robocasa_world_model/` | BC-5/StandMixer transition reward and policy-ranking model | `reward_model_benchmark_score`: policy ranking/calibration plus reward/progress prediction |
 | RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants | `success_rate`: eval success under the correct language prompt |
 | Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | `success_rate`: eval rollout success after posttraining |

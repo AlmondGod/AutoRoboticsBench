@@ -27,6 +27,10 @@ split files for scored runs.
   eval episodes, `N` is the number of eval episodes, and `V` is the mean
   `1 - steps_i / max_steps` over successful episodes. Failed episodes never
   receive speed credit.
+- Final metric includes a small held-out imitation term:
+  `0.95 * reliability_speed_score + 0.05 * val_action_mse_score`, where
+  `val_action_mse_score = clamp(1 - MSE, 0, 1)` on frozen validation
+  trajectories. Rollout success remains the dominant score component.
 - Data: task-specific trajectories are allowed. Generic video-only pool is
   allowed for training only.
 - Test-time replay is banned. `inference.py` and the submitted checkpoint may

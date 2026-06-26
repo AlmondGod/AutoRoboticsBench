@@ -41,7 +41,12 @@ def ensure_robocasa_runtime() -> None:
 
     _utils.write_info = write_info
 
-from tasks.robocasa_bc5.eval import _rollout_episode, _write_mp4
+from tasks.robocasa_bc5.eval import (
+    _apply_auxiliary_validation_score,
+    _rollout_episode,
+    _validation_imitation_metrics,
+    _write_mp4,
+)
 
 
 ensure_robocasa_runtime()
@@ -76,6 +81,10 @@ def main() -> None:
     parser.add_argument("--render-height", type=int, default=512)
     parser.add_argument("--fps", type=int, default=20)
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--val-imitation-episodes-per-task", type=int, default=2)
+    parser.add_argument("--val-imitation-frames-per-episode", type=int, default=8)
+    parser.add_argument("--val-imitation-score-weight", type=float, default=0.05)
+    parser.add_argument("--skip-val-imitation", action="store_true")
     args = parser.parse_args()
 
     if Path(args.manifest).as_posix() != FROZEN_MANIFEST:
@@ -196,6 +205,24 @@ def main() -> None:
             "test_time_demo_access": False,
         },
     }
+    if not args.skip_val_imitation:
+        payload.update(
+            _validation_imitation_metrics(
+                manifest=manifest,
+                split=split,
+                policy=policy,
+                inference=inference,
+                task_aliases=task_aliases,
+                episodes_per_task=int(args.val_imitation_episodes_per_task),
+                frames_per_episode=int(args.val_imitation_frames_per_episode),
+            )
+        )
+    _apply_auxiliary_validation_score(
+        payload,
+        base_key="language_success_rate",
+        out_key="language_success_val_mse_score",
+        weight=float(args.val_imitation_score_weight),
+    )
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
@@ -239,6 +266,7 @@ def _eval_condition(
             dataset_root=dataset_root,
             episode_idx=int(episode_id),
             reset_state_index=0,
+            reset_perturbation={},
             policy=policy,
             inference=inference,
             task=task,

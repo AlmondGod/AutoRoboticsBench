@@ -17,22 +17,27 @@
     ],
     "notes": "Single-task long-horizon RoboCasa manipulation track for PickPlaceCounterToMicrowave.",
     "phase": 1,
-    "primary_metric": "success_rate",
-    "reference_metric": 0.55,
+    "primary_metric": "long_horizon_success_val_mse_score",
+    "reference_metric": 0.5725,
     "required_result_keys": [
       "success_rate",
+      "val_action_mse_score",
+      "long_horizon_success_val_mse_score",
       "episodes",
       "successes"
     ],
     "score_weights": {
-      "success_rate": 1.0
+      "long_horizon_success_val_mse_score": 1.0
     },
     "starter_metric": 0.05
   },
   "default_eval": {
     "commit_steps": 8,
     "eval_episodes_per_task": 100,
-    "max_steps": 750
+    "max_steps": 750,
+    "val_imitation_episodes_per_task": 2,
+    "val_imitation_frames_per_episode": 8,
+    "val_imitation_score_weight": 0.05
   },
   "default_train": {
     "batch_size": 128,
@@ -51,8 +56,11 @@
   "inference": "tasks/robocasa_long_horizon/inference.py",
   "manifest": "data/autorobobench/robocasa_long_horizon_manifest.json",
   "metrics": {
-    "primary": "success_rate",
+    "primary": "long_horizon_success_val_mse_score",
     "secondary": [
+      "success_rate",
+      "val_action_mse",
+      "val_action_mse_score",
       "subgoal_progress",
       "improvement_auc_over_budget",
       "reproducibility_integrity"
@@ -64,7 +72,7 @@
     "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
     "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
   },
-  "reference_metric": 0.55,
+  "reference_metric": 0.5725,
   "setup": "tasks/robocasa_long_horizon/setup.py",
   "split": "data/autorobobench/robocasa_long_horizon_splits.json",
   "starter_metric": 0.05,

@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT))
 FROZEN_MANIFEST = "data/autorobobench/robocasa_bc1_manifest.json"
 FROZEN_SPLIT = "data/autorobobench/robocasa_bc1_splits.json"
 SPEED_TIEBREAKER_SUCCESSES = 0.25
+VAL_IMITATION_SCORE_WEIGHT = 0.05
 
 
 def main() -> None:
@@ -79,6 +80,14 @@ def _rewrite_result(out: Path) -> dict | None:
         payload["same_sink_protocol"] = same_sink_protocol
     payload["peak_final_success"] = success_rate
     payload.update(speed_metrics)
+    val_score = float(payload.get("val_action_mse_score", 0.0) or 0.0)
+    base_score = float(payload.get("bc1_reliability_speed_score", 0.0) or 0.0)
+    payload["val_imitation_score_weight"] = VAL_IMITATION_SCORE_WEIGHT
+    payload["bc1_reliability_speed_val_mse_score"] = max(
+        0.0,
+        min(1.0, (1.0 - VAL_IMITATION_SCORE_WEIGHT) * base_score + VAL_IMITATION_SCORE_WEIGHT * val_score),
+    )
+    payload["metric"] = "bc1_reliability_speed_val_mse_score"
     payload["reliability_stability"] = success_rate
     payload["data_budget_integrity"] = 1.0
     payload["reproducibility_integrity"] = 1.0

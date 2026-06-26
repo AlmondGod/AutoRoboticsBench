@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import subprocess
@@ -49,6 +50,10 @@ def main() -> None:
     parser.add_argument("--device", default="auto")
     parser.add_argument("--workers", type=int, default=int(os.environ.get("AUTOROBOBENCH_EVAL_WORKERS", "28")))
     parser.add_argument("--worker-timeout-seconds", type=float, default=0.0)
+    parser.add_argument("--val-imitation-episodes-per-task", type=int, default=2)
+    parser.add_argument("--val-imitation-frames-per-episode", type=int, default=8)
+    parser.add_argument("--val-imitation-score-weight", type=float, default=0.05)
+    parser.add_argument("--skip-val-imitation", action="store_true")
     args = parser.parse_args()
 
     out_path = Path(args.out)
@@ -108,6 +113,7 @@ def main() -> None:
             str(int(args.fps)),
             "--device",
             str(args.device),
+            "--skip-val-imitation",
         ]
         if args.render_dir:
             render_dir = Path(args.render_dir) / f"worker_{worker_idx:03d}"
@@ -182,6 +188,32 @@ def main() -> None:
         workers=len(procs),
         elapsed_seconds=time.monotonic() - start_time,
     )
+    if not args.skip_val_imitation:
+        from tasks.robocasa_bc5 import eval as serial_eval
+
+        inference = importlib.import_module(args.inference)
+        policy = inference.load_policy(str(args.checkpoint), device=str(args.device))
+        payload.update(
+            serial_eval._validation_imitation_metrics(
+                manifest=manifest,
+                split=split,
+                policy=policy,
+                inference=inference,
+                task_aliases=set(args.task_alias),
+                episodes_per_task=int(args.val_imitation_episodes_per_task),
+                frames_per_episode=int(args.val_imitation_frames_per_episode),
+            )
+        )
+    from tasks.robocasa_bc5 import eval as serial_eval
+
+    track_name = str(split.get("track") or manifest.get("track") or "")
+    if track_name == "robocasa_bc5":
+        serial_eval._apply_auxiliary_validation_score(
+            payload,
+            base_key="success_rate",
+            out_key="bc5_success_val_mse_score",
+            weight=float(args.val_imitation_score_weight),
+        )
     out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     print(json.dumps(payload, indent=2, sort_keys=True), flush=True)
 
@@ -280,6 +312,7 @@ def _merge_results(
         },
         "per_task": per_task,
         "details": details,
+        "metric": "success_rate",
         "parallel_eval": {
             "workers": int(workers),
             "elapsed_seconds": float(elapsed_seconds),

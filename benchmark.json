@@ -2,27 +2,6 @@
   "description": "RoboCasa benchmark suite definitions and scoring inputs.",
   "name": "AutoRoboBench",
   "suites": {
-    "autorobobench_v0": {
-      "total_points": 100,
-      "tracks": [
-        {
-          "id": "robocasa_bc1",
-          "task_spec": "tasks/robocasa_bc1/task.json",
-          "weight": 30
-        },
-        {
-          "id": "robocasa_visual_world_model",
-          "task_spec": "tasks/robocasa_visual_world_model/task.json",
-          "weight": 30
-        },
-        {
-          "id": "robocasa_world_model_posttraining",
-          "task_spec": "tasks/robocasa_world_model_posttraining/task.json",
-          "weight": 40
-        }
-      ],
-      "version": "autorobobench-v0"
-    },
     "autorobobench_extra_v0": {
       "total_points": 160,
       "tracks": [
@@ -37,7 +16,7 @@
           "weight": 40
         },
         {
-          "id": "robocasa_reward_model",
+          "id": "robocasa_world_model",
           "task_spec": "tasks/robocasa_world_model/task.json",
           "weight": 20
         },
@@ -58,6 +37,32 @@
         }
       ],
       "version": "autorobobench-extra-v0"
+    },
+    "autorobobench_v0": {
+      "total_points": 100,
+      "tracks": [
+        {
+          "id": "robocasa_bc1",
+          "task_spec": "tasks/robocasa_bc1/task.json",
+          "weight": 25
+        },
+        {
+          "id": "robocasa_visual_world_model",
+          "task_spec": "tasks/robocasa_visual_world_model/task.json",
+          "weight": 25
+        },
+        {
+          "id": "robocasa_world_model_posttraining",
+          "task_spec": "tasks/robocasa_world_model_posttraining/task.json",
+          "weight": 25
+        },
+        {
+          "id": "robocasa_bc5_with_video",
+          "task_spec": "tasks/robocasa_bc5_with_video/task.json",
+          "weight": 25
+        }
+      ],
+      "version": "autorobobench-v0"
     }
   },
   "version": "v0"

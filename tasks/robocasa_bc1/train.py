@@ -4543,4 +4543,4 @@ def _parameter_trainability(model: nn.Module) -> dict:
 
 
 if __name__ == "__main__":
-    _shared_bc5_train_main()
+    main()

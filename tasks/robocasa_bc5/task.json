@@ -17,22 +17,27 @@
     ],
     "notes": "Executable RoboCasa BC-5 track. Improve one policy across the five seed RoboCasa tasks while eval remains fixed.",
     "phase": 1,
-    "primary_metric": "success_rate",
-    "reference_metric": 0.7,
+    "primary_metric": "bc5_success_val_mse_score",
+    "reference_metric": 0.715,
     "required_result_keys": [
       "success_rate",
+      "val_action_mse_score",
+      "bc5_success_val_mse_score",
       "episodes",
       "successes"
     ],
     "score_weights": {
-      "success_rate": 1.0
+      "bc5_success_val_mse_score": 1.0
     },
     "starter_metric": 0.1
   },
   "default_eval": {
     "commit_steps": 16,
     "eval_episodes_per_task": 20,
-    "max_steps": 260
+    "max_steps": 260,
+    "val_imitation_episodes_per_task": 2,
+    "val_imitation_frames_per_episode": 8,
+    "val_imitation_score_weight": 0.05
   },
   "eval": "tasks/robocasa_bc5/eval.py",
   "eval_parallel": "tasks/robocasa_bc5/eval_parallel.py",
@@ -45,7 +50,7 @@
     "commit_steps": "optional commit_steps(policy, task: dict, action_chunk: np.ndarray, default_commit_steps: int) -> int",
     "load_policy": "load_policy(checkpoint: str, device: str) -> policy"
   },
-  "reference_metric": 0.7,
+  "reference_metric": 0.715,
   "setup": "tasks/robocasa_bc5/setup.py",
   "split": "data/autorobobench/robocasa_bc5_splits.json",
   "starter_metric": 0.1,

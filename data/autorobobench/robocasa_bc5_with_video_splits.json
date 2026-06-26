@@ -3,12 +3,12 @@
   "eval_episodes_per_task": 10,
   "manifest": "data/robocasa5/manifest.json",
   "notes": [
-    "The paired-action split is intentionally tiny: 5 demonstrations per task, 25 total.",
-    "The domain-specific video-only split is 75 RoboCasa kitchen robot videos per task, 375 total, for a 15x unique video-to-action-demo ratio.",
+    "The paired-action split is intentionally tiny: 2 demonstrations per task, 10 total.",
+    "The domain-specific video-only split is 78 RoboCasa kitchen robot videos per task, 390 total, for a 39x unique video-to-action-demo ratio.",
     "Video-only data must be consumed through the action-free video_pool manifest. It exposes RGB paths and task metadata, not actions.",
     "Closed-loop success remains the primary score; high success should implicitly require using the much larger video pool."
   ],
-  "paired_action_train_episodes_per_task": 5,
+  "paired_action_train_episodes_per_task": 2,
   "seed": 20260619,
   "tasks": [
     {
@@ -27,18 +27,12 @@
       ],
       "paired_train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "task_id": 0,
       "train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "val_episode_ids": [
         80,
@@ -53,7 +47,7 @@
         89
       ],
       "video_only_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -73,18 +67,12 @@
       ],
       "paired_train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "task_id": 1,
       "train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "val_episode_ids": [
         80,
@@ -99,7 +87,7 @@
         89
       ],
       "video_only_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -119,18 +107,12 @@
       ],
       "paired_train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "task_id": 2,
       "train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "val_episode_ids": [
         80,
@@ -145,7 +127,7 @@
         89
       ],
       "video_only_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -165,18 +147,12 @@
       ],
       "paired_train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "task_id": 3,
       "train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "val_episode_ids": [
         80,
@@ -191,7 +167,7 @@
         89
       ],
       "video_only_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -211,18 +187,12 @@
       ],
       "paired_train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "task_id": 4,
       "train_episode_ids": [
         0,
-        1,
-        2,
-        3,
-        4
+        1
       ],
       "val_episode_ids": [
         80,
@@ -237,13 +207,13 @@
         89
       ],
       "video_only_episode_range": [
-        5,
+        2,
         79
       ]
     }
   ],
   "track": "robocasa_bc5_with_video",
   "val_episodes_per_task": 10,
-  "video_only_train_episodes_per_task": 75,
+  "video_only_train_episodes_per_task": 78,
   "video_pool": "data/autorobobench/robocasa_bc5_with_video_video_pool.json"
 }

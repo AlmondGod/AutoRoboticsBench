@@ -10,7 +10,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+import imageio.v3 as iio
 import numpy as np
+import pandas as pd
 from PIL import Image, ImageDraw
 
 ROOT = Path(__import__("os").environ.get("ROBOAUTORESEARCH_REPO_ROOT", Path(__file__).resolve().parents[2])).resolve()
@@ -71,6 +73,10 @@ def main() -> None:
     parser.add_argument("--render-height", type=int, default=512)
     parser.add_argument("--fps", type=int, default=20)
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--val-imitation-episodes-per-task", type=int, default=2)
+    parser.add_argument("--val-imitation-frames-per-episode", type=int, default=8)
+    parser.add_argument("--val-imitation-score-weight", type=float, default=0.05)
+    parser.add_argument("--skip-val-imitation", action="store_true")
     args = parser.parse_args()
 
     inference = importlib.import_module(args.inference)
@@ -169,6 +175,7 @@ def main() -> None:
             "success_rate": successes / max(1, len(task_details)),
         }
 
+    success_rate = sum(int(row["success"]) for row in details) / max(1, len(details))
     payload = {
         "track": "robocasa_bc5",
         "checkpoint": str(args.checkpoint),
@@ -177,7 +184,7 @@ def main() -> None:
         "split": str(args.split),
         "episodes": len(details),
         "successes": sum(int(row["success"]) for row in details),
-        "success_rate": sum(int(row["success"]) for row in details) / max(1, len(details)),
+        "success_rate": success_rate,
         "commit_steps": int(args.commit_steps),
         "max_steps": int(args.max_steps),
         "requested_eval_episodes_per_task": int(args.eval_episodes_per_task),
@@ -185,6 +192,24 @@ def main() -> None:
         "per_task": per_task,
         "details": details,
     }
+    if not args.skip_val_imitation:
+        payload.update(
+            _validation_imitation_metrics(
+                manifest=manifest,
+                split=split,
+                policy=policy,
+                inference=inference,
+                task_aliases=task_aliases,
+                episodes_per_task=int(args.val_imitation_episodes_per_task),
+                frames_per_episode=int(args.val_imitation_frames_per_episode),
+            )
+        )
+    _apply_auxiliary_validation_score(
+        payload,
+        base_key="success_rate",
+        out_key="bc5_success_val_mse_score",
+        weight=float(args.val_imitation_score_weight),
+    )
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
@@ -199,6 +224,167 @@ def _select_eval_episode_ids(episode_ids: list[int], requested: int) -> list[int
     if not episode_ids:
         return []
     return [int(episode_ids[idx % len(episode_ids)]) for idx in range(requested)]
+
+
+def _validation_imitation_metrics(
+    *,
+    manifest: dict,
+    split: dict,
+    policy,
+    inference,
+    task_aliases: set[str],
+    episodes_per_task: int,
+    frames_per_episode: int,
+) -> dict:
+    if episodes_per_task <= 0 or frames_per_episode <= 0:
+        return {
+            "val_action_mse": None,
+            "val_action_rmse": None,
+            "val_action_mse_score": 0.0,
+            "val_imitation_samples": 0,
+            "val_imitation_episodes": 0,
+        }
+    manifest_tasks = {task["alias"]: task for task in manifest["tasks"]}
+    total = 0.0
+    denom = 0
+    episodes_used = 0
+    per_task: dict[str, dict] = {}
+    for split_task in split.get("tasks", []):
+        alias = str(split_task["alias"])
+        if task_aliases and alias not in task_aliases:
+            continue
+        if alias not in manifest_tasks:
+            continue
+        manifest_task = manifest_tasks[alias]
+        dataset_root = Path(manifest_task["dataset_path"])
+        episode_ids = [int(x) for x in split_task.get("val_episode_ids", [])[: max(0, episodes_per_task)]]
+        task_total = 0.0
+        task_denom = 0
+        task = {
+            "task_id": int(split_task["task_id"]),
+            "alias": alias,
+            "description": manifest_task.get("description", alias),
+            "robocasa_task": manifest_task.get("robocasa_task", alias),
+        }
+        for episode_id in episode_ids:
+            _reset_policy_history(policy)
+            episode_metrics = _validation_episode_action_mse(
+                dataset_root=dataset_root,
+                episode_idx=int(episode_id),
+                policy=policy,
+                inference=inference,
+                task=task,
+                frames_per_episode=int(frames_per_episode),
+            )
+            task_total += float(episode_metrics["sse"])
+            task_denom += int(episode_metrics["count"])
+            episodes_used += int(episode_metrics["used"])
+        total += task_total
+        denom += task_denom
+        task_mse = task_total / task_denom if task_denom > 0 else None
+        per_task[alias] = {
+            "episodes": len(episode_ids),
+            "samples": int(task_denom),
+            "val_action_mse": task_mse,
+            "val_action_mse_score": _mse_to_score(task_mse),
+        }
+    mse = total / denom if denom > 0 else None
+    return {
+        "val_action_mse": mse,
+        "val_action_rmse": None if mse is None else float(np.sqrt(max(0.0, mse))),
+        "val_action_mse_score": _mse_to_score(mse),
+        "val_imitation_samples": int(denom),
+        "val_imitation_episodes": int(episodes_used),
+        "val_imitation_episodes_per_task": int(episodes_per_task),
+        "val_imitation_frames_per_episode": int(frames_per_episode),
+        "val_imitation_per_task": per_task,
+    }
+
+
+def _validation_episode_action_mse(
+    *,
+    dataset_root: Path,
+    episode_idx: int,
+    policy,
+    inference,
+    task: dict,
+    frames_per_episode: int,
+) -> dict:
+    episode_path = dataset_root / "data" / "chunk-000" / f"episode_{episode_idx:06d}.parquet"
+    frame = pd.read_parquet(episode_path)
+    agent = _read_demo_video64(dataset_root, episode_idx, "robot0_agentview_left")
+    wrist = _read_demo_video64(dataset_root, episode_idx, "robot0_agentview_right")
+    proprio = np.stack(frame["observation.state"].to_numpy()).astype(np.float32)
+    actions = LU.get_episode_actions(dataset_root, episode_idx).astype(np.float32)
+    n = min(len(agent), len(wrist), len(proprio), len(actions))
+    if n <= 0:
+        return {"sse": 0.0, "count": 0, "used": 0}
+    sample_count = min(int(frames_per_episode), n)
+    indices = np.linspace(0, n - 1, num=sample_count, dtype=np.int32)
+    sse = 0.0
+    count = 0
+    for frame_idx in indices:
+        obs = {
+            "agent": agent[int(frame_idx)],
+            "wrist": wrist[int(frame_idx)],
+            "proprio": proprio[int(frame_idx)],
+        }
+        pred = np.asarray(inference.act(policy, obs, task), dtype=np.float32)
+        if pred.ndim == 1:
+            pred = pred.reshape(1, -1)
+        horizon = min(pred.shape[0], n - int(frame_idx))
+        action_dim = min(pred.shape[-1], actions.shape[-1])
+        if horizon <= 0 or action_dim <= 0:
+            continue
+        target = actions[int(frame_idx) : int(frame_idx) + horizon, :action_dim]
+        diff = pred[:horizon, :action_dim] - target
+        sse += float(np.square(diff).sum())
+        count += int(diff.size)
+    return {"sse": sse, "count": count, "used": int(count > 0)}
+
+
+def _reset_policy_history(policy) -> None:
+    for name, value in (
+        ("history_task_id", None),
+        ("history_episode_id", None),
+        ("history_step_idx", 0),
+        ("prev_agent", None),
+        ("prev_wrist", None),
+        ("prev_proprio", None),
+    ):
+        if hasattr(policy, name):
+            try:
+                setattr(policy, name, value)
+            except Exception:
+                pass
+
+
+def _resize64(image: np.ndarray) -> np.ndarray:
+    return np.asarray(
+        Image.fromarray(np.asarray(image, dtype=np.uint8)[..., :3]).resize((64, 64), Image.Resampling.BILINEAR),
+        dtype=np.uint8,
+    )
+
+
+def _read_demo_video64(dataset_root: Path, episode_idx: int, view: str) -> np.ndarray:
+    video_path = dataset_root / "videos" / "chunk-000" / f"observation.images.{view}" / f"episode_{episode_idx:06d}.mp4"
+    frames = [_resize64(np.asarray(frame, dtype=np.uint8)) for frame in iio.imiter(video_path)]
+    return np.stack(frames).astype(np.uint8)
+
+
+def _mse_to_score(mse: float | None) -> float:
+    if mse is None:
+        return 0.0
+    return max(0.0, min(1.0, 1.0 - float(mse)))
+
+
+def _apply_auxiliary_validation_score(payload: dict, *, base_key: str, out_key: str, weight: float) -> None:
+    base = float(payload.get(base_key, 0.0) or 0.0)
+    aux = float(payload.get("val_action_mse_score", 0.0) or 0.0)
+    w = max(0.0, min(1.0, float(weight)))
+    payload["val_imitation_score_weight"] = w
+    payload[out_key] = max(0.0, min(1.0, (1.0 - w) * base + w * aux))
+    payload["metric"] = out_key
 
 
 def _rollout_episode(

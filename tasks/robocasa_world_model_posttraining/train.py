@@ -77,6 +77,7 @@ def device_from_arg(name: str):
 
 
 ensure_robocasa_runtime()
+import robocasa.utils.lerobot_utils as LU  # noqa: E402
 
 # Inlined from tasks/robocasa_bc5/model.py; keep train.py/inference.py self-contained.
 class RoboCasaTemporalChunkBC(nn.Module):
@@ -3442,6 +3443,7 @@ def device_from_arg(name: str):
     return torch.device(name)
 
 
+@dataclass
 class TemporalChunkData:
     agent: np.ndarray
     wrist: np.ndarray

@@ -8,10 +8,10 @@
     "This manifest is the intended interface for video-only methods in this track.",
     "It intentionally omits parquet paths, action keys, state keys, and any action-bearing file references.",
     "The underlying local RoboCasa install may contain actions for these episodes, but benchmark-compliant agents should not access them.",
-    "The demo-count ratio is 36.36x, but the benchmark target is frame/time ratio; the verified frame ratio is above 38x."
+    "The demo-count ratio is 92.4x, but the benchmark target is frame/time ratio; the verified frame ratio is above 100x."
   ],
-  "paired_action_demo_count": 25,
-  "paired_action_frame_count": 6367,
+  "paired_action_demo_count": 10,
+  "paired_action_frame_count": 2418,
   "source": "RoboCasa v1.0 pretrain atomic task videos",
   "tasks": [
     {
@@ -20,7 +20,7 @@
       "description": "Open a kitchen cabinet.",
       "task_id": 0,
       "video_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -30,7 +30,7 @@
       "description": "Close a kitchen drawer.",
       "task_id": 1,
       "video_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -40,7 +40,7 @@
       "description": "Close a fridge door.",
       "task_id": 2,
       "video_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -50,7 +50,7 @@
       "description": "Turn a stove knob off.",
       "task_id": 3,
       "video_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -60,7 +60,7 @@
       "description": "Pick an object from the counter and place it into a cabinet region.",
       "task_id": 4,
       "video_episode_range": [
-        5,
+        2,
         79
       ]
     },
@@ -106,10 +106,10 @@
     }
   ],
   "track": "robocasa_bc5_with_video",
-  "unique_video_to_paired_ratio": 36.36,
-  "video_only_demo_count": 909,
-  "video_only_frame_count": 246921,
-  "video_to_paired_frame_ratio": 38.781372702999846,
+  "unique_video_to_paired_ratio": 92.4,
+  "video_only_demo_count": 924,
+  "video_only_frame_count": 250870,
+  "video_to_paired_frame_ratio": 103.75103391232423,
   "views": [
     "robot0_agentview_left",
     "robot0_agentview_right"
