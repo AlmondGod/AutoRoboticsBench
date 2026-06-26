@@ -175,7 +175,11 @@ def build_run_summary(
         "baseline_score": baseline_score,
         "improvement": improvement,
         "normalized_score": normalized_score,
-        "num_eval_episodes": eval_results.get("num_episodes") or eval_results.get("num_eval_episodes"),
+        "num_eval_episodes": (
+            eval_results.get("num_episodes")
+            or eval_results.get("num_eval_episodes")
+            or eval_results.get("episodes")
+        ),
         "num_flags": count_flags(eval_results, judge_report),
         "fatal": fatal,
         "mode": mode,

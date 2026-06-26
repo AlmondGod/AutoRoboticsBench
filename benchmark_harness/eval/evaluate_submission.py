@@ -7,9 +7,14 @@ import argparse
 import json
 from pathlib import Path
 
-from privileged_state_checks import check_privileged_state_use
-from replay_detection import detect_replay
-from validators import validate_submission
+try:
+    from .privileged_state_checks import check_privileged_state_use
+    from .replay_detection import detect_replay
+    from .validators import validate_submission
+except ImportError:
+    from privileged_state_checks import check_privileged_state_use
+    from replay_detection import detect_replay
+    from validators import validate_submission
 
 
 def clamp_score(value: object) -> float:

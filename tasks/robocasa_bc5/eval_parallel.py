@@ -218,7 +218,7 @@ def main() -> None:
     print(json.dumps(payload, indent=2, sort_keys=True), flush=True)
 
 
-def _episode_rows(split: dict, task_aliases: set[str], eval_episodes_per_task: int) -> tuple[list[dict], dict[tuple[int, int], int]]:
+def _episode_rows(split: dict, task_aliases: set[str], eval_episodes_per_task: int) -> tuple[list[dict], dict[tuple[int, int, int], int]]:
     rows = []
     order = {}
     ordinal = 0
@@ -257,7 +257,7 @@ def _merge_results(
     manifest: dict,
     split: dict,
     shard_results: list[Path],
-    order: dict[tuple[int, int], int],
+    order: dict[tuple[int, int, int], int],
     workers: int,
     elapsed_seconds: float,
 ) -> dict:
