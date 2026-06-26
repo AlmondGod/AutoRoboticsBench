@@ -115,7 +115,7 @@ Instructions:
 - Run all commands through runs/{run_id}/run.sh "<command>" from the repo root.
 - Modify only /workspace/task and /workspace/output.
 - You may read /workspace/read_only, but do not modify it.
-- Put the final submission in /workspace/output/final_submission.
+- Put the final submission in /workspace/output/final_submission. It must contain the checkpoint to score, preferably policy_best.pt, and should include inference.py if your inference code differs from the task default.
 - Do not access held-out eval data or modify eval code.
 - This mode is not clean Docker isolation; use it for RunPod development runs.
 - Do not queue up a batch of experiments to run unattended. Think through and run one experiment at a time.

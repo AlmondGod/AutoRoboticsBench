@@ -35,6 +35,7 @@ def main() -> None:
             payload["split"] = FROZEN_SPLIT
             payload["target_task"] = "PickPlaceCounterToStandMixer"
             payload["offlinerl_final_success"] = float(payload.get("success_rate", 0.0))
+            payload["metric"] = "success_rate"
             out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
 
 

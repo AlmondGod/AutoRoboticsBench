@@ -186,6 +186,11 @@ Run commands through the generated wrapper:
 runs/<RUN_ID>/run.sh "cd /workspace/task && python train.py"
 ```
 
+Before finalization, place the scored submission under
+`/workspace/output/final_submission`. The RunPod final evaluator requires a real
+checkpoint file there, preferably `policy_best.pt`; include `inference.py` in the
+same directory when your inference code differs from the task default.
+
 The exact start message for an agent is:
 
 ```bash
@@ -199,7 +204,7 @@ to execute commands after the run deadline. Finalize the run with:
 python scripts/finalize_run.py --run-id <RUN_ID> --task robocasa_bc5 --mode runpod
 ```
 
-Finalization runs eval, judge, artifact collection, writes
+Finalization runs the task's real evaluator, judge, artifact collection, writes
 `runs/<RUN_ID>/final_report.json`, writes aggregate-ready
 `runs/<RUN_ID>/run_summary.json`, and records `runs/<RUN_ID>/finished_at.txt`.
 

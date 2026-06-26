@@ -239,7 +239,11 @@ def flatten_run(summary_path: Path) -> dict[str, Any]:
         "num_eval_episodes": coalesce(
             nested_get(merged, ["num_eval_episodes"]),
             nested_get(merged, ["eval_results.num_episodes"]),
+            nested_get(merged, ["eval_results.episodes"]),
+            nested_get(merged, ["eval_results.num_eval_episodes"]),
             nested_get(merged, ["final_report.eval_results.num_episodes"]),
+            nested_get(merged, ["final_report.eval_results.episodes"]),
+            nested_get(merged, ["final_report.eval_results.num_eval_episodes"]),
         ),
         "num_flags": count_flags(merged),
         "fatal": nested_get(merged, ["fatal"]),
