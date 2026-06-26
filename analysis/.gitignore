@@ -1,2 +1,4 @@
 *
 !.gitignore
+!benchmark_runs/
+!benchmark_runs/**
