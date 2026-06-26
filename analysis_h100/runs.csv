@@ -1,0 +1,8 @@
+run_id,agent,model,scaffold,task,base,seed,status,valid,wall_seconds,container_seconds,gpu_seconds,input_tokens,output_tokens,reasoning_tokens,total_tokens,estimated_usd,score,success_rate,baseline_score,improvement,normalized_score,num_eval_episodes,num_flags,fatal
+codex_robocasa_bc1_dummy_seed0_20260625T063735Z,codex,gpt-5-codex,manual,robocasa_bc1,dummy,0,complete,True,4808.887032032013,2380.0,,,,,,,0.14,0.14,,,0.14,0.0,0,False
+codex_robocasa_bc1_dummy_seed0_20260626T113140Z,codex,gpt-5.5,h100-codex-cli,robocasa_bc1,dummy,0,complete,True,7508.354068994522,6004.0,,,,,,,0.7145677103118631,0.7,,,0.7145677103118631,100.0,0,False
+codex_robocasa_bc5_with_video_dummy_seed0_20260626T170859Z,codex,gpt-5.5,h100-codex-cli,robocasa_bc5_with_video,dummy,0,complete,True,7861.026371002197,5538.0,,,,,,,0.04363100530331334,0.0,,,0.04363100530331334,100.0,0,False
+codex_robocasa_visual_world_model_dummy_seed0_20260625T075813Z,codex,gpt-5-codex,manual,robocasa_visual_world_model,dummy,0,complete,True,3355.636878967285,736.0,,,,,,,0.33462821545244076,,,,0.33462821545244076,0.0,0,False
+codex_robocasa_visual_world_model_dummy_seed0_20260626T133648Z,codex,gpt-5.5,h100-codex-cli,robocasa_visual_world_model,dummy,0,complete,True,20341.383677005768,5801.0,,,,,,,0.3648910128160219,,,,0.3648910128160219,,0,False
+codex_robocasa_world_model_posttraining_dummy_seed0_20260625T081343Z,codex,gpt-5-codex,manual,robocasa_world_model_posttraining,dummy,0,complete,True,1997.1660959720612,1201.0,,,,,,,0.0,0.0,,,0.0,0.0,0,False
+codex_robocasa_world_model_posttraining_dummy_seed0_20260626T153806Z,codex,gpt-5.5,h100-codex-cli,robocasa_world_model_posttraining,dummy,0,complete,True,5433.945640087128,4165.0,,,,,,,0.14,0.14,,,0.14,100.0,0,False

@@ -1,0 +1,5 @@
+run_id,label,task,score,success_rate,valid,fatal,num_flags,budget_hours,recorded_wall_hours,container_hours,cumulative_budget_hours
+codex_robocasa_bc1_dummy_seed0_20260626T113140Z,BC1,robocasa_bc1,0.7145677103118631,0.7,True,False,0,2.0,2.085653908054034,1.6677777777777778,2.0
+codex_robocasa_visual_world_model_dummy_seed0_20260626T133648Z,Visual WM,robocasa_visual_world_model,0.3648910128160219,,True,False,0,2.0,5.650384354723824,1.611388888888889,4.0
+codex_robocasa_world_model_posttraining_dummy_seed0_20260626T153806Z,WM posttrain,robocasa_world_model_posttraining,0.14,0.14,True,False,0,2.0,1.5094293444686466,1.1569444444444446,6.0
+codex_robocasa_bc5_with_video_dummy_seed0_20260626T170859Z,BC5+video,robocasa_bc5_with_video,0.04363100530331334,0.0,True,False,0,2.0,2.1836184363894993,1.5383333333333333,8.0
