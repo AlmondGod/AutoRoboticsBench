@@ -90,10 +90,11 @@ def check_policy_set(repo_root: Path, errors: list[str]) -> None:
     path = repo_root / "data" / "autorobobench" / "robocasa_world_model_policy_set.json"
     payload = load_json(path)
     policies = payload.get("policies")
-    if not isinstance(policies, list) or len(policies) < 2:
-        errors.append(f"{path}: expected at least two policy entries")
+    if not isinstance(policies, list) or len(policies) < 7:
+        errors.append(f"{path}: expected at least seven policy entries")
         return
     valid_real = 0
+    real_labels: list[float] = []
     for index, policy in enumerate(policies):
         prefix = f"{path}: policies[{index}] {policy.get('name', '<unnamed>')!r}"
         checkpoint_value = str(policy.get("checkpoint", ""))
@@ -107,7 +108,7 @@ def check_policy_set(repo_root: Path, errors: list[str]) -> None:
             errors.append(f"{prefix}: missing inference module")
         if "real_success_rate" in policy:
             try:
-                float(policy["real_success_rate"])
+                real_labels.append(float(policy["real_success_rate"]))
                 valid_real += 1
             except (TypeError, ValueError):
                 errors.append(f"{prefix}: invalid real_success_rate")
@@ -122,9 +123,12 @@ def check_policy_set(repo_root: Path, errors: list[str]) -> None:
                 elif real_success_from_eval(eval_path) is None:
                     errors.append(f"{prefix}: real_eval_json has no success metric: {eval_value}")
                 else:
+                    real_labels.append(float(real_success_from_eval(eval_path)))
                     valid_real += 1
     if valid_real < 2:
         errors.append(f"{path}: fewer than two policies have usable real success labels")
+    if len({round(value, 6) for value in real_labels}) < 2:
+        errors.append(f"{path}: policy real success labels have no variance; visual world-model correlation would be capped")
 
 
 def check_world_model_posttraining(repo_root: Path, errors: list[str]) -> None:

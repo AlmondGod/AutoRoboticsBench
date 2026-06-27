@@ -1,5 +1,5 @@
 {
-  "description": "Committed RoboCasa BC-5 policy-correlation artifacts with real simulator eval JSONs.",
+  "description": "Committed RoboCasa BC-5 policy-correlation artifacts with seven fixed policies and real simulator eval JSONs.",
   "policies": [
     {
       "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/autoresearch_clip_recede4_open_only/policy_best.pt",
@@ -24,6 +24,38 @@
       "ood": false,
       "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/smolvlm2_5min_seed0/eval_10_per_task_local.json",
       "real_success_rate": 0.12
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "legacy_all_bc5_bc",
+      "ood": false,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "legacy_bc5_with_video_pidm",
+      "ood": false,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "legacy_focus_OpenCabinet",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0
+    },
+    {
+      "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/policy_best.pt",
+      "inference": "tasks.robocasa_bc5.inference",
+      "name": "legacy_focus_CloseDrawer",
+      "ood": true,
+      "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/eval_bc5_2_per_task.json",
+      "real_success_rate": 0.0
     }
   ],
   "task": "robocasa_world_model_policy_set"
