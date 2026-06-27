@@ -1,0 +1,47 @@
+{
+  "all_target_trajectory_data_available": true,
+  "benchmark": "autorobobench-v0",
+  "eval_episodes_per_task": 1,
+  "exact_environment_protocol": {
+    "demo_frames": 141,
+    "description": "CloseFridge train, val, and eval all use episode 2, so style, textures, layout, XML, object config, and initial reset state are identical.",
+    "episode_id": 2,
+    "fridge_fixture_key": "fridgesidebyside_main_group_1",
+    "layout_id": 57,
+    "name": "exact_episode_2_train_val_eval_overlap",
+    "strict_exact_xml": true,
+    "style_id": 48
+  },
+  "intentional_train_eval_overlap": true,
+  "manifest": "data/autorobobench/robocasa_close_fridge_peak_manifest.json",
+  "policy_train_episodes_per_task": 1,
+  "seed": 20260621,
+  "tasks": [
+    {
+      "alias": "CloseFridge",
+      "eval_episode_ids": [
+        2
+      ],
+      "paired_train_episode_ids": [
+        2
+      ],
+      "task_id": 0,
+      "train_episode_ids": [
+        2
+      ],
+      "val_episode_ids": [
+        2
+      ],
+      "visual_eval_metadata": [
+        {
+          "episode_id": 2,
+          "fridge_fixture_key": "fridgesidebyside_main_group_1",
+          "layout_id": 57,
+          "style_id": 48
+        }
+      ]
+    }
+  ],
+  "track": "robocasa_close_fridge_exact_ep2",
+  "val_episodes_per_task": 1
+}

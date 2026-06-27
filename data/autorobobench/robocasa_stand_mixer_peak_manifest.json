@@ -1,0 +1,39 @@
+{
+  "action_dim": 7,
+  "benchmark": "autorobobench-v0",
+  "notes": [
+    "Single-task peak-performance manifest for a visually clear pick-and-place-to-stand-mixer task.",
+    "The task_id is local to this single-task track so BC-5 policy embeddings stay compact.",
+    "Use this manifest with data/autorobobench/robocasa_stand_mixer_peak_splits.json."
+  ],
+  "policy_demos_per_task": 80,
+  "source": "human",
+  "split": "pretrain",
+  "suite": "robocasa",
+  "task_count": 1,
+  "tasks": [
+    {
+      "alias": "PickPlaceCounterToStandMixer",
+      "available_demos": 107,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToStandMixer/20250820/lerobot",
+      "description": "Pick an object from the counter and place it into a stand mixer.",
+      "filter_key": "100_demos",
+      "horizon": 750,
+      "registered_demos": 100,
+      "robocasa_task": "PickPlaceCounterToStandMixer",
+      "selected_demos": 80,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 0
+    }
+  ],
+  "track": "robocasa_stand_mixer_peak",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

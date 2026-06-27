@@ -1,0 +1,109 @@
+{
+  "action_dim": 12,
+  "benchmark": "autorobobench-v0",
+  "notes": [
+    "Language-conditioned single RoboCasa environment split into four prompt variants.",
+    "Every alias points to the same ChooseMeasuringCup dataset but uses only episodes whose language matches the alias.",
+    "The SmolVLM flow baseline receives the alias description as task text."
+  ],
+  "policy_demos_per_variant": 16,
+  "source": "human",
+  "split": "pretrain",
+  "suite": "robocasa",
+  "task_count": 4,
+  "tasks": [
+    {
+      "alias": "ChooseMeasuringCupLeftLarger",
+      "available_demos": 32,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/composite/ChooseMeasuringCup/20250718/lerobot",
+      "description": "Open the left drawer and place the larger measuring cup on the counter.",
+      "filter_key": "100_demos",
+      "horizon": 1800,
+      "language_condition": {
+        "cup_size": "larger",
+        "drawer_side": "left"
+      },
+      "registered_demos": 100,
+      "robocasa_task": "ChooseMeasuringCup",
+      "selected_demos": 16,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 0
+    },
+    {
+      "alias": "ChooseMeasuringCupLeftSmaller",
+      "available_demos": 22,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/composite/ChooseMeasuringCup/20250718/lerobot",
+      "description": "Open the left drawer and place the smaller measuring cup on the counter.",
+      "filter_key": "100_demos",
+      "horizon": 1800,
+      "language_condition": {
+        "cup_size": "smaller",
+        "drawer_side": "left"
+      },
+      "registered_demos": 100,
+      "robocasa_task": "ChooseMeasuringCup",
+      "selected_demos": 16,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 1
+    },
+    {
+      "alias": "ChooseMeasuringCupRightLarger",
+      "available_demos": 31,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/composite/ChooseMeasuringCup/20250718/lerobot",
+      "description": "Open the right drawer and place the larger measuring cup on the counter.",
+      "filter_key": "100_demos",
+      "horizon": 1800,
+      "language_condition": {
+        "cup_size": "larger",
+        "drawer_side": "right"
+      },
+      "registered_demos": 100,
+      "robocasa_task": "ChooseMeasuringCup",
+      "selected_demos": 16,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 2
+    },
+    {
+      "alias": "ChooseMeasuringCupRightSmaller",
+      "available_demos": 21,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/composite/ChooseMeasuringCup/20250718/lerobot",
+      "description": "Open the right drawer and place the smaller measuring cup on the counter.",
+      "filter_key": "100_demos",
+      "horizon": 1800,
+      "language_condition": {
+        "cup_size": "smaller",
+        "drawer_side": "right"
+      },
+      "registered_demos": 100,
+      "robocasa_task": "ChooseMeasuringCup",
+      "selected_demos": 16,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 3
+    }
+  ],
+  "track": "robocasa_language_following",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

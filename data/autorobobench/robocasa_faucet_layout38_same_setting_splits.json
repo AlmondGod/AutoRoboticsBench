@@ -1,0 +1,92 @@
+{
+  "all_target_trajectory_data_available": true,
+  "benchmark": "autorobobench-v0",
+  "eval_episodes_per_task": 5,
+  "intentional_train_eval_overlap": true,
+  "manifest": "data/autorobobench/robocasa_bc1_manifest.json",
+  "policy_train_episodes_per_task": 5,
+  "same_setting_protocol": {
+    "description": "TurnOnSinkFaucet restricted to the largest fixed kitchen layout bucket: layout_id=38 and sink fixture key sink_main_group_1. Train, val, and eval use the same five demonstrations to measure same-setting overfit reliability.",
+    "episode_ids": [
+      34,
+      45,
+      48,
+      62,
+      80
+    ],
+    "layout_id": 38,
+    "name": "layout38_sink_main_group_1_train_eval_overlap",
+    "sink_fixture_key": "sink_main_group_1",
+    "strict_exact_xml_note": "Each full episode XML/style/object configuration appears only once in this dataset, so strict exact-XML training data is one trajectory. This split uses the largest repeated layout/sink setting.",
+    "total_demo_frames": 1107
+  },
+  "seed": 20260621,
+  "tasks": [
+    {
+      "alias": "TurnOnSinkFaucet",
+      "eval_episode_ids": [
+        34,
+        45,
+        48,
+        62,
+        80
+      ],
+      "paired_train_episode_ids": [
+        34,
+        45,
+        48,
+        62,
+        80
+      ],
+      "task_id": 0,
+      "train_episode_ids": [
+        34,
+        45,
+        48,
+        62,
+        80
+      ],
+      "val_episode_ids": [
+        34,
+        45,
+        48,
+        62,
+        80
+      ],
+      "visual_eval_metadata": [
+        {
+          "episode_id": 34,
+          "layout_id": 38,
+          "sink_fixture_key": "sink_main_group_1",
+          "style_id": 25
+        },
+        {
+          "episode_id": 45,
+          "layout_id": 38,
+          "sink_fixture_key": "sink_main_group_1",
+          "style_id": 30
+        },
+        {
+          "episode_id": 48,
+          "layout_id": 38,
+          "sink_fixture_key": "sink_main_group_1",
+          "style_id": 44
+        },
+        {
+          "episode_id": 62,
+          "layout_id": 38,
+          "sink_fixture_key": "sink_main_group_1",
+          "style_id": 33
+        },
+        {
+          "episode_id": 80,
+          "layout_id": 38,
+          "sink_fixture_key": "sink_main_group_1",
+          "style_id": 50
+        }
+      ]
+    }
+  ],
+  "track": "robocasa_faucet_layout38_same_setting",
+  "val_episodes_per_task": 5
+}

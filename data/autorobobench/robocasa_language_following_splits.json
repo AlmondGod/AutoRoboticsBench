@@ -1,0 +1,143 @@
+{
+  "benchmark": "autorobobench-v0",
+  "eval_episodes_per_variant": 3,
+  "manifest": "data/autorobobench/robocasa_language_following_manifest.json",
+  "notes": [
+    "Frozen balanced public split over the four language variants.",
+    "Each eval episode's simulator metadata enforces the same cup-size goal as the alias language."
+  ],
+  "policy_train_episodes_per_variant": 16,
+  "seed": 20260620,
+  "tasks": [
+    {
+      "alias": "ChooseMeasuringCupLeftLarger",
+      "eval_episode_ids": [
+        54,
+        59,
+        61
+      ],
+      "language": "Open the left drawer and place the larger measuring cup on the counter.",
+      "task_id": 0,
+      "train_episode_ids": [
+        3,
+        8,
+        16,
+        18,
+        20,
+        23,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        36,
+        42,
+        46,
+        49
+      ],
+      "val_episode_ids": [
+        50,
+        52
+      ]
+    },
+    {
+      "alias": "ChooseMeasuringCupLeftSmaller",
+      "eval_episode_ids": [
+        83,
+        84,
+        87
+      ],
+      "language": "Open the left drawer and place the smaller measuring cup on the counter.",
+      "task_id": 1,
+      "train_episode_ids": [
+        0,
+        2,
+        9,
+        13,
+        19,
+        34,
+        35,
+        38,
+        39,
+        44,
+        55,
+        63,
+        64,
+        69,
+        72,
+        74
+      ],
+      "val_episode_ids": [
+        78,
+        81
+      ]
+    },
+    {
+      "alias": "ChooseMeasuringCupRightLarger",
+      "eval_episode_ids": [
+        71,
+        73,
+        76
+      ],
+      "language": "Open the right drawer and place the larger measuring cup on the counter.",
+      "task_id": 2,
+      "train_episode_ids": [
+        1,
+        4,
+        6,
+        10,
+        14,
+        15,
+        21,
+        25,
+        26,
+        37,
+        41,
+        45,
+        47,
+        48,
+        51,
+        57
+      ],
+      "val_episode_ids": [
+        58,
+        60
+      ]
+    },
+    {
+      "alias": "ChooseMeasuringCupRightSmaller",
+      "eval_episode_ids": [
+        98,
+        102,
+        105
+      ],
+      "language": "Open the right drawer and place the smaller measuring cup on the counter.",
+      "task_id": 3,
+      "train_episode_ids": [
+        5,
+        7,
+        11,
+        12,
+        17,
+        22,
+        24,
+        33,
+        40,
+        43,
+        53,
+        56,
+        62,
+        68,
+        79,
+        80
+      ],
+      "val_episode_ids": [
+        86,
+        89
+      ]
+    }
+  ],
+  "track": "robocasa_language_following",
+  "val_episodes_per_variant": 2
+}

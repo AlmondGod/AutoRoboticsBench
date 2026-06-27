@@ -86,6 +86,25 @@ def check_task_template(repo_root: Path, task: str, errors: list[str]) -> None:
         errors.append(f"{task}: missing task guidance; expected workspace_template/task.md, task.md, or INSTRUCTIONS.md")
 
 
+def check_robocasa5_metadata(repo_root: Path, errors: list[str]) -> None:
+    manifest_path = repo_root / "data" / "robocasa5" / "manifest.json"
+    split_path = repo_root / "data" / "autorobobench" / "robocasa_bc5_splits.json"
+    try:
+        manifest = load_json(manifest_path)
+    except AssertionError as exc:
+        errors.append(str(exc))
+        manifest = {}
+    try:
+        split = load_json(split_path)
+    except AssertionError as exc:
+        errors.append(str(exc))
+        split = {}
+    if manifest and not manifest.get("tasks"):
+        errors.append(f"{manifest_path}: missing tasks")
+    if split and not split.get("tasks"):
+        errors.append(f"{split_path}: missing tasks")
+
+
 def check_policy_set(repo_root: Path, errors: list[str]) -> None:
     path = repo_root / "data" / "autorobobench" / "robocasa_world_model_policy_set.json"
     payload = load_json(path)
@@ -160,6 +179,7 @@ def main() -> int:
     for task in tasks:
         check_task_template(repo_root, task, errors)
     if any(task in POLICY_SET_TASKS for task in tasks):
+        check_robocasa5_metadata(repo_root, errors)
         check_policy_set(repo_root, errors)
     if any(task in POSTTRAINING_TASKS for task in tasks):
         check_world_model_posttraining(repo_root, errors)

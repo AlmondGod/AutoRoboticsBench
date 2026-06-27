@@ -1,0 +1,1411 @@
+{
+  "all_target_trajectory_data_available": true,
+  "benchmark": "autorobobench-v0",
+  "eval_episodes_per_task": 106,
+  "full_dataset_protocol": {
+    "description": "CloseFridge train, val, and eval all use every local demonstration episode.",
+    "episode_count": 106,
+    "name": "close_fridge_all_106_train_val_eval_overlap",
+    "total_demo_frames": 26888
+  },
+  "intentional_train_eval_overlap": true,
+  "manifest": "data/autorobobench/robocasa_close_fridge_peak_manifest.json",
+  "policy_train_episodes_per_task": 106,
+  "seed": 20260621,
+  "tasks": [
+    {
+      "alias": "CloseFridge",
+      "eval_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105
+      ],
+      "paired_train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105
+      ],
+      "task_id": 0,
+      "train_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105
+      ],
+      "val_episode_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105
+      ],
+      "visual_eval_metadata": [
+        {
+          "episode_id": 0,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_front_group_1"
+          ],
+          "layout_id": 36,
+          "length": 294,
+          "style_id": 46
+        },
+        {
+          "episode_id": 1,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 42,
+          "length": 270,
+          "style_id": 49
+        },
+        {
+          "episode_id": 2,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 57,
+          "length": 141,
+          "style_id": 48
+        },
+        {
+          "episode_id": 3,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 59,
+          "length": 348,
+          "style_id": 26
+        },
+        {
+          "episode_id": 4,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 43,
+          "length": 155,
+          "style_id": 43
+        },
+        {
+          "episode_id": 5,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 26,
+          "length": 252,
+          "style_id": 34
+        },
+        {
+          "episode_id": 6,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 21,
+          "length": 160,
+          "style_id": 59
+        },
+        {
+          "episode_id": 7,
+          "fridge_fixture_keys": [
+            "fridge_1_left_group_1"
+          ],
+          "layout_id": 17,
+          "length": 248,
+          "style_id": 59
+        },
+        {
+          "episode_id": 8,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 56,
+          "length": 307,
+          "style_id": 20
+        },
+        {
+          "episode_id": 9,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 34,
+          "length": 286,
+          "style_id": 36
+        },
+        {
+          "episode_id": 10,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 39,
+          "length": 288,
+          "style_id": 50
+        },
+        {
+          "episode_id": 11,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 46,
+          "length": 261,
+          "style_id": 51
+        },
+        {
+          "episode_id": 12,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 40,
+          "length": 352,
+          "style_id": 55
+        },
+        {
+          "episode_id": 13,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 32,
+          "length": 116,
+          "style_id": 13
+        },
+        {
+          "episode_id": 14,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 30,
+          "length": 334,
+          "style_id": 44
+        },
+        {
+          "episode_id": 15,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 24,
+          "length": 134,
+          "style_id": 57
+        },
+        {
+          "episode_id": 16,
+          "fridge_fixture_keys": [
+            "fridge_1_main_group_3"
+          ],
+          "layout_id": 19,
+          "length": 248,
+          "style_id": 55
+        },
+        {
+          "episode_id": 17,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 522,
+          "style_id": 13
+        },
+        {
+          "episode_id": 18,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 40,
+          "length": 374,
+          "style_id": 14
+        },
+        {
+          "episode_id": 19,
+          "fridge_fixture_keys": [
+            "fridge_left_group_1"
+          ],
+          "layout_id": 14,
+          "length": 165,
+          "style_id": 42
+        },
+        {
+          "episode_id": 20,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 57,
+          "length": 200,
+          "style_id": 28
+        },
+        {
+          "episode_id": 21,
+          "fridge_fixture_keys": [
+            "fridgebottomfreezer_main_group_1"
+          ],
+          "layout_id": 31,
+          "length": 201,
+          "style_id": 53
+        },
+        {
+          "episode_id": 22,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 25,
+          "length": 430,
+          "style_id": 60
+        },
+        {
+          "episode_id": 23,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 32,
+          "length": 148,
+          "style_id": 40
+        },
+        {
+          "episode_id": 24,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_2"
+          ],
+          "layout_id": 49,
+          "length": 311,
+          "style_id": 51
+        },
+        {
+          "episode_id": 25,
+          "fridge_fixture_keys": [
+            "fridge_1_left_group_1"
+          ],
+          "layout_id": 17,
+          "length": 252,
+          "style_id": 46
+        },
+        {
+          "episode_id": 26,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 35,
+          "length": 337,
+          "style_id": 48
+        },
+        {
+          "episode_id": 27,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 21,
+          "length": 149,
+          "style_id": 56
+        },
+        {
+          "episode_id": 28,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_left_group_1"
+          ],
+          "layout_id": 38,
+          "length": 138,
+          "style_id": 33
+        },
+        {
+          "episode_id": 29,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 25,
+          "length": 271,
+          "style_id": 23
+        },
+        {
+          "episode_id": 30,
+          "fridge_fixture_keys": [
+            "fridge_1_left_group"
+          ],
+          "layout_id": 12,
+          "length": 324,
+          "style_id": 32
+        },
+        {
+          "episode_id": 31,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 35,
+          "length": 355,
+          "style_id": 44
+        },
+        {
+          "episode_id": 32,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 26,
+          "length": 393,
+          "style_id": 54
+        },
+        {
+          "episode_id": 33,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 18,
+          "length": 163,
+          "style_id": 34
+        },
+        {
+          "episode_id": 34,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_2"
+          ],
+          "layout_id": 49,
+          "length": 365,
+          "style_id": 38
+        },
+        {
+          "episode_id": 35,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 43,
+          "length": 223,
+          "style_id": 29
+        },
+        {
+          "episode_id": 36,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 362,
+          "style_id": 28
+        },
+        {
+          "episode_id": 37,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 56,
+          "length": 317,
+          "style_id": 11
+        },
+        {
+          "episode_id": 38,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 24,
+          "length": 185,
+          "style_id": 24
+        },
+        {
+          "episode_id": 39,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 328,
+          "style_id": 45
+        },
+        {
+          "episode_id": 40,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 47,
+          "length": 144,
+          "style_id": 35
+        },
+        {
+          "episode_id": 41,
+          "fridge_fixture_keys": [
+            "fridgebottomfreezer_right_group_1"
+          ],
+          "layout_id": 60,
+          "length": 262,
+          "style_id": 60
+        },
+        {
+          "episode_id": 42,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 45,
+          "length": 126,
+          "style_id": 31
+        },
+        {
+          "episode_id": 43,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 47,
+          "length": 251,
+          "style_id": 44
+        },
+        {
+          "episode_id": 44,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 41,
+          "length": 135,
+          "style_id": 59
+        },
+        {
+          "episode_id": 45,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 18,
+          "length": 156,
+          "style_id": 20
+        },
+        {
+          "episode_id": 46,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 34,
+          "length": 270,
+          "style_id": 47
+        },
+        {
+          "episode_id": 47,
+          "fridge_fixture_keys": [
+            "fridge_1_left_group_1"
+          ],
+          "layout_id": 17,
+          "length": 259,
+          "style_id": 17
+        },
+        {
+          "episode_id": 48,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 42,
+          "length": 362,
+          "style_id": 40
+        },
+        {
+          "episode_id": 49,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 45,
+          "length": 182,
+          "style_id": 28
+        },
+        {
+          "episode_id": 50,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 45,
+          "length": 136,
+          "style_id": 30
+        },
+        {
+          "episode_id": 51,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 41,
+          "length": 154,
+          "style_id": 21
+        },
+        {
+          "episode_id": 52,
+          "fridge_fixture_keys": [
+            "fridge_1_main_group_1"
+          ],
+          "layout_id": 16,
+          "length": 283,
+          "style_id": 35
+        },
+        {
+          "episode_id": 53,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 44,
+          "length": 218,
+          "style_id": 17
+        },
+        {
+          "episode_id": 54,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 25,
+          "length": 261,
+          "style_id": 50
+        },
+        {
+          "episode_id": 55,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 21,
+          "length": 116,
+          "style_id": 60
+        },
+        {
+          "episode_id": 56,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 57,
+          "length": 131,
+          "style_id": 22
+        },
+        {
+          "episode_id": 57,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_2"
+          ],
+          "layout_id": 49,
+          "length": 296,
+          "style_id": 29
+        },
+        {
+          "episode_id": 58,
+          "fridge_fixture_keys": [
+            "fridge_1_main_group_1"
+          ],
+          "layout_id": 16,
+          "length": 327,
+          "style_id": 12
+        },
+        {
+          "episode_id": 59,
+          "fridge_fixture_keys": [
+            "fridgebottomfreezer_right_group_1"
+          ],
+          "layout_id": 60,
+          "length": 295,
+          "style_id": 52
+        },
+        {
+          "episode_id": 60,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 43,
+          "length": 204,
+          "style_id": 45
+        },
+        {
+          "episode_id": 61,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 22,
+          "length": 309,
+          "style_id": 32
+        },
+        {
+          "episode_id": 62,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 28,
+          "length": 213,
+          "style_id": 44
+        },
+        {
+          "episode_id": 63,
+          "fridge_fixture_keys": [
+            "fridge_1_right_group_1"
+          ],
+          "layout_id": 13,
+          "length": 231,
+          "style_id": 11
+        },
+        {
+          "episode_id": 64,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 32,
+          "length": 107,
+          "style_id": 43
+        },
+        {
+          "episode_id": 65,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 29,
+          "length": 120,
+          "style_id": 42
+        },
+        {
+          "episode_id": 66,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 23,
+          "length": 259,
+          "style_id": 31
+        },
+        {
+          "episode_id": 67,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 30,
+          "length": 303,
+          "style_id": 17
+        },
+        {
+          "episode_id": 68,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 24,
+          "length": 141,
+          "style_id": 42
+        },
+        {
+          "episode_id": 69,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 28,
+          "length": 226,
+          "style_id": 28
+        },
+        {
+          "episode_id": 70,
+          "fridge_fixture_keys": [
+            "fridge_1_left_group"
+          ],
+          "layout_id": 12,
+          "length": 302,
+          "style_id": 43
+        },
+        {
+          "episode_id": 71,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 47,
+          "length": 107,
+          "style_id": 42
+        },
+        {
+          "episode_id": 72,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 293,
+          "style_id": 16
+        },
+        {
+          "episode_id": 73,
+          "fridge_fixture_keys": [
+            "fridge_1_main_group_1"
+          ],
+          "layout_id": 15,
+          "length": 313,
+          "style_id": 55
+        },
+        {
+          "episode_id": 74,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 44,
+          "length": 100,
+          "style_id": 59
+        },
+        {
+          "episode_id": 75,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 47,
+          "length": 148,
+          "style_id": 46
+        },
+        {
+          "episode_id": 76,
+          "fridge_fixture_keys": [
+            "fridge_left_group_1"
+          ],
+          "layout_id": 14,
+          "length": 242,
+          "style_id": 41
+        },
+        {
+          "episode_id": 77,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 25,
+          "length": 374,
+          "style_id": 52
+        },
+        {
+          "episode_id": 78,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 40,
+          "length": 341,
+          "style_id": 34
+        },
+        {
+          "episode_id": 79,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 341,
+          "style_id": 14
+        },
+        {
+          "episode_id": 80,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 32,
+          "length": 171,
+          "style_id": 48
+        },
+        {
+          "episode_id": 81,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 254,
+          "style_id": 45
+        },
+        {
+          "episode_id": 82,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 30,
+          "length": 313,
+          "style_id": 14
+        },
+        {
+          "episode_id": 83,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_front_group_1"
+          ],
+          "layout_id": 36,
+          "length": 282,
+          "style_id": 27
+        },
+        {
+          "episode_id": 84,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_2"
+          ],
+          "layout_id": 49,
+          "length": 414,
+          "style_id": 50
+        },
+        {
+          "episode_id": 85,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 27,
+          "length": 235,
+          "style_id": 30
+        },
+        {
+          "episode_id": 86,
+          "fridge_fixture_keys": [
+            "fridge_main_group"
+          ],
+          "layout_id": 29,
+          "length": 125,
+          "style_id": 32
+        },
+        {
+          "episode_id": 87,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 41,
+          "length": 140,
+          "style_id": 31
+        },
+        {
+          "episode_id": 88,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 59,
+          "length": 320,
+          "style_id": 24
+        },
+        {
+          "episode_id": 89,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_main_group_1"
+          ],
+          "layout_id": 47,
+          "length": 190,
+          "style_id": 35
+        },
+        {
+          "episode_id": 90,
+          "fridge_fixture_keys": [
+            "fridgebottomfreezer_right_group_1"
+          ],
+          "layout_id": 60,
+          "length": 289,
+          "style_id": 23
+        },
+        {
+          "episode_id": 91,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 59,
+          "length": 329,
+          "style_id": 21
+        },
+        {
+          "episode_id": 92,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 40,
+          "length": 370,
+          "style_id": 31
+        },
+        {
+          "episode_id": 93,
+          "fridge_fixture_keys": [
+            "fridge_1_main_group_1"
+          ],
+          "layout_id": 15,
+          "length": 320,
+          "style_id": 49
+        },
+        {
+          "episode_id": 94,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_main_group_1"
+          ],
+          "layout_id": 42,
+          "length": 301,
+          "style_id": 29
+        },
+        {
+          "episode_id": 95,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 30,
+          "length": 353,
+          "style_id": 30
+        },
+        {
+          "episode_id": 96,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_right_group_1"
+          ],
+          "layout_id": 56,
+          "length": 340,
+          "style_id": 22
+        },
+        {
+          "episode_id": 97,
+          "fridge_fixture_keys": [
+            "fridgesidebyside_right_group_1"
+          ],
+          "layout_id": 32,
+          "length": 203,
+          "style_id": 50
+        },
+        {
+          "episode_id": 98,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 58,
+          "length": 348,
+          "style_id": 24
+        },
+        {
+          "episode_id": 99,
+          "fridge_fixture_keys": [
+            "fridge_1_main_group_1"
+          ],
+          "layout_id": 15,
+          "length": 290,
+          "style_id": 57
+        },
+        {
+          "episode_id": 100,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_front_group_1"
+          ],
+          "layout_id": 36,
+          "length": 407,
+          "style_id": 17
+        },
+        {
+          "episode_id": 101,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 27,
+          "length": 231,
+          "style_id": 37
+        },
+        {
+          "episode_id": 102,
+          "fridge_fixture_keys": [
+            "fridge_right_group"
+          ],
+          "layout_id": 24,
+          "length": 144,
+          "style_id": 30
+        },
+        {
+          "episode_id": 103,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 27,
+          "length": 226,
+          "style_id": 55
+        },
+        {
+          "episode_id": 104,
+          "fridge_fixture_keys": [
+            "fridgefrenchdoor_left_group_1"
+          ],
+          "layout_id": 50,
+          "length": 353,
+          "style_id": 50
+        },
+        {
+          "episode_id": 105,
+          "fridge_fixture_keys": [
+            "fridge_left_group"
+          ],
+          "layout_id": 27,
+          "length": 195,
+          "style_id": 51
+        }
+      ]
+    }
+  ],
+  "track": "robocasa_close_fridge_full_dataset",
+  "val_episodes_per_task": 106
+}

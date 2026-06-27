@@ -2,7 +2,10 @@
 third_party/
 data/**
 !data/
+!data/robocasa5/
+!data/robocasa5/manifest.json
 !data/autorobobench/
+!data/autorobobench/*.json
 !data/autorobobench/robocasa_world_model_policy_set.json
 !data/autorobobench/pretrained_policies/
 !data/autorobobench/pretrained_policies/**

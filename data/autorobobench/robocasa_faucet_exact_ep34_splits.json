@@ -1,0 +1,47 @@
+{
+  "all_target_trajectory_data_available": true,
+  "benchmark": "autorobobench-v0",
+  "eval_episodes_per_task": 1,
+  "exact_environment_protocol": {
+    "demo_frames": 203,
+    "description": "TurnOnSinkFaucet train, val, and eval all use episode 34, so style, textures, layout, XML, object config, and initial reset state are identical.",
+    "episode_id": 34,
+    "layout_id": 38,
+    "name": "exact_episode_34_train_val_eval_overlap",
+    "sink_fixture_key": "sink_main_group_1",
+    "strict_exact_xml": true,
+    "style_id": 25
+  },
+  "intentional_train_eval_overlap": true,
+  "manifest": "data/autorobobench/robocasa_bc1_manifest.json",
+  "policy_train_episodes_per_task": 1,
+  "seed": 20260621,
+  "tasks": [
+    {
+      "alias": "TurnOnSinkFaucet",
+      "eval_episode_ids": [
+        34
+      ],
+      "paired_train_episode_ids": [
+        34
+      ],
+      "task_id": 0,
+      "train_episode_ids": [
+        34
+      ],
+      "val_episode_ids": [
+        34
+      ],
+      "visual_eval_metadata": [
+        {
+          "episode_id": 34,
+          "layout_id": 38,
+          "sink_fixture_key": "sink_main_group_1",
+          "style_id": 25
+        }
+      ]
+    }
+  ],
+  "track": "robocasa_faucet_exact_ep34",
+  "val_episodes_per_task": 1
+}

@@ -1,0 +1,40 @@
+{
+  "action_dim": 12,
+  "benchmark": "autorobobench-v0",
+  "notes": [
+    "Single-task peak-performance manifest for a visually clear faucet turn-on task.",
+    "All available target-task RGB videos and action trajectories are available for training.",
+    "The task_id is local to this single-task track so BC-5 policy embeddings stay compact.",
+    "Use this manifest with data/autorobobench/robocasa_bc1_splits.json."
+  ],
+  "policy_demos_per_task": 107,
+  "source": "human",
+  "split": "pretrain",
+  "suite": "robocasa",
+  "task_count": 1,
+  "tasks": [
+    {
+      "alias": "TurnOnSinkFaucet",
+      "available_demos": 107,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/TurnOnSinkFaucet/20250819/lerobot",
+      "description": "Turn on a sink faucet.",
+      "filter_key": "100_demos",
+      "horizon": 750,
+      "registered_demos": 107,
+      "robocasa_task": "TurnOnSinkFaucet",
+      "selected_demos": 107,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 0
+    }
+  ],
+  "track": "robocasa_bc1",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

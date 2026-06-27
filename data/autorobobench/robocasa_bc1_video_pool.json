@@ -1,0 +1,94 @@
+{
+  "benchmark": "autorobobench-v0",
+  "contains_actions": false,
+  "contains_proprio": false,
+  "contains_rgb_video": true,
+  "kind": "action_free_generic_robot_video",
+  "notes": [
+    "This pool is the optional generic RGB-only input for the faucet peak task.",
+    "It omits actions, proprio, parquet paths, and the target faucet task.",
+    "The policy may ignore this pool and train only from the task-specific cloning split."
+  ],
+  "source": "RoboCasa v1.0 pretrain atomic task videos",
+  "target_task_alias": "TurnOnSinkFaucet",
+  "target_task_included": false,
+  "tasks": [
+    {
+      "alias": "OpenDrawer",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenDrawer/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "CloseDrawer",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseDrawer/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "PickPlaceCounterToStove",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToStove/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "TurnOffStove",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/TurnOffStove/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "PickPlaceCounterToCabinet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToCabinet/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "OpenCabinet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenCabinet/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "CloseCabinet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseCabinet/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "OpenFridge",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenFridge/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    },
+    {
+      "alias": "CloseFridge",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseFridge/20250819/lerobot",
+      "video_episode_range": [
+        0,
+        79
+      ]
+    }
+  ],
+  "track": "robocasa_bc1",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

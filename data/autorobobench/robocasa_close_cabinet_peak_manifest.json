@@ -1,0 +1,39 @@
+{
+  "action_dim": 12,
+  "benchmark": "autorobobench-v0",
+  "notes": [
+    "Single-task quick peak experiment for an easier RoboCasa contact task.",
+    "All available target-task RGB videos and action trajectories are available for training.",
+    "The task_id is local to this single-task track so BC-5 policy embeddings stay compact."
+  ],
+  "policy_demos_per_task": 105,
+  "source": "human",
+  "split": "pretrain",
+  "suite": "robocasa",
+  "task_count": 1,
+  "tasks": [
+    {
+      "alias": "CloseCabinet",
+      "available_demos": 105,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseCabinet/20250819/lerobot",
+      "description": "Close a cabinet.",
+      "filter_key": "100_demos",
+      "horizon": 750,
+      "registered_demos": 105,
+      "robocasa_task": "CloseCabinet",
+      "selected_demos": 105,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 0
+    }
+  ],
+  "track": "robocasa_close_cabinet_peak",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

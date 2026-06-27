@@ -1,0 +1,39 @@
+{
+  "action_dim": 12,
+  "benchmark": "autorobobench-v0",
+  "notes": [
+    "Single-task long-horizon manifest for PickPlaceCounterToMicrowave.",
+    "The task_id is local to this track so single-task policy embeddings stay compact.",
+    "Use this manifest with data/autorobobench/robocasa_long_horizon_splits.json."
+  ],
+  "policy_demos_per_task": 80,
+  "source": "human",
+  "split": "pretrain",
+  "suite": "robocasa",
+  "task_count": 1,
+  "tasks": [
+    {
+      "alias": "PickPlaceCounterToMicrowave",
+      "available_demos": 110,
+      "available_views": [
+        "robot0_agentview_left",
+        "robot0_agentview_right"
+      ],
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToMicrowave/20250819/lerobot",
+      "description": "Pick an object from the counter and place it into the microwave.",
+      "filter_key": "100_demos",
+      "horizon": 750,
+      "registered_demos": 100,
+      "robocasa_task": "PickPlaceCounterToMicrowave",
+      "selected_demos": 80,
+      "source": "human",
+      "split": "pretrain",
+      "task_id": 0
+    }
+  ],
+  "track": "robocasa_long_horizon",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

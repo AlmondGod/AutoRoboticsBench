@@ -1,0 +1,137 @@
+{
+  "benchmark": "autorobobench-v0",
+  "contains_actions": false,
+  "contains_proprio": false,
+  "contains_rgb_video": true,
+  "contains_state": false,
+  "default_action_train_rollouts_per_task": 20,
+  "in_task_video_only_demo_count": 300,
+  "kind": "action_free_domain_robot_video",
+  "notes": [
+    "This pool is optional. Baseline world-model training ignores it unless the mutable train code opts in.",
+    "The pool intentionally exposes RGB video paths only; benchmark-compliant methods should not read actions, states, task labels, or proprio for these episodes.",
+    "Using this pool for action-conditioned world-model learning requires an auxiliary strategy such as inverse dynamics, video representation learning, latent consistency, or self-supervised future prediction.",
+    "In-task video episodes start at 20 so they do not overlap the default 20 action-labeled train rollouts per task."
+  ],
+  "related_task_video_only_demo_count": 534,
+  "source": "RoboCasa v1.0 pretrain atomic task videos",
+  "tasks": [
+    {
+      "alias": "OpenDrawer",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenDrawer/20250819/lerobot",
+      "description": "Open a kitchen drawer.",
+      "split": "in_task",
+      "task_id": 0,
+      "video_episode_range": [
+        20,
+        79
+      ]
+    },
+    {
+      "alias": "CloseDrawer",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseDrawer/20250819/lerobot",
+      "description": "Close a kitchen drawer.",
+      "split": "in_task",
+      "task_id": 1,
+      "video_episode_range": [
+        20,
+        79
+      ]
+    },
+    {
+      "alias": "CloseFridge",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseFridge/20250819/lerobot",
+      "description": "Close a fridge door.",
+      "split": "in_task",
+      "task_id": 2,
+      "video_episode_range": [
+        20,
+        79
+      ]
+    },
+    {
+      "alias": "TurnOffStove",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/TurnOffStove/20250819/lerobot",
+      "description": "Turn a stove knob off.",
+      "split": "in_task",
+      "task_id": 3,
+      "video_episode_range": [
+        20,
+        79
+      ]
+    },
+    {
+      "alias": "PickPlaceCounterToCabinet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToCabinet/20250819/lerobot",
+      "description": "Pick an object from the counter and place it into a cabinet region.",
+      "split": "in_task",
+      "task_id": 4,
+      "video_episode_range": [
+        20,
+        79
+      ]
+    },
+    {
+      "alias": "OpenCabinet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenCabinet/20250819/lerobot",
+      "description": "Open a kitchen cabinet.",
+      "split": "related_task",
+      "task_id": 100,
+      "video_episode_range": [
+        0,
+        106
+      ]
+    },
+    {
+      "alias": "CloseCabinet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/CloseCabinet/20250819/lerobot",
+      "description": "Close a kitchen cabinet.",
+      "split": "related_task",
+      "task_id": 101,
+      "video_episode_range": [
+        0,
+        104
+      ]
+    },
+    {
+      "alias": "OpenFridge",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/OpenFridge/20250819/lerobot",
+      "description": "Open a fridge door.",
+      "split": "related_task",
+      "task_id": 102,
+      "video_episode_range": [
+        0,
+        104
+      ]
+    },
+    {
+      "alias": "PickPlaceCounterToMicrowave",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/PickPlaceCounterToMicrowave/20250819/lerobot",
+      "description": "Pick an object from the counter and place it into a microwave.",
+      "split": "related_task",
+      "task_id": 104,
+      "video_episode_range": [
+        0,
+        109
+      ]
+    },
+    {
+      "alias": "TurnOnSinkFaucet",
+      "dataset_path": "third_party/robocasa/datasets/v1.0/pretrain/atomic/TurnOnSinkFaucet/20250819/lerobot",
+      "description": "Turn on a sink faucet.",
+      "split": "related_task",
+      "task_id": 105,
+      "video_episode_range": [
+        0,
+        106
+      ]
+    }
+  ],
+  "track": "robocasa_world_model",
+  "video_only_demo_count": 834,
+  "video_path_template": "videos/chunk-000/observation.images.{view}/episode_{episode_id:06d}.mp4",
+  "views": [
+    "robot0_agentview_left",
+    "robot0_agentview_right"
+  ]
+}

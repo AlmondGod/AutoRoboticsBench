@@ -96,7 +96,7 @@ def load_transition_data(
         if aliases and alias not in aliases:
             continue
         task_id = int(split_task["task_id"])
-        dataset_root = Path(manifest_tasks[alias]["dataset_path"])
+        dataset_root = _resolve_dataset_root(manifest_tasks[alias]["dataset_path"])
         all_train_ids = [int(x) for x in split_task["train_episode_ids"]]
         all_val_ids = [int(x) for x in split_task["val_episode_ids"]]
         train_limit = int(train_episodes_per_task)
@@ -160,6 +160,23 @@ def load_video_only_pool(
                     )
                 )
     return records
+
+
+def _resolve_dataset_root(value: str | Path) -> Path:
+    path = Path(value)
+    if path.exists():
+        return path
+    parts = path.parts
+    marker = ("third_party", "robocasa", "datasets")
+    for idx in range(0, max(0, len(parts) - len(marker) + 1)):
+        if tuple(parts[idx : idx + len(marker)]) == marker:
+            remapped = ROOT.joinpath(*parts[idx:])
+            if remapped.exists():
+                return remapped
+            return remapped
+    if not path.is_absolute():
+        return ROOT / path
+    return path
 
 
 def summarize_video_only_pool(records: list[VideoOnlyEpisode]) -> dict[str, Any]:
