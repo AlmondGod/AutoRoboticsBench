@@ -856,6 +856,7 @@ DEFAULT_MANIFEST = ROOT / "data" / "robocasa5" / "manifest.json"
 DEFAULT_SPLIT = ROOT / "data" / "autorobobench" / "robocasa_bc5_splits.json"
 DEFAULT_POLICY_SET = ROOT / "data" / "autorobobench" / "robocasa_world_model_policy_set.json"
 DEFAULT_VIDEO_POOL = ROOT / "data" / "autorobobench" / "robocasa_world_model_video_pool.json"
+DEFAULT_RGB_CACHE_DIR = ROOT / "runs" / "autorobobench" / "robocasa_visual_world_model" / "cache" / "rgb_targets"
 
 
 @dataclass
@@ -1305,6 +1306,7 @@ def main() -> None:
     parser.add_argument("--frame-stride", type=int, default=1)
     parser.add_argument("--view", default="robot0_agentview_right")
     parser.add_argument("--image-size", type=int, default=64)
+    parser.add_argument("--rgb-cache-dir", default=str(DEFAULT_RGB_CACHE_DIR))
     parser.add_argument("--max-train-seconds", type=float, default=BENCHMARK_TRAIN_SECONDS_CAP)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--width", type=int, default=512)
@@ -1427,8 +1429,22 @@ def main() -> None:
         model.image_vae.eval()
 
     print("precomputing_rgb_targets", flush=True)
-    train_rgb, train_next_rgb = _precompute_rgb_targets(train, summary, str(args.view), int(args.image_size))
-    val_rgb, val_next_rgb = _precompute_rgb_targets(val, summary, str(args.view), int(args.image_size))
+    train_rgb, train_next_rgb = _precompute_rgb_targets(
+        train,
+        summary,
+        str(args.view),
+        int(args.image_size),
+        cache_dir=Path(args.rgb_cache_dir) if str(args.rgb_cache_dir) else None,
+        split_name="train",
+    )
+    val_rgb, val_next_rgb = _precompute_rgb_targets(
+        val,
+        summary,
+        str(args.view),
+        int(args.image_size),
+        cache_dir=Path(args.rgb_cache_dir) if str(args.rgb_cache_dir) else None,
+        split_name="val",
+    )
     rollout_starts = _sequence_starts(train, horizon=int(args.rollout_horizon), frame_stride=int(args.frame_stride))
     inverse_align, inverse_head = _build_inverse_alignment(args, device, width=int(args.width))
     if inverse_align is not None and float(inverse_align["weight"]) > 0:
@@ -1696,8 +1712,17 @@ def _precompute_rgb_targets(
     summary: list[dict],
     view: str,
     image_size: int,
+    *,
+    cache_dir: Path | None = None,
+    split_name: str = "data",
 ) -> tuple[np.ndarray, np.ndarray]:
-    rgb = np.empty((len(data), 3, int(image_size), int(image_size)), dtype=np.float32)
+    cache_path = _rgb_cache_path(data, summary, view, int(image_size), cache_dir=cache_dir, split_name=split_name)
+    if cache_path is not None and cache_path.exists():
+        cached = np.load(cache_path)
+        print(f"rgb_target_cache_hit {cache_path}", flush=True)
+        return cached["rgb"], cached["next_rgb"]
+
+    rgb = np.empty((len(data), 3, int(image_size), int(image_size)), dtype=np.float16)
     next_rgb = np.empty_like(rgb)
     dataset_by_task = {int(row["task_id"]): Path(row["dataset_path"]) for row in summary}
     groups: dict[tuple[int, int], list[int]] = {}
@@ -1712,7 +1737,40 @@ def _precompute_rgb_targets(
             next_idx = min(frame_idx + 1, max(0, len(frames) - 1))
             rgb[index] = _preprocess_frame(frames[frame_idx], image_size)
             next_rgb[index] = _preprocess_frame(frames[next_idx], image_size)
+    if cache_path is not None:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = cache_path.with_name(cache_path.name + ".tmp")
+        with tmp_path.open("wb") as handle:
+            np.savez(handle, rgb=rgb, next_rgb=next_rgb)
+        tmp_path.replace(cache_path)
+        print(f"rgb_target_cache_write {cache_path}", flush=True)
     return rgb, next_rgb
+
+
+def _rgb_cache_path(
+    data: TransitionData,
+    summary: list[dict],
+    view: str,
+    image_size: int,
+    *,
+    cache_dir: Path | None,
+    split_name: str,
+) -> Path | None:
+    if cache_dir is None:
+        return None
+    digest = hashlib.sha256()
+    digest.update(b"visual_world_model_rgb_targets_v2")
+    digest.update(str(view).encode("utf-8"))
+    digest.update(str(int(image_size)).encode("utf-8"))
+    digest.update(str(split_name).encode("utf-8"))
+    digest.update(str(len(data)).encode("utf-8"))
+    for row in sorted(summary, key=lambda item: int(item["task_id"])):
+        digest.update(str(row.get("task_id")).encode("utf-8"))
+        digest.update(str(row.get("dataset_path")).encode("utf-8"))
+        digest.update(",".join(str(x) for x in row.get(f"{split_name}_episode_ids", [])).encode("utf-8"))
+    for array in (data.task_id, data.episode_id, data.frame_idx):
+        digest.update(np.ascontiguousarray(array).view(np.uint8))
+    return Path(cache_dir) / f"{split_name}_{digest.hexdigest()[:20]}.npz"
 
 
 def _preprocess_frame(frame: np.ndarray, image_size: int) -> np.ndarray:
