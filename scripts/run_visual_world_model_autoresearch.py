@@ -189,6 +189,8 @@ def main() -> int:
     parser.add_argument("--policy-rollout-steps", type=int, default=64)
     parser.add_argument("--policy-commit-steps", type=int, default=8)
     parser.add_argument("--eval-batch-size", type=int, default=1024)
+    parser.add_argument("--train-timeout-seconds", type=float, default=900.0)
+    parser.add_argument("--eval-timeout-seconds", type=float, default=900.0)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--commit-improvements", action="store_true")
@@ -235,7 +237,7 @@ def main() -> int:
         print(f"\n=== experiment {exp_idx}/{args.experiments}: {spec['name']} ===", flush=True)
         print(spec["idea"], flush=True)
         try:
-            train_rc = _run([sys.executable, str(TRAIN), *command_args], train_log)
+            train_rc = _run([sys.executable, str(TRAIN), *command_args], train_log, timeout_seconds=float(args.train_timeout_seconds))
             if train_rc != 0:
                 raise RuntimeError(f"train exited {train_rc}")
             train_metrics = _read_json(out_dir / "train_metrics.json")
@@ -261,7 +263,7 @@ def main() -> int:
                 "--device",
                 str(args.device),
             ]
-            eval_rc = _run(eval_cmd, eval_log)
+            eval_rc = _run(eval_cmd, eval_log, timeout_seconds=float(args.eval_timeout_seconds))
             if eval_rc != 0:
                 raise RuntimeError(f"eval exited {eval_rc}")
             eval_metrics = _read_json(eval_path)
@@ -304,6 +306,11 @@ def main() -> int:
         _plot(rows, plot_path)
         if keep and args.commit_improvements:
             _commit_improvement(args.analysis_dir, exp_idx, record, push=bool(args.push_improvements))
+
+    if args.commit_improvements and rows:
+        last_exp = max(int(row["experiment"]) for row in rows if "experiment" in row)
+        best_snapshot = _best_record(rows) or rows[-1]
+        _commit_improvement(args.analysis_dir, last_exp, best_snapshot, push=bool(args.push_improvements), final=True)
 
     return 0
 
@@ -352,15 +359,30 @@ def _merge_args(base: dict[str, Any], override: dict[str, Any]) -> list[str]:
     return out
 
 
-def _run(cmd: list[str], log_path: Path) -> int:
+def _run(cmd: list[str], log_path: Path, *, timeout_seconds: float | None = None) -> int:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env["ROBOAUTORESEARCH_REPO_ROOT"] = str(ROOT)
     with log_path.open("w", encoding="utf-8") as log:
         log.write("$ " + " ".join(cmd) + "\n")
         log.flush()
-        proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, text=True)
-        return int(proc.wait())
+        proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, text=True, start_new_session=True)
+        try:
+            return int(proc.wait(timeout=None if timeout_seconds is None else max(1.0, float(timeout_seconds))))
+        except subprocess.TimeoutExpired:
+            import signal
+
+            log.write(f"\nTIMEOUT after {timeout_seconds} seconds; terminating process group.\n")
+            log.flush()
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+                proc.wait(timeout=30)
+            except Exception:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except Exception:
+                    pass
+            return 124
 
 
 def _record(
@@ -563,7 +585,7 @@ def _plot(rows: list[dict[str, Any]], path: Path) -> None:
     plt.close()
 
 
-def _commit_improvement(analysis_dir: Path, exp_idx: int, record: dict[str, Any], *, push: bool) -> None:
+def _commit_improvement(analysis_dir: Path, exp_idx: int, record: dict[str, Any], *, push: bool, final: bool = False) -> None:
     tracked = [
         analysis_dir / "experiments.jsonl",
         analysis_dir / "experiments.csv",
@@ -575,7 +597,8 @@ def _commit_improvement(analysis_dir: Path, exp_idx: int, record: dict[str, Any]
     if not rels:
         return
     score = _float(record.get("eval_correlation_score"))
-    msg = f"Record visual world model exp {exp_idx:03d} corr {score:.4f}"
+    prefix = "Finalize" if final else "Record"
+    msg = f"{prefix} visual world model exp {exp_idx:03d} corr {score:.4f}"
     cmds = [
         ["git", "add", "-f", *rels],
         ["git", "commit", "-m", msg],
