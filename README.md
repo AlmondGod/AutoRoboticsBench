@@ -333,7 +333,6 @@ The counted `autorobobench_v0` task packages are:
 | RoboCasa BC1 | `tasks/robocasa_bc1/` | `TurnOnFaucet` (`TurnOnSinkFaucet`) | `bc1_reliability_speed_score`: eval success plus a small speed bonus on successful episodes only |
 | Visual World Model | `tasks/robocasa_visual_world_model/` | BC-5 next-frame prediction | `visual_world_model_score`: fixed-policy eval correlation plus pixel/state/progress/reward prediction |
 | World-Model Posttraining | `tasks/robocasa_world_model_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | Eval rollout success rate |
-| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool | Mean eval success across BC-5 tasks |
 
 Optional extra task packages are:
 
@@ -344,6 +343,7 @@ Optional extra task packages are:
 | RoboCasa Reward Model | `tasks/robocasa_world_model/` | BC-5/StandMixer transition reward and policy-ranking model | `reward_model_benchmark_score`: policy ranking/calibration plus reward/progress prediction |
 | RoboCasa Language Following | `tasks/robocasa_language_following/` | measuring-cup language variants | `success_rate`: eval success under the correct language prompt |
 | Offline-RL Posttraining | `tasks/robocasa_offlinerl_posttraining/` | `PickPlaceCounterToStandMixer` policy improvement | `success_rate`: eval rollout success after posttraining |
+| RoboCasa BC5 With Video | `tasks/robocasa_bc5_with_video/` | BC-5 demos plus RGB-only video pool | `video_transfer_val_mse_score`: eval success plus held-out imitation signal |
 
 Each task owns its `setup.py`, `train.py`, `inference.py`, `eval.py`,
 `visualize.py`, `task.json`, and `INSTRUCTIONS.md`. Visualizers write compact
