@@ -1,0 +1,113 @@
+{
+  "commit_steps": 8,
+  "description": "Failed BC5 policy rollouts for visual world-model training. These episodes have no success and should have zero progress labels.",
+  "details": [
+    {
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/OpenCabinet",
+      "kept": true,
+      "policy_name": "legacy_all_bc5_bc",
+      "source_episode_id": 0,
+      "steps": 80,
+      "success": false,
+      "synthetic_episode_id": 900000,
+      "task_alias": "OpenCabinet",
+      "task_id": 0
+    },
+    {
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/CloseDrawer",
+      "kept": true,
+      "policy_name": "legacy_all_bc5_bc",
+      "source_episode_id": 0,
+      "steps": 80,
+      "success": false,
+      "synthetic_episode_id": 901000,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/CloseFridge",
+      "kept": true,
+      "policy_name": "legacy_all_bc5_bc",
+      "source_episode_id": 0,
+      "steps": 80,
+      "success": false,
+      "synthetic_episode_id": 902000,
+      "task_alias": "CloseFridge",
+      "task_id": 2
+    },
+    {
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/TurnOffStove",
+      "kept": true,
+      "policy_name": "legacy_all_bc5_bc",
+      "source_episode_id": 0,
+      "steps": 80,
+      "success": false,
+      "synthetic_episode_id": 903000,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/PickPlaceCounterToCabinet",
+      "kept": true,
+      "policy_name": "legacy_all_bc5_bc",
+      "source_episode_id": 0,
+      "steps": 80,
+      "success": false,
+      "synthetic_episode_id": 904000,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    }
+  ],
+  "episodes_per_task": 1,
+  "manifest": "data/robocasa5/manifest.json",
+  "max_steps": 80,
+  "policy_set": "data/autorobobench/robocasa_world_model_policy_set.json",
+  "source_split": "data/autorobobench/robocasa_bc5_splits.json",
+  "tasks": [
+    {
+      "alias": "OpenCabinet",
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/OpenCabinet",
+      "source": "failed_policy_rollout",
+      "task_id": 0,
+      "train_episode_ids": [
+        900000
+      ]
+    },
+    {
+      "alias": "CloseDrawer",
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/CloseDrawer",
+      "source": "failed_policy_rollout",
+      "task_id": 1,
+      "train_episode_ids": [
+        901000
+      ]
+    },
+    {
+      "alias": "CloseFridge",
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/CloseFridge",
+      "source": "failed_policy_rollout",
+      "task_id": 2,
+      "train_episode_ids": [
+        902000
+      ]
+    },
+    {
+      "alias": "TurnOffStove",
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/TurnOffStove",
+      "source": "failed_policy_rollout",
+      "task_id": 3,
+      "train_episode_ids": [
+        903000
+      ]
+    },
+    {
+      "alias": "PickPlaceCounterToCabinet",
+      "dataset_path": "data/autorobobench/visual_world_model_failed_rollouts/PickPlaceCounterToCabinet",
+      "source": "failed_policy_rollout",
+      "task_id": 4,
+      "train_episode_ids": [
+        904000
+      ]
+    }
+  ]
+}

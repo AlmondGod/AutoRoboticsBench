@@ -222,7 +222,7 @@ def _record_rollout(
         env,
         {
             "model": bc5_eval.LU.get_episode_model_xml(dataset_root, episode_idx),
-            "ep_meta": json.dumps(bc5_eval.LU.get_episode_meta(dataset_root, episode_idx)),
+            "ep_meta": json.dumps(bc5_eval._episode_meta_for_reset(dataset_root, episode_idx)),
         },
     )
     state = np.asarray(states[reset_idx], dtype=np.float64).copy()

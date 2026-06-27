@@ -54,6 +54,42 @@ ensure_robocasa_runtime()
 import robocasa.utils.lerobot_utils as LU  # noqa: E402
 
 
+def _episode_meta_for_reset(dataset_root: Path, episode_idx: int) -> dict:
+    return _rewrite_asset_paths_for_runtime(LU.get_episode_meta(dataset_root, episode_idx))
+
+
+def _rewrite_asset_paths_for_runtime(value):
+    if isinstance(value, dict):
+        return {key: _rewrite_asset_paths_for_runtime(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_rewrite_asset_paths_for_runtime(item) for item in value]
+    if isinstance(value, str):
+        return _rewrite_asset_path_string(value)
+    return value
+
+
+def _rewrite_asset_path_string(value: str) -> str:
+    replacements = []
+    try:
+        import robocasa.models as robocasa_models
+
+        replacements.append(("/robocasa/models/assets/", Path(robocasa_models.assets_root)))
+        replacements.append(("/robocasa/robocasa/models/assets/", Path(robocasa_models.assets_root)))
+    except Exception:
+        pass
+    try:
+        import robosuite.models as robosuite_models
+
+        replacements.append(("/robosuite/models/assets/", Path(robosuite_models.assets_root)))
+        replacements.append(("/robosuite/robosuite/models/assets/", Path(robosuite_models.assets_root)))
+    except Exception:
+        pass
+    for marker, asset_root in replacements:
+        if marker in value:
+            return str(asset_root / value.split(marker, 1)[1])
+    return value
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Immutable evaluator for the RoboCasa BC-5 task.")
     parser.add_argument("--checkpoint", "--policy", dest="checkpoint", required=True)
@@ -421,7 +457,7 @@ def _rollout_episode(
         env,
         {
             "model": LU.get_episode_model_xml(dataset_root, episode_idx),
-            "ep_meta": json.dumps(LU.get_episode_meta(dataset_root, episode_idx)),
+            "ep_meta": json.dumps(_episode_meta_for_reset(dataset_root, episode_idx)),
         },
     )
     state = np.asarray(states[reset_idx], dtype=np.float64).copy()
