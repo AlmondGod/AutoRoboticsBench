@@ -1,0 +1,391 @@
+{
+  "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/clip_5min_seed0/policy_best.pt",
+  "commit_steps": 16,
+  "details": [
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 92,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 93,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 94,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 95,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 96,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 97,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 98,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 99,
+      "steps": 260,
+      "success": false,
+      "task_alias": "OpenDrawer",
+      "task_id": 0
+    },
+    {
+      "episode_id": 90,
+      "steps": 105,
+      "success": true,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 92,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 93,
+      "steps": 112,
+      "success": true,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 94,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 95,
+      "steps": 150,
+      "success": true,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 96,
+      "steps": 260,
+      "success": false,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 97,
+      "steps": 158,
+      "success": true,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 98,
+      "steps": 132,
+      "success": true,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 99,
+      "steps": 98,
+      "success": true,
+      "task_alias": "CloseDrawer",
+      "task_id": 1
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 92,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 93,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 94,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 95,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 96,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 97,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 98,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 99,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToStove",
+      "task_id": 2
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 92,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 93,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 94,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 95,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 96,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 97,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 98,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 99,
+      "steps": 260,
+      "success": false,
+      "task_alias": "TurnOffStove",
+      "task_id": 3
+    },
+    {
+      "episode_id": 90,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 91,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 92,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 93,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 94,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 95,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 96,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 97,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 98,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    },
+    {
+      "episode_id": 99,
+      "steps": 260,
+      "success": false,
+      "task_alias": "PickPlaceCounterToCabinet",
+      "task_id": 4
+    }
+  ],
+  "episodes": 50,
+  "inference": "tasks.robocasa_bc5.inference",
+  "manifest": "data/robocasa5/manifest.json",
+  "max_steps": 260,
+  "per_task": {
+    "CloseDrawer": {
+      "episodes": 10,
+      "success_rate": 0.6,
+      "successes": 6
+    },
+    "OpenDrawer": {
+      "episodes": 10,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "PickPlaceCounterToCabinet": {
+      "episodes": 10,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "PickPlaceCounterToStove": {
+      "episodes": 10,
+      "success_rate": 0.0,
+      "successes": 0
+    },
+    "TurnOffStove": {
+      "episodes": 10,
+      "success_rate": 0.0,
+      "successes": 0
+    }
+  },
+  "split": "data/autorobobench/robocasa_bc5_splits.json",
+  "success_rate": 0.12,
+  "successes": 6,
+  "track": "robocasa_bc5"
+}

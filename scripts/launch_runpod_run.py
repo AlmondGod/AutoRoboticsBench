@@ -13,6 +13,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -123,6 +124,7 @@ Instructions:
 - Keep working until the run deadline unless you are blocked by missing credentials, missing data, or an unrecoverable environment failure.
 - Build experiments cumulatively on this branch. If an experiment succeeds, commit the source changes before starting the next experiment so the next idea starts on top of the best branch state.
 - If an experiment fails or is worse, either discard that change or explicitly supersede it before moving on; do not let failed changes silently accumulate.
+- Use the full run budget. Do not stop early because you found one decent result; keep running one experiment at a time until you are near the deadline, while leaving only enough time to package final_submission and record/finalize the run.
 - Every model-training command, including custom training loops and helper pretraining jobs, must be capped at 300 seconds or less. Do not raise or bypass task --max-train-seconds limits.
 - During active work, run an evaluator at least once per wall-clock hour. After each interim eval, append a checkpoint with:
   python scripts/record_eval_checkpoint.py --run-id {run_id} --eval-json <eval.json> --label hourly
@@ -160,6 +162,11 @@ def main() -> int:
         )
 
     repo_root = Path(__file__).resolve().parents[1]
+    subprocess.run(
+        [sys.executable, str(repo_root / "scripts" / "preflight_benchmark.py"), "--task", args.task],
+        cwd=repo_root,
+        check=True,
+    )
     task_src = repo_root / "tasks" / args.task
     template_src = task_src / "workspace_template"
     if not template_src.exists():

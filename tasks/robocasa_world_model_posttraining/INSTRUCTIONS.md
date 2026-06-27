@@ -34,12 +34,12 @@ files or split files for scored runs.
   `runs/autorobobench/robocasa_stand_mixer_base/nonzero_base/policy_best.pt`.
 - Default frozen world-model path:
   `data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt`.
-- The large world-model `.pt` artifact is external and intentionally not
-  committed; provide it at that path or pass `--world-model-checkpoint`.
-- Current promoted world model: VisualRoboCasaWorldModel with spatial VAE
-  latents and a conv residual latent-map dynamics head. It was trained on the
-  11-task transition suite and reached best validation visual score loss
-  `0.0062508`.
+- The frozen world-model `.pt` artifact is tracked through Git LFS. After a
+  fresh clone, run `git lfs pull` if this path is still an LFS pointer. You may
+  still pass `--world-model-checkpoint` to test a different frozen model.
+- Current shipped world model: VisualRoboCasaWorldModel trained on the 11-task
+  transition suite for about 20 minutes; the tracked metadata records best
+  validation visual score loss `0.05453817122585597`.
 - Current promoted A100 base: learned temporal chunk BC, 2/10 eval success on
   `PickPlaceCounterToStandMixer`. It was trained with an eval-included
   diagnostic split to provide a nonzero warm start; do not report it as a fair

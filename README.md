@@ -142,9 +142,10 @@ cd /workspace/autoroboticsbench
   --seed 0
 ```
 
-The prepare command bootstraps Python dependencies, checks GPU visibility,
-creates a run directory, writes `runs/<RUN_ID>/prompt.txt`, and prints the exact
-commands to use next. If setup is already done, pass `--skip-setup`.
+The prepare command bootstraps Python dependencies, checks GPU visibility, runs
+the benchmark artifact preflight, creates a run directory, writes
+`runs/<RUN_ID>/prompt.txt`, and prints the exact commands to use next. If setup
+is already done, pass `--skip-setup`.
 
 Each task provides a minimal sandbox template at
 `tasks/<TASK>/workspace_template/`. The launcher copies exactly these files into
@@ -213,6 +214,18 @@ python scripts/finalize_run.py --run-id <RUN_ID> --task robocasa_bc5 --mode runp
 Finalization runs the task's real evaluator, judge, artifact collection, writes
 `runs/<RUN_ID>/final_report.json`, writes aggregate-ready
 `runs/<RUN_ID>/run_summary.json`, and records `runs/<RUN_ID>/finished_at.txt`.
+
+For benchmark comparisons, agents should use the full per-task budget. With a
+2-hour task budget, keep running one experiment at a time until close to the
+2-hour deadline, leaving only enough time to package `final_submission`, record
+the last eval checkpoint, and finalize. Do not stop early just because a first
+improvement was found.
+
+Required reference artifacts can be checked before starting a run:
+
+```bash
+python scripts/preflight_benchmark.py --suite autorobobench_v0
+```
 
 Agents should not manually edit `run_summary.json`. If token or cost usage is
 available, write it before finalization to `runs/<RUN_ID>/run_usage.json`:
@@ -390,11 +403,8 @@ on `PickPlaceCounterToStandMixer`; it was trained with an eval-included
 diagnostic split and should be treated as a posttraining base artifact, not as a
 fair standalone benchmark submission.
 
-The world-model posttraining task records metadata for a default frozen visual
-world model at
+The world-model posttraining task ships a default frozen visual world model at
 `data/autorobobench/pretrained_world_models/robocasa_visual_world_model_spatial_conv_11task_20min.pt`.
-The large `.pt` artifact is intentionally not committed; supply it externally at
-that path or pass `--world-model-checkpoint`. It is a spatial-latent
-VisualRoboCasaWorldModel with a conv residual latent-map dynamics head, trained
-on the 11-task transition suite. The promoted checkpoint reached best validation
-visual score loss `0.0062508`.
+The `.pt` file is tracked through Git LFS. After cloning, run `git lfs pull` if
+the file is still an LFS pointer. It is an 11-task VisualRoboCasaWorldModel
+checkpoint trained for the default posttraining warm-start path.
