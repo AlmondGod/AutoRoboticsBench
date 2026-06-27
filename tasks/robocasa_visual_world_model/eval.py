@@ -509,12 +509,20 @@ def _precompute_rgb_targets(
 ) -> tuple[np.ndarray, np.ndarray]:
     rgb = np.empty((len(data), 3, int(image_size), int(image_size)), dtype=np.float32)
     next_rgb = np.empty_like(rgb)
-    dataset_by_task = {int(row["task_id"]): Path(row["dataset_path"]) for row in summary}
+    dataset_by_task: dict[int, Path] = {}
+    dataset_by_episode: dict[tuple[int, int], Path] = {}
+    for row in summary:
+        task_id = int(row["task_id"])
+        root = Path(row["dataset_path"])
+        dataset_by_task.setdefault(task_id, root)
+        for key in ("train_episode_ids", "val_episode_ids", "failed_rollout_train_episode_ids"):
+            for episode_id in row.get(key, []):
+                dataset_by_episode[(task_id, int(episode_id))] = root
     groups: dict[tuple[int, int], list[int]] = {}
     for index, (task_id, episode_id) in enumerate(zip(data.task_id, data.episode_id)):
         groups.setdefault((int(task_id), int(episode_id)), []).append(index)
     for (task_id, episode_id), indices in sorted(groups.items()):
-        root = dataset_by_task[int(task_id)]
+        root = dataset_by_episode.get((int(task_id), int(episode_id)), dataset_by_task[int(task_id)])
         video = root / "videos" / "chunk-000" / f"observation.images.{view}" / f"episode_{int(episode_id):06d}.mp4"
         frames = load_video_frames(video)
         for index in indices:

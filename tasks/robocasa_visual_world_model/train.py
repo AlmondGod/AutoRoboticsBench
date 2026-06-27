@@ -857,6 +857,7 @@ DEFAULT_MANIFEST = ROOT / "data" / "robocasa5" / "manifest.json"
 DEFAULT_SPLIT = ROOT / "data" / "autorobobench" / "robocasa_bc5_splits.json"
 DEFAULT_POLICY_SET = ROOT / "data" / "autorobobench" / "robocasa_world_model_policy_set.json"
 DEFAULT_VIDEO_POOL = ROOT / "data" / "autorobobench" / "robocasa_world_model_video_pool.json"
+DEFAULT_FAILED_ROLLOUT_SPLIT = ROOT / "data" / "autorobobench" / "robocasa_visual_world_model_failed_rollouts.json"
 DEFAULT_RGB_CACHE_DIR = ROOT / "runs" / "autorobobench" / "robocasa_visual_world_model" / "cache" / "rgb_targets"
 
 
@@ -894,6 +895,7 @@ def load_transition_data(
     val_episodes_per_task: int = 5,
     task_aliases: set[str] | None = None,
     frame_stride: int = 1,
+    failed_rollout_split_path: str | Path | None = DEFAULT_FAILED_ROLLOUT_SPLIT,
 ) -> tuple[TransitionData, TransitionData, list[dict[str, Any]]]:
     manifest = json.loads(Path(manifest_path).read_text())
     split = json.loads(Path(split_path).read_text())
@@ -927,7 +929,51 @@ def load_transition_data(
                 "val_transitions": int(val_count),
             }
         )
+    _append_failed_rollout_split(
+        train_parts,
+        summary,
+        failed_rollout_split_path=failed_rollout_split_path,
+        task_aliases=aliases,
+        frame_stride=int(frame_stride),
+    )
     return _concat(train_parts), _concat(val_parts), summary
+
+
+def _append_failed_rollout_split(
+    train_parts: list[dict[str, np.ndarray]],
+    summary: list[dict[str, Any]],
+    *,
+    failed_rollout_split_path: str | Path | None,
+    task_aliases: set[str],
+    frame_stride: int,
+) -> None:
+    if not failed_rollout_split_path:
+        return
+    path = Path(failed_rollout_split_path)
+    if not path.exists():
+        return
+    payload = json.loads(path.read_text())
+    for row in payload.get("tasks", []):
+        alias = str(row["alias"])
+        if task_aliases and alias not in task_aliases:
+            continue
+        task_id = int(row["task_id"])
+        dataset_root = _resolve_dataset_root(row["dataset_path"])
+        train_ids = [int(x) for x in row.get("train_episode_ids", [])]
+        train_count = _append_episodes(train_parts, dataset_root, train_ids, task_id, int(frame_stride))
+        summary.append(
+            {
+                "alias": alias,
+                "task_id": task_id,
+                "dataset_path": str(dataset_root),
+                "train_episode_ids": train_ids,
+                "val_episode_ids": [],
+                "failed_rollout_train_episode_ids": train_ids,
+                "train_transitions": int(train_count),
+                "val_transitions": 0,
+                "source": "failed_policy_rollout",
+            }
+        )
 
 
 def _resolve_dataset_root(value: str | Path) -> Path:
@@ -1311,6 +1357,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Train a visually grounded RoboCasa world model.")
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--split", default=str(DEFAULT_SPLIT))
+    parser.add_argument("--failed-rollout-split", default=str(DEFAULT_FAILED_ROLLOUT_SPLIT))
     parser.add_argument("--out-dir", default="runs/autorobobench/robocasa_visual_world_model/base")
     parser.add_argument("--train-episodes-per-task", type=int, default=0)
     parser.add_argument("--val-episodes-per-task", type=int, default=5)
@@ -1389,6 +1436,7 @@ def main() -> None:
         val_episodes_per_task=int(args.val_episodes_per_task),
         task_aliases=set(args.task_alias),
         frame_stride=int(args.frame_stride),
+        failed_rollout_split_path=str(args.failed_rollout_split),
     )
     if len(train_raw) == 0 or len(val_raw) == 0:
         raise ValueError("need both train and val transitions for visual world-model training")
@@ -1736,12 +1784,20 @@ def _precompute_rgb_targets(
 
     rgb = np.empty((len(data), 3, int(image_size), int(image_size)), dtype=np.float16)
     next_rgb = np.empty_like(rgb)
-    dataset_by_task = {int(row["task_id"]): Path(row["dataset_path"]) for row in summary}
+    dataset_by_task: dict[int, Path] = {}
+    dataset_by_episode: dict[tuple[int, int], Path] = {}
+    for row in summary:
+        task_id = int(row["task_id"])
+        root = Path(row["dataset_path"])
+        dataset_by_task.setdefault(task_id, root)
+        for key in ("train_episode_ids", "val_episode_ids", "failed_rollout_train_episode_ids"):
+            for episode_id in row.get(key, []):
+                dataset_by_episode[(task_id, int(episode_id))] = root
     groups: dict[tuple[int, int], list[int]] = {}
     for index, (task_id, episode_id) in enumerate(zip(data.task_id, data.episode_id)):
         groups.setdefault((int(task_id), int(episode_id)), []).append(index)
     for (task_id, episode_id), indices in sorted(groups.items()):
-        root = dataset_by_task[int(task_id)]
+        root = dataset_by_episode.get((int(task_id), int(episode_id)), dataset_by_task[int(task_id)])
         video = root / "videos" / "chunk-000" / f"observation.images.{view}" / f"episode_{int(episode_id):06d}.mp4"
         frames = load_video_frames(video)
         for index in indices:

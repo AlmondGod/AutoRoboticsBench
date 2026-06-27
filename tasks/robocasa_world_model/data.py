@@ -47,6 +47,7 @@ DEFAULT_MANIFEST = ROOT / "data" / "robocasa5" / "manifest.json"
 DEFAULT_SPLIT = ROOT / "data" / "autorobobench" / "robocasa_bc5_splits.json"
 DEFAULT_POLICY_SET = ROOT / "data" / "autorobobench" / "robocasa_world_model_policy_set.json"
 DEFAULT_VIDEO_POOL = ROOT / "data" / "autorobobench" / "robocasa_world_model_video_pool.json"
+DEFAULT_FAILED_ROLLOUT_SPLIT = ROOT / "data" / "autorobobench" / "robocasa_visual_world_model_failed_rollouts.json"
 
 
 @dataclass
@@ -83,6 +84,7 @@ def load_transition_data(
     val_episodes_per_task: int = 5,
     task_aliases: set[str] | None = None,
     frame_stride: int = 1,
+    failed_rollout_split_path: str | Path | None = DEFAULT_FAILED_ROLLOUT_SPLIT,
 ) -> tuple[TransitionData, TransitionData, list[dict[str, Any]]]:
     manifest = json.loads(Path(manifest_path).read_text())
     split = json.loads(Path(split_path).read_text())
@@ -116,7 +118,51 @@ def load_transition_data(
                 "val_transitions": int(val_count),
             }
         )
+    _append_failed_rollout_split(
+        train_parts,
+        summary,
+        failed_rollout_split_path=failed_rollout_split_path,
+        task_aliases=aliases,
+        frame_stride=int(frame_stride),
+    )
     return _concat(train_parts), _concat(val_parts), summary
+
+
+def _append_failed_rollout_split(
+    train_parts: list[dict[str, np.ndarray]],
+    summary: list[dict[str, Any]],
+    *,
+    failed_rollout_split_path: str | Path | None,
+    task_aliases: set[str],
+    frame_stride: int,
+) -> None:
+    if not failed_rollout_split_path:
+        return
+    path = Path(failed_rollout_split_path)
+    if not path.exists():
+        return
+    payload = json.loads(path.read_text())
+    for row in payload.get("tasks", []):
+        alias = str(row["alias"])
+        if task_aliases and alias not in task_aliases:
+            continue
+        task_id = int(row["task_id"])
+        dataset_root = _resolve_dataset_root(row["dataset_path"])
+        train_ids = [int(x) for x in row.get("train_episode_ids", [])]
+        train_count = _append_episodes(train_parts, dataset_root, train_ids, task_id, int(frame_stride))
+        summary.append(
+            {
+                "alias": alias,
+                "task_id": task_id,
+                "dataset_path": str(dataset_root),
+                "train_episode_ids": train_ids,
+                "val_episode_ids": [],
+                "failed_rollout_train_episode_ids": train_ids,
+                "train_transitions": int(train_count),
+                "val_transitions": 0,
+                "source": "failed_policy_rollout",
+            }
+        )
 
 
 def load_video_only_pool(
@@ -276,6 +322,9 @@ def load_episode_transitions(dataset_root: Path, episode_id: int, task_id: int, 
     progress = rows.astype(np.float32) / max(1, n - 1)
     next_progress = (rows + 1).astype(np.float32) / max(1, n - 1)
     success = _episode_success(frame, rows, n)
+    if not _trajectory_succeeded(frame, success):
+        progress = np.zeros_like(progress, dtype=np.float32)
+        next_progress = np.zeros_like(next_progress, dtype=np.float32)
     return {
         "state": state[rows].astype(np.float32),
         "action": action[rows].astype(np.float32),
@@ -298,6 +347,14 @@ def _episode_success(frame: pd.DataFrame, rows: np.ndarray, n: int) -> np.ndarra
     if len(success):
         success[-1] = 1.0
     return success
+
+
+def _trajectory_succeeded(frame: pd.DataFrame, transition_success: np.ndarray) -> bool:
+    for key in ("next.success", "success", "is_success"):
+        if key in frame:
+            values = np.asarray(frame[key].to_numpy(), dtype=np.float32).reshape(-1)
+            return bool(len(values) and float(np.nanmax(values)) > 0.5)
+    return bool(len(transition_success) and float(np.nanmax(transition_success)) > 0.5)
 
 
 def episode_actions(dataset_root: Path, episode_id: int, frame: pd.DataFrame | None = None) -> np.ndarray:
