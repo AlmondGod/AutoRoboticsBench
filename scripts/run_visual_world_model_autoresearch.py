@@ -7,7 +7,6 @@ import datetime as _dt
 import json
 import os
 import random
-import shutil
 import subprocess
 import sys
 import time
@@ -293,10 +292,6 @@ def main() -> int:
             _write_json(best_config_path, {"best": best, "config_args": command_args})
             if eval_metrics:
                 _write_json(best_eval_path, eval_metrics)
-            best_ckpt = args.analysis_dir / "best_policy_best.pt"
-            src_ckpt = out_dir / "policy_best.pt"
-            if src_ckpt.exists():
-                shutil.copy2(src_ckpt, best_ckpt)
             print(
                 "kept improvement: "
                 f"corr={record.get('eval_correlation_score')} "
@@ -569,11 +564,20 @@ def _plot(rows: list[dict[str, Any]], path: Path) -> None:
 
 
 def _commit_improvement(analysis_dir: Path, exp_idx: int, record: dict[str, Any], *, push: bool) -> None:
-    rel = analysis_dir.relative_to(ROOT)
+    tracked = [
+        analysis_dir / "experiments.jsonl",
+        analysis_dir / "experiments.csv",
+        analysis_dir / "best_config.json",
+        analysis_dir / "best_eval.json",
+        analysis_dir / "score_progress.png",
+    ]
+    rels = [str(path.relative_to(ROOT)) for path in tracked if path.exists()]
+    if not rels:
+        return
     score = _float(record.get("eval_correlation_score"))
     msg = f"Record visual world model exp {exp_idx:03d} corr {score:.4f}"
     cmds = [
-        ["git", "add", "-f", str(rel)],
+        ["git", "add", "-f", *rels],
         ["git", "commit", "-m", msg],
     ]
     if push:
