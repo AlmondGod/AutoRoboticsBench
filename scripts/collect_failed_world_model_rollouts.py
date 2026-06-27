@@ -54,6 +54,13 @@ def main() -> None:
 
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
+        try:
+            import imageio_ffmpeg  # type: ignore
+
+            ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        except ModuleNotFoundError:
+            ffmpeg = None
+    if not ffmpeg:
         raise RuntimeError("ffmpeg is required to write rollout videos")
 
     out_root = ROOT / args.out_root
