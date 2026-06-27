@@ -6,18 +6,18 @@
     "success_score": 0.1,
     "visual_reconstruction_score": 0.2
   },
-  "checkpoint": "/workspace/AutoRoboticsBench/runs/autorobobench/robocasa_visual_world_model/a100_autoresearch/exp003_cosmos_rollout6_low_weight/policy_best.pt",
-  "eval_correlation_score": 0.8998524013948166,
-  "eval_seconds": 263.9144113670045,
+  "checkpoint": "/workspace/AutoRoboticsBench/runs/autorobobench/robocasa_visual_world_model/a100_autoresearch/exp016_vector_vae_wide/policy_best.pt",
+  "eval_correlation_score": 0.9165824712054035,
+  "eval_seconds": 256.831999935006,
   "metric": "visual_world_model_score",
-  "next_state_score": 0.4304287680512744,
-  "ood_policy_score_pearson": 0.9609741550827605,
+  "next_state_score": 0.5409226305810952,
+  "ood_policy_score_pearson": 0.9963803624287003,
   "ood_policy_score_spearman": 1.0,
-  "policy_score_pearson": 0.6307021989329155,
-  "policy_score_spearman": 0.6071428571428572,
-  "progress_score": 0.1090090254987629,
+  "policy_score_pearson": 0.6934222643573846,
+  "policy_score_spearman": 0.642857142857143,
+  "progress_score": 0.20161569469910368,
   "reproducibility_integrity": 1.0,
-  "success_score": 0.7872373100851668,
+  "success_score": 0.8113324301583427,
   "summary": [
     {
       "alias": "OpenCabinet",
@@ -501,56 +501,56 @@
     }
   ],
   "task": "robocasa_visual_world_model",
-  "visual_perceptual_score": 0.034677389293390926,
+  "visual_perceptual_score": 0.0,
   "visual_policy_correlation": {
     "commit_steps": 8,
     "conditioning": "Each policy observes world-model generated RGB and proprio/state rolled forward by the world model; real simulator success rates are loaded from stored metadata.",
     "enabled": true,
-    "eval_correlation_score": 0.8998524013948166,
+    "eval_correlation_score": 0.9165824712054035,
     "generated_view": "robot0_agentview_right",
-    "ood_pearson": 0.9609741550827605,
+    "ood_pearson": 0.9963803624287003,
     "ood_spearman": 1.0,
-    "pearson": 0.6307021989329155,
+    "pearson": 0.6934222643573846,
     "policies": [
       {
         "checkpoint": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/autoresearch_clip_recede4_open_only/policy_best.pt",
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.001286187907680869,
-            "predicted_success": 0.0016143849352374673,
+            "final_success_prob": 0.0035143911372870207,
+            "predicted_success": 0.003517702454701066,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0015551064861938357,
-            "predicted_success": 0.0016121062217280269,
+            "final_success_prob": 0.0013263467699289322,
+            "predicted_success": 0.003511119866743684,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.00161326106172055,
-            "predicted_success": 0.0016133285826072097,
+            "final_success_prob": 0.0013416268629953265,
+            "predicted_success": 0.003725348738953471,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0016117716440930963,
-            "predicted_success": 0.0016121369553729892,
+            "final_success_prob": 0.0035145143046975136,
+            "predicted_success": 0.0035146784503012896,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0012949142837896943,
-            "predicted_success": 0.001612953725270927,
+            "final_success_prob": 0.0035141671542078257,
+            "predicted_success": 0.003514645155519247,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -560,7 +560,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "autoresearch_clip_recede4_open_only",
         "ood": true,
-        "predicted_success": 0.001612982084043324,
+        "predicted_success": 0.0035566989332437514,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/autoresearch_clip_recede4_open_only/eval_10_per_task_local.json",
         "real_success_rate": 0.14
       },
@@ -569,40 +569,40 @@
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013281538849696517,
-            "predicted_success": 0.0016143849352374673,
+            "final_success_prob": 0.0013319370336830616,
+            "predicted_success": 0.0035166528541594744,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0015551064861938357,
-            "predicted_success": 0.0016121062217280269,
+            "final_success_prob": 0.0013263177825137973,
+            "predicted_success": 0.0035110795870423317,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.00161326106172055,
-            "predicted_success": 0.0016133285826072097,
+            "final_success_prob": 0.001341622439213097,
+            "predicted_success": 0.0038363540079444647,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0016117716440930963,
-            "predicted_success": 0.0016121369553729892,
+            "final_success_prob": 0.0035145143046975136,
+            "predicted_success": 0.0035146784503012896,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0012949142837896943,
-            "predicted_success": 0.001612953725270927,
+            "final_success_prob": 0.0035141671542078257,
+            "predicted_success": 0.0035146530717611313,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -612,7 +612,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "clip_5min_seed0",
         "ood": false,
-        "predicted_success": 0.001612982084043324,
+        "predicted_success": 0.0035786835942417383,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/clip_5min_seed0/eval_10_per_task_local.json",
         "real_success_rate": 0.12
       },
@@ -621,40 +621,40 @@
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.0016084328526630998,
-            "predicted_success": 0.0016123189125210047,
+            "final_success_prob": 0.003512165741994977,
+            "predicted_success": 0.0035142709966748953,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.001610657898709178,
-            "predicted_success": 0.0016133071621879935,
+            "final_success_prob": 0.0035139520186930895,
+            "predicted_success": 0.0035161017440259457,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013168788282200694,
-            "predicted_success": 0.0016122444067150354,
+            "final_success_prob": 0.0013413650449365377,
+            "predicted_success": 0.003511606715619564,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0011619360884651542,
-            "predicted_success": 0.0016120480140671134,
+            "final_success_prob": 0.0013388226507231593,
+            "predicted_success": 0.0035116334911435843,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013041055062785745,
-            "predicted_success": 0.0016126674599945545,
+            "final_success_prob": 0.0035114968195557594,
+            "predicted_success": 0.0035135126672685146,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -664,7 +664,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "smolvlm2_5min_seed0",
         "ood": false,
-        "predicted_success": 0.0016125171910971402,
+        "predicted_success": 0.0035134251229465008,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260626/smolvlm2_5min_seed0/eval_10_per_task_local.json",
         "real_success_rate": 0.12
       },
@@ -673,40 +673,40 @@
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.001609200146049261,
-            "predicted_success": 0.001609200146049261,
+            "final_success_prob": 0.0013420492177829146,
+            "predicted_success": 0.0013440996408462524,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013273628428578377,
-            "predicted_success": 0.0013296111719682813,
+            "final_success_prob": 0.0013379703741520643,
+            "predicted_success": 0.0013434208231046796,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.001611050684005022,
-            "predicted_success": 0.001611629850231111,
+            "final_success_prob": 0.0012395839439705014,
+            "predicted_success": 0.0035579653922468424,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.00160693796351552,
-            "predicted_success": 0.0016114318277686834,
+            "final_success_prob": 0.0035117538645863533,
+            "predicted_success": 0.003515469841659069,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013008217792958021,
-            "predicted_success": 0.0016308414051309228,
+            "final_success_prob": 0.003512240946292877,
+            "predicted_success": 0.0035396513994783163,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -716,7 +716,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "legacy_all_bc5_bc",
         "ood": false,
-        "predicted_success": 0.001558542880229652,
+        "predicted_success": 0.002660121419467032,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/all_bc5_bc/eval_bc5_2_per_task.json",
         "real_success_rate": 0.0
       },
@@ -725,40 +725,40 @@
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013282808940857649,
-            "predicted_success": 0.0013282808940857649,
+            "final_success_prob": 0.0013389105442911386,
+            "predicted_success": 0.0013405412901192904,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.00132906308863312,
-            "predicted_success": 0.00132906308863312,
+            "final_success_prob": 0.0013401634059846401,
+            "predicted_success": 0.001341077615506947,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013286542380228639,
-            "predicted_success": 0.0013293977826833725,
+            "final_success_prob": 0.0013384274207055569,
+            "predicted_success": 0.0013405501376837492,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013290484203025699,
-            "predicted_success": 0.0013291706563904881,
+            "final_success_prob": 0.0013390847016125917,
+            "predicted_success": 0.0013405667850747705,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013283506268635392,
-            "predicted_success": 0.0013283506268635392,
+            "final_success_prob": 0.001338478410616517,
+            "predicted_success": 0.0013405183563008904,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -768,7 +768,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "legacy_bc5_with_video_pidm",
         "ood": false,
-        "predicted_success": 0.001328852609731257,
+        "predicted_success": 0.0013406508369371295,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/bc5_with_video_pidm/eval_bc5_2_per_task.json",
         "real_success_rate": 0.0
       },
@@ -777,40 +777,40 @@
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013265464222058654,
-            "predicted_success": 0.0016120861982926726,
+            "final_success_prob": 0.0013382642064243555,
+            "predicted_success": 0.003678281791508198,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.001329587190411985,
-            "predicted_success": 0.001330301514826715,
+            "final_success_prob": 0.0013421087060123682,
+            "predicted_success": 0.001343162963166833,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013278383994475007,
-            "predicted_success": 0.001491627306677401,
+            "final_success_prob": 0.0013418211601674557,
+            "predicted_success": 0.0030162855982780457,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0016042343340814114,
-            "predicted_success": 0.001610059873200953,
+            "final_success_prob": 0.0013400288298726082,
+            "predicted_success": 0.0035079894587397575,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.001329457969404757,
-            "predicted_success": 0.0016123135574162006,
+            "final_success_prob": 0.0013420268660411239,
+            "predicted_success": 0.0034938878379762173,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -820,7 +820,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "legacy_focus_OpenCabinet",
         "ood": true,
-        "predicted_success": 0.0015312776900827884,
+        "predicted_success": 0.00300792152993381,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_OpenCabinet/eval_bc5_2_per_task.json",
         "real_success_rate": 0.0
       },
@@ -829,40 +829,40 @@
         "details": [
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013253543293103576,
-            "predicted_success": 0.0016103129601106048,
+            "final_success_prob": 0.0013414524728432298,
+            "predicted_success": 0.0034315309021621943,
             "steps": 64,
             "task_alias": "OpenCabinet",
             "task_id": 0
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0016090715071186423,
-            "predicted_success": 0.001610942417755723,
+            "final_success_prob": 0.001341506140306592,
+            "predicted_success": 0.0013419041642919183,
             "steps": 64,
             "task_alias": "CloseDrawer",
             "task_id": 1
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013277895050123334,
-            "predicted_success": 0.0013298499397933483,
+            "final_success_prob": 0.0013425862416625023,
+            "predicted_success": 0.003510285634547472,
             "steps": 64,
             "task_alias": "CloseFridge",
             "task_id": 2
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013276005629450083,
-            "predicted_success": 0.0016106426483020186,
+            "final_success_prob": 0.0013325080508366227,
+            "predicted_success": 0.0035138935782015324,
             "steps": 64,
             "task_alias": "TurnOffStove",
             "task_id": 3
           },
           {
             "episode_id": 80,
-            "final_success_prob": 0.0013249327894300222,
-            "predicted_success": 0.0016110828146338463,
+            "final_success_prob": 0.001339640119113028,
+            "predicted_success": 0.003499615238979459,
             "steps": 64,
             "task_alias": "PickPlaceCounterToCabinet",
             "task_id": 4
@@ -872,7 +872,7 @@
         "inference": "tasks.robocasa_bc5.inference",
         "name": "legacy_focus_CloseDrawer",
         "ood": true,
-        "predicted_success": 0.0015545661561191082,
+        "predicted_success": 0.003059445903636515,
         "real_eval_json": "data/autorobobench/pretrained_policies/robocasa_bc5_policy_correlation_set_20260623/focus_CloseDrawer/eval_bc5_2_per_task.json",
         "real_success_rate": 0.0
       }
@@ -881,19 +881,19 @@
     "policy_set": "/workspace/AutoRoboticsBench/data/autorobobench/robocasa_world_model_policy_set.json",
     "rollout_steps": 64,
     "skipped_policies": [],
-    "spearman": 0.6071428571428572,
+    "spearman": 0.642857142857143,
     "valid_policy_count": 7
   },
-  "visual_reconstruction_score": 0.8403522306919459,
+  "visual_reconstruction_score": 0.7247187098317857,
   "visual_transition_metrics": {
-    "next_progress_mse": 0.04454954872506186,
-    "next_rgb_lpips": 0.48266130535330454,
-    "next_rgb_mae": 0.07970905260704542,
-    "next_rgb_mse": 0.012771821544644334,
-    "next_rgb_psnr": 18.93747158306542,
-    "next_state_mse_norm": 0.028478561597436284,
+    "next_progress_mse": 0.03991921526504482,
+    "next_rgb_lpips": 0.5387606919938114,
+    "next_rgb_mae": 0.10685158727390696,
+    "next_rgb_mse": 0.02202250321345715,
+    "next_rgb_psnr": 16.57133317970803,
+    "next_state_mse_norm": 0.022953868470945236,
     "samples": 6615,
-    "success_bce": 0.021276268991483313
+    "success_bce": 0.018866756984165737
   },
-  "visual_world_model_score": 0.7506641571993179
+  "visual_world_model_score": 0.758622053112913
 }
