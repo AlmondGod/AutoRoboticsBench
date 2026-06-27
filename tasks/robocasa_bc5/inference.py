@@ -8,6 +8,7 @@ import inspect
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch import nn
 
 ROOT = Path(__import__("os").environ.get("ROBOAUTORESEARCH_REPO_ROOT", Path(__file__).resolve().parents[2])).resolve()
