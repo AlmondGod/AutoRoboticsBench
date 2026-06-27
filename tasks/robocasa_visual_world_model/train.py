@@ -1087,6 +1087,9 @@ def load_episode_transitions(dataset_root: Path, episode_id: int, task_id: int, 
     progress = rows.astype(np.float32) / max(1, n - 1)
     next_progress = (rows + 1).astype(np.float32) / max(1, n - 1)
     success = _episode_success(frame, rows, n)
+    if not _trajectory_succeeded(frame, success):
+        progress = np.zeros_like(progress, dtype=np.float32)
+        next_progress = np.zeros_like(next_progress, dtype=np.float32)
     return {
         "state": state[rows].astype(np.float32),
         "action": action[rows].astype(np.float32),
@@ -1109,6 +1112,14 @@ def _episode_success(frame: pd.DataFrame, rows: np.ndarray, n: int) -> np.ndarra
     if len(success):
         success[-1] = 1.0
     return success
+
+
+def _trajectory_succeeded(frame: pd.DataFrame, transition_success: np.ndarray) -> bool:
+    for key in ("next.success", "success", "is_success"):
+        if key in frame:
+            values = np.asarray(frame[key].to_numpy(), dtype=np.float32).reshape(-1)
+            return bool(len(values) and float(np.nanmax(values)) > 0.5)
+    return bool(len(transition_success) and float(np.nanmax(transition_success)) > 0.5)
 
 
 def episode_actions(dataset_root: Path, episode_id: int, frame: pd.DataFrame | None = None) -> np.ndarray:
